@@ -318,16 +318,38 @@ function cargarCapturas(
   funcion: Funcion,
   tonos: string[],
 ): CasoPreparado[] {
-  let archivos: string[];
+  let contenido: string[];
 
   try {
-    archivos = readdirSync(carpeta).filter(
-      (a) => EXTENSIONES[extname(a).toLowerCase()] !== undefined,
-    );
+    contenido = readdirSync(carpeta);
   } catch {
-    console.log(`  (no encontré la carpeta ${carpeta}, la omito)`);
+    console.log(`  ${funcion}: no existe la carpeta ${carpeta}, la omito.`);
     return [];
   }
+
+  const archivos = contenido.filter(
+    (a) => EXTENSIONES[extname(a).toLowerCase()] !== undefined,
+  );
+
+  // Callarse aquí sería peor que fallar: verías el lote correr entero y
+  // creerías que las capturas se probaron cuando no se probó ninguna.
+  if (archivos.length === 0) {
+    const motivo =
+      contenido.length === 0
+        ? 'está vacía'
+        : `tiene ${contenido.length} archivo(s), pero ninguno es imagen`;
+
+    console.log(
+      `  ${funcion}: la carpeta ${carpeta} ${motivo} → NO SE PRUEBA.\n` +
+        `    Copia ahí capturas .jpg .jpeg .png o .webp.`,
+    );
+    return [];
+  }
+
+  console.log(
+    `  ${funcion}: ${archivos.length} captura(s) × ${tonos.length} tonos = ` +
+      `${archivos.length * tonos.length} generaciones.`,
+  );
 
   const preparados: CasoPreparado[] = [];
 

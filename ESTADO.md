@@ -3,7 +3,7 @@
 > Documento de continuidad. Si retomas el proyecto en una conversación nueva,
 > empieza leyendo esto.
 
-**Última actualización:** 16 de agosto de 2026
+**Última actualización:** 17 de agosto de 2026
 
 ---
 
@@ -45,15 +45,23 @@ C:\Users\PERSONAL\Desktop\candela-ia\
 └── ESTADO.md    este archivo
 ```
 
-> 🔴 **Todavía NO hay repositorio Git.** Todo el proyecto vive sin versionar
-> en el Desktop. Los `.gitignore` de `backend/` y `mobile/` ya están escritos
-> y dejan fuera `node_modules/`, `dist/` y el `.env`, así que basta con:
->
-> ```bash
-> git init && git add -A && git status --short && git commit -m "Estado inicial"
-> ```
->
-> Y después subirlo a un repositorio **privado** en GitHub.
+Un solo repositorio Git en la raíz, con las dos carpetas dentro:
+
+**https://github.com/Candela-IA/Candela-IA-Mobile** (privado)
+
+Backend y app se versionan juntos a propósito: cambian a la vez —tocar un DTO
+de NestJS obliga a tocar `candela.ts` en la app— y así ese cambio es un solo
+commit que se entiende solo, en vez de dos historiales que hay que emparejar
+de memoria. Railway despliega desde `backend/` sin problema indicándole ese
+subdirectorio como root.
+
+> El repositorio se llama `-Mobile` por cómo se creó. Conviene renombrarlo a
+> `Candela-IA` desde Settings en GitHub: toma diez segundos y GitHub redirige
+> la URL vieja, así que no rompe nada.
+
+**Lo que NUNCA se sube** (ya cubierto por los `.gitignore`): `node_modules/`,
+`dist/` y `backend/.env`. Del entorno solo viaja `.env.example`, con
+placeholders.
 
 ---
 
@@ -129,8 +137,8 @@ Prisma — son reglas de negocio puras y testeables solas.
 
 | Prioridad | Qué | Nota |
 |---|---|---|
-| 🔴 | **Poner el proyecto en Git** | Ver sección 2. Cinco minutos |
 | 🔴 | **Validar calidad de prompts con IA real** | ~$1. Ver sección 7 |
+| 🟡 | Renombrar el repo a `Candela-IA` | Se llama `-Mobile` pero tiene backend + mobile |
 | 🟡 | Conectar el cobro (RevenueCat) | La pantalla ya está; falta el pago. Necesita build nativo — no corre en Expo Go |
 | 🟡 | URLs de términos y privacidad | Sin ellas, Apple rechaza el paywall |
 | 🟡 | Resto de la pantalla de Ajustes | Solo está la fila de Premium |

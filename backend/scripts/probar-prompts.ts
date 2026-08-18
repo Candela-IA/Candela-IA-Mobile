@@ -374,24 +374,23 @@ function cargarCapturas(
 // Ejecución
 // ─────────────────────────────────────────────────────────────────────────
 
+/**
+ * Cuántas veces se reintenta cuando la conexión ni siquiera llega.
+ *
+ * `npm run dev` es `nest start --watch` y se reinicia solo al detectar
+ * cambios; durante esos segundos el puerto rechaza todo. Un lote de cuatro
+ * minutos casi siempre pilla uno de esos reinicios, y perder el caso por eso
+ * es absurdo cuando basta con esperar.
+ */
+const REINTENTOS = 3;
+const ESPERA_REINTENTO_MS = 5_000;
+
 async function generar(
   token: string,
   caso: Caso,
   imagen?: { base64: string; mimeType: string },
 ): Promise<string> {
-  const respuesta = await fetch(`${BASE}/generar`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      funcion: caso.funcion,
-      tono: caso.tono,
-      contexto: caso.contexto,
-      imagen,
-    }),
-  });
+  const respuesta = await pedirConReintentos(token, caso, imagen);
 
   const cuerpo = (await respuesta.json()) as {
     mensaje?: string;
@@ -406,6 +405,53 @@ async function generar(
   }
 
   return cuerpo.mensaje ?? '(vacío)';
+}
+
+/**
+ * Solo reintenta cuando `fetch` LANZA, es decir cuando la petición no llegó
+ * a salir o murió en el camino.
+ *
+ * Nunca reintenta una respuesta HTTP, por mala que sea: un 402 o un 429 son
+ * respuestas del servidor, la petición sí llegó y el crédito ya se cobró.
+ * Reintentar ahí gastaría créditos de verdad y taparía el problema real.
+ */
+async function pedirConReintentos(
+  token: string,
+  caso: Caso,
+  imagen?: { base64: string; mimeType: string },
+): Promise<Response> {
+  let ultimoError: unknown;
+
+  for (let intento = 1; intento <= REINTENTOS; intento++) {
+    try {
+      return await fetch(`${BASE}/generar`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          funcion: caso.funcion,
+          tono: caso.tono,
+          contexto: caso.contexto,
+          imagen,
+        }),
+      });
+    } catch (e) {
+      ultimoError = e;
+
+      if (intento < REINTENTOS) {
+        process.stdout.write(`sin conexión, reintento ${intento}… `);
+        await dormir(ESPERA_REINTENTO_MS);
+      }
+    }
+  }
+
+  throw new Error(
+    'sin conexión tras ' +
+      `${REINTENTOS} intentos (¿se reinició el backend?): ` +
+      (ultimoError instanceof Error ? ultimoError.message : String(ultimoError)),
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────

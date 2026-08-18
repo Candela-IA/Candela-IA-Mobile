@@ -21,3 +21,7 @@ Thumbs.db
 
 # Tests
 coverage/
+
+# Capturas para el banco de pruebas de prompts.
+# NUNCA al repositorio: son conversaciones reales de personas reales.
+capturas/

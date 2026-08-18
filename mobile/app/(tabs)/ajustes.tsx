@@ -1,96 +1,216 @@
-import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, espacio, tipografia } from '../../src/core/theme';
+import { AppConfig } from '../../src/config/app_config';
+import { useSesion } from '../../src/core/di/sesion';
+import { abrirEnlaceLegal, contactarSoporte } from '../../src/core/legal';
+import { colors, espacio, radio, tipografia } from '../../src/core/theme';
+import { FilaAjuste, SeparadorAjuste } from '../../src/core/ui/FilaAjuste';
 import { FondoPantalla } from '../../src/core/ui/FondoPantalla';
-import { IconoDegradado } from '../../src/core/ui/IconoDegradado';
+import { Interruptor } from '../../src/core/ui/Interruptor';
 import { TarjetaGlass } from '../../src/core/ui/TarjetaGlass';
 
+const LOGO = require('../../assets/logo-candela.png');
+
 /**
- * Ajustes — pendiente.
+ * AJUSTES
  *
- * Existe para que la pestaña funcione mientras construimos el Home. Su
- * contenido real (Onboarding, Contáctanos, Personalización...) va después.
- *
- * La fila de Premium sí es definitiva: el paywall tiene que poder abrirse
- * sin agotar antes los cinco créditos gratis.
+ * Sigue el orden del prototipo: primero lo que genera ingresos (Premium),
+ * después lo que el usuario cambia a menudo, y al final lo legal y el
+ * contacto.
  */
 export default function Ajustes() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
+  const esPremium = useSesion((estado) => estado.saldo?.esPremium ?? false);
+  const haySesion = useSesion((estado) => estado.saldo !== null);
+  const simularPremium = useSesion((estado) => estado.simularPremium);
+
+  // De app.json, no de expo-application: dentro de Expo Go esa librería
+  // devuelve la versión de Expo Go, no la de Candela.
+  const version = Constants.expoConfig?.version ?? '1.0.0';
+
+  const pendiente = (que: string) =>
+    Alert.alert('Todavía no está listo', `${que} se conecta más adelante.`);
+
   return (
     <FondoPantalla>
       <ScrollView
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           estilos.scroll,
-          { paddingTop: insets.top + espacio.xl },
+          { paddingTop: insets.top + espacio.base },
         ]}
       >
         <Text style={estilos.titulo}>Ajustes</Text>
 
-        <TarjetaGlass
-          tono="ambar"
-          activa
-          onPress={() => router.push('/premium')}
-          estilo={estilos.premium}
-        >
-          <View style={estilos.filaPremium}>
-            <IconoDegradado nombre="diamond" tono="ambar" />
-            <View style={estilos.textosPremium}>
-              <Text style={estilos.tituloPremium}>Candela Premium</Text>
-              <Text style={estilos.descPremium}>
-                Respuestas ilimitadas y todos los modos.
-              </Text>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={18}
-              color={colors.texto.tenue}
-            />
-          </View>
+        <TarjetaGlass tono="rosa" padding={0} estilo={estilos.tarjeta}>
+          <FilaAjuste
+            icono="sparkles"
+            tono="rosa"
+            titulo="Candela IA Premium"
+            subtitulo="Desbloquea todo el poder de la IA"
+            destacado
+            onPress={() => router.push('/premium')}
+          />
         </TarjetaGlass>
 
-        <View style={estilos.aviso}>
-          <Text style={estilos.textoAviso}>
-            El resto de esta pantalla se construye después del Home y las
-            cuatro funciones.
-          </Text>
-        </View>
+        {/*
+          Interruptor de pruebas: enciende premium en memoria para poder
+          revisar los tonos bloqueados sin pagar. Solo existe en desarrollo;
+          en una build de producción este bloque no se dibuja, porque si
+          llegara a la tienda cualquiera se saltaría el paywall.
+        */}
+        {AppConfig.esDesarrollo ? (
+          <TarjetaGlass
+            tono={esPremium ? 'ambar' : 'purpura'}
+            padding={0}
+            estilo={estilos.tarjeta}
+          >
+            <FilaAjuste
+              icono={esPremium ? 'sparkles' : 'lock-closed'}
+              tono={esPremium ? 'ambar' : 'purpura'}
+              titulo="Paywall Premium (pruebas)"
+              subtitulo={
+                esPremium
+                  ? 'Respuestas premium desbloqueadas'
+                  : 'Opciones premium bloqueadas tras el paywall'
+              }
+              derecha={
+                <Interruptor
+                  valor={esPremium}
+                  onCambiar={() => {
+                    if (!haySesion) {
+                      pendiente('El simulador necesita el backend corriendo, y');
+                      return;
+                    }
+                    simularPremium(!esPremium);
+                  }}
+                  etiqueta="Simular suscripción premium"
+                />
+              }
+            />
+          </TarjetaGlass>
+        ) : null}
+
+        <TarjetaGlass tono="cian" padding={0} estilo={estilos.tarjeta}>
+          <FilaAjuste
+            icono="sparkles"
+            tono="cian"
+            titulo="Onboarding"
+            subtitulo="Vuelve a ver el tutorial inicial"
+            onPress={() => router.push('/onboarding')}
+          />
+        </TarjetaGlass>
+
+        <TarjetaGlass tono="purpura" padding={0} estilo={estilos.tarjeta}>
+          <FilaAjuste
+            compacta
+            icono="mail"
+            tono="azul"
+            titulo="Contáctanos"
+            subtitulo="Soporte y ayuda"
+            onPress={() => void contactarSoporte()}
+          />
+          <SeparadorAjuste />
+          <FilaAjuste
+            compacta
+            icono="chatbubble-ellipses"
+            tono="cian"
+            titulo="Tu opinión"
+            subtitulo="Ayúdanos a mejorar"
+            onPress={() => pendiente('Valorar la app en la tienda')}
+          />
+          <SeparadorAjuste />
+          <FilaAjuste
+            compacta
+            icono="shield-checkmark"
+            tono="purpura"
+            titulo="Política de Privacidad"
+            subtitulo="Cómo protegemos tus datos"
+            onPress={() => abrirEnlaceLegal('privacidad')}
+          />
+          <SeparadorAjuste />
+          <FilaAjuste
+            compacta
+            icono="document-text"
+            tono="rosa"
+            titulo="Términos de Uso"
+            subtitulo="Condiciones de uso de la app"
+            onPress={() => abrirEnlaceLegal('terminos')}
+          />
+          <SeparadorAjuste />
+          <FilaAjuste
+            compacta
+            icono="brush"
+            tono="ambar"
+            titulo="Personalización"
+            subtitulo="Ajusta el estilo a tu gusto"
+            onPress={() => router.push('/personalizacion')}
+          />
+        </TarjetaGlass>
+
+        <TarjetaGlass tono="rosa" padding={espacio.lg} estilo={estilos.tarjeta}>
+          <View style={estilos.filaVersion}>
+            <View style={estilos.marcoLogo}>
+              <Image source={LOGO} style={estilos.logo} contentFit="contain" />
+            </View>
+            <View style={estilos.textosVersion}>
+              <Text style={estilos.nombreApp}>Candela IA</Text>
+              <Text style={estilos.version}>Versión {version}</Text>
+              <Text style={estilos.copyright}>
+                © {new Date().getFullYear()} Candela IA. Todos los derechos
+                reservados.
+              </Text>
+            </View>
+          </View>
+        </TarjetaGlass>
       </ScrollView>
     </FondoPantalla>
   );
 }
 
 const estilos = StyleSheet.create({
-  scroll: { paddingHorizontal: espacio.lg },
+  scroll: { paddingHorizontal: espacio.lg, paddingBottom: espacio.xl },
+
   titulo: {
     ...tipografia.titulo,
+    fontSize: 24,
     color: colors.texto.blanco,
-    marginBottom: espacio.xl,
+    marginBottom: espacio.base,
   },
-  premium: { marginBottom: espacio.lg },
-  filaPremium: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: espacio.md,
-  },
-  textosPremium: { flex: 1 },
-  tituloPremium: {
-    ...tipografia.cuerpoFuerte,
-    color: colors.texto.blanco,
-    marginBottom: 2,
-  },
-  descPremium: { ...tipografia.pequeno, color: colors.texto.suave },
+  tarjeta: { marginBottom: espacio.base },
 
-  aviso: {
-    padding: espacio.base,
-    borderRadius: 20,
+  filaVersion: { flexDirection: 'row', alignItems: 'center', gap: espacio.base },
+  marcoLogo: {
+    width: 64,
+    height: 64,
+    borderRadius: radio.xl,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.oscuro.ciruelaSuave,
     borderWidth: 1,
-    borderColor: colors.borde,
-    backgroundColor: colors.tarjeta,
+    borderColor: 'rgba(255,45,138,0.35)',
   },
-  textoAviso: { ...tipografia.cuerpo, color: colors.texto.suave },
+  logo: { width: '100%', height: '100%' },
+  textosVersion: { flex: 1 },
+  nombreApp: { ...tipografia.subtitulo, fontSize: 16, color: colors.texto.blanco },
+  version: {
+    ...tipografia.pequeno,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.4)',
+    marginTop: 2,
+  },
+  copyright: {
+    ...tipografia.pequeno,
+    fontSize: 10,
+    lineHeight: 14,
+    color: 'rgba(255,255,255,0.25)',
+    marginTop: 4,
+  },
 });

@@ -2,6 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ReactNode } from 'react';
 import { Platform, Pressable, StyleSheet, View, ViewStyle } from 'react-native';
 
+import { usarPreferencias } from '../di/preferencias';
 import { colors, TonoAcento, TONOS } from '../theme';
 
 interface Props {
@@ -36,6 +37,8 @@ export function TarjetaGlass({
   padding = 16,
 }: Props) {
   const t = TONOS[tono];
+  // Ajustes → Personalización → "Brillo neón".
+  const brillo = usarPreferencias((estado) => estado.brilloNeon);
 
   const contenido = (
     <View
@@ -46,15 +49,17 @@ export function TarjetaGlass({
           borderColor: `rgba(${t.rgb},${activa ? 0.55 : 0.28})`,
           borderWidth: activa ? 1.5 : 1,
         },
-        Platform.select({
-          ios: {
-            shadowColor: t.hex,
-            shadowOpacity: intensidad + (activa ? 0.25 : 0),
-            shadowRadius: 18,
-            shadowOffset: { width: 0, height: 8 },
-          },
-          android: { elevation: activa ? 6 : 2 },
-        }),
+        brillo
+          ? Platform.select({
+              ios: {
+                shadowColor: t.hex,
+                shadowOpacity: intensidad + (activa ? 0.25 : 0),
+                shadowRadius: 18,
+                shadowOffset: { width: 0, height: 8 },
+              },
+              android: { elevation: activa ? 6 : 2 },
+            })
+          : null,
         estilo,
       ]}
     >

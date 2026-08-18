@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Platform, StyleSheet, View } from 'react-native';
 
+import { usarPreferencias } from '../di/preferencias';
 import { colors, TonoAcento, TONOS } from '../theme';
 
 interface Props {
@@ -28,21 +29,25 @@ export function IconoDegradado({
   radio = 16,
 }: Props) {
   const t = TONOS[tono];
+  // Ajustes → Personalización → "Brillo neón".
+  const brillo = usarPreferencias((estado) => estado.brilloNeon);
 
   return (
     <View
       style={[
         estilos.contenedor,
         { width: tamano, height: tamano, borderRadius: radio },
-        Platform.select({
-          ios: {
-            shadowColor: t.hex,
-            shadowOpacity: 0.62,
-            shadowRadius: 10,
-            shadowOffset: { width: 0, height: 6 },
-          },
-          android: { elevation: 5 },
-        }),
+        brillo
+          ? Platform.select({
+              ios: {
+                shadowColor: t.hex,
+                shadowOpacity: 0.62,
+                shadowRadius: 10,
+                shadowOffset: { width: 0, height: 6 },
+              },
+              android: { elevation: 5 },
+            })
+          : null,
       ]}
     >
       <LinearGradient

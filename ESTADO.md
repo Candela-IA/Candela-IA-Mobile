@@ -130,6 +130,11 @@ Prisma — son reglas de negocio puras y testeables solas.
 - **Paywall `/premium`** completo: dos planes, ahorro calculado, pie fijo,
   enlaces legales. Se abre solo al agotar créditos (402) y desde Ajustes.
   El cobro está sin conectar y **no concede premium a nadie** (a propósito)
+- **Ajustes** completo: Premium, Onboarding, Contáctanos (abre el correo),
+  legal y Personalización, más la tarjeta de versión
+- **Personalización** con sus tres interruptores (animaciones, partículas,
+  brillo neón). Se guardan en el teléfono y los respetan `FondoPantalla`,
+  `TarjetaGlass` e `IconoDegradado`, así que el cambio se ve en toda la app
 
 ---
 
@@ -140,11 +145,12 @@ Prisma — son reglas de negocio puras y testeables solas.
 | 🔴 | **Validar calidad de prompts con IA real** | ~$1. Ver sección 7 |
 | 🟡 | Renombrar el repo a `Candela-IA` | Se llama `-Mobile` pero tiene backend + mobile |
 | 🟡 | Conectar el cobro (RevenueCat) | La pantalla ya está; falta el pago. Necesita build nativo — no corre en Expo Go |
-| 🟡 | URLs de términos y privacidad | Sin ellas, Apple rechaza el paywall |
-| 🟡 | Resto de la pantalla de Ajustes | Solo está la fila de Premium |
+| 🟡 | URLs de términos y privacidad | Sin ellas Apple rechaza el paywall. Las piden el paywall y Ajustes |
 | 🟡 | Lógica de primer arranque | Onboarding solo la primera vez |
 | 🟡 | `POST /generaciones/:id/calificar` | El widget "Muy buena" |
 | 🟢 | Webhook de RevenueCat | Suscripciones reales |
+| 🟢 | Pantalla de Términos dentro de la app | El prototipo la trae escrita; hoy Ajustes abre una URL |
+| 🟢 | "Tu opinión" | Debe abrir la ficha de la tienda; no existe hasta publicar |
 | 🟢 | Historial | Se quitó de la barra; decidir dónde va |
 | 🟢 | Íconos de la app en 1024×1024 | `assets/icon.png` sigue con el de Expo |
 
@@ -185,6 +191,16 @@ barato hacerlo ahora que después de construir paywall, suscripciones y tiendas.
 - **Una sola pantalla para las 4 funciones.** Lo que las diferencia lo dice el
   catálogo.
 - **Android primero**, iOS después (mismo código, otro comando de compilación).
+- **El cobro va por Google Play Billing, no por Google Pay.** Son cosas
+  distintas: Google Pay es para bienes y servicios del mundo real; el
+  contenido digital dentro de una app publicada en Play tiene que pasar
+  obligatoriamente por Play Billing, y saltárselo es causa de retirada de la
+  app. La experiencia es la misma que se espera —sube una hoja de Google con
+  las tarjetas que el usuario ya tiene guardadas—, solo cambia el mecanismo.
+  En iOS, Apple IAP. RevenueCat envuelve los dos.
+- **Las preferencias de Personalización se guardan en `expo-secure-store`**,
+  no en AsyncStorage: evita añadir una dependencia nativa nueva y tres
+  booleanos caben de sobra en el límite de 2 KB por clave.
 
 ---
 

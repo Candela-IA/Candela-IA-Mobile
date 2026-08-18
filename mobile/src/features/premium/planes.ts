@@ -182,18 +182,3 @@ export const VENTAJAS: readonly VentajaDestacada[] = [
     texto: 'Nuevas funciones premium',
   },
 ];
-
-// ── Enlaces legales ───────────────────────────────────────────────────────
-
-/**
- * Apple exige que el paywall enseñe los términos y la política de privacidad
- * (guía de revisión 3.1.2), y Google pide lo mismo para suscripciones. Sin
- * estos enlaces la app se rechaza en revisión.
- *
- * TODO(cliente): pedir las dos URL. Mientras estén vacías, la pantalla avisa
- * en vez de abrir un enlace roto.
- */
-export const ENLACES_LEGALES = {
-  terminos: '',
-  privacidad: '',
-} as const;

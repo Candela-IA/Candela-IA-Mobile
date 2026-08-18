@@ -9,6 +9,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { usarPreferencias } from '../di/preferencias';
 import { colors, degradados } from '../theme';
 
 /**
@@ -19,9 +20,12 @@ import { colors, degradados } from '../theme';
 
 interface Props {
   children: ReactNode;
-  /** Ajustes → Personalización → "Animaciones de fondo". */
+  /**
+   * Fuerza el estado de las auras ignorando lo que diga Ajustes. Sin valor
+   * manda la preferencia del usuario, que es lo normal.
+   */
   animaciones?: boolean;
-  /** Ajustes → Personalización → "Partículas flotantes". */
+  /** Igual que `animaciones`, para las partículas. */
   particulas?: boolean;
 }
 
@@ -45,17 +49,25 @@ const CAPAS_AURA = Array.from({ length: 14 }, (_, i) => ({
   opacidad: 0.012,
 }));
 
-export function FondoPantalla({
-  children,
-  animaciones = true,
-  particulas = true,
-}: Props) {
+export function FondoPantalla({ children, animaciones, particulas }: Props) {
+  // Se lee aquí y no en cada pantalla: así los cinco sitios que usan este
+  // fondo obedecen a Ajustes sin que ninguno tenga que acordarse.
+  //
+  // Un selector por valor, nunca uno que devuelva un objeto: zustand compara
+  // con `Object.is`, y un objeto nuevo en cada render se ve siempre distinto
+  // del anterior, lo que dispara un bucle de re-renderizado.
+  const auras = usarPreferencias((estado) => estado.animacionesFondo);
+  const destellos = usarPreferencias((estado) => estado.particulasFlotantes);
+
+  const conAuras = animaciones ?? auras;
+  const conParticulas = particulas ?? destellos;
+
   return (
     <View style={estilos.raiz}>
       <LinearGradient colors={degradados.pantalla} style={StyleSheet.absoluteFill} />
 
-      {animaciones ? <Auras /> : null}
-      {particulas ? <Particulas /> : null}
+      {conAuras ? <Auras /> : null}
+      {conParticulas ? <Particulas /> : null}
 
       <View style={estilos.contenido}>{children}</View>
     </View>

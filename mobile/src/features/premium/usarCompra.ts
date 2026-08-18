@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
-import { Alert, Linking } from 'react-native';
+import { Alert } from 'react-native';
 
-import { ENLACES_LEGALES, IdPlan, PLANES } from './planes';
+import { abrirEnlaceLegal, TipoEnlaceLegal } from '../../core/legal';
+import { IdPlan, PLANES } from './planes';
 
 /**
  * COMPRA DE LA SUSCRIPCIÓN — todavía sin conectar.
@@ -49,20 +50,10 @@ export function usarCompra() {
     );
   }, []);
 
-  const abrirLegal = useCallback((cual: keyof typeof ENLACES_LEGALES) => {
-    const url = ENLACES_LEGALES[cual];
-
-    if (!url) {
-      Alert.alert(
-        'Enlace pendiente',
-        'Falta que el cliente entregue la URL de términos y de política de ' +
-          'privacidad. Las dos tienen que estar publicadas antes de enviar ' +
-          'la app a revisión.',
-      );
-      return;
-    }
-
-    void Linking.openURL(url);
+  // Los enlaces viven en `core/legal` porque Ajustes muestra los mismos, y
+  // dos copias del mismo dato acaban divergiendo.
+  const abrirLegal = useCallback((cual: TipoEnlaceLegal) => {
+    abrirEnlaceLegal(cual);
   }, []);
 
   return {

@@ -61,6 +61,16 @@ interface EstadoSesion {
   iniciar: () => Promise<void>;
   /** Refresca el saldo tras generar o comprar suscripción. */
   actualizarSaldo: (saldo: SaldoApi) => void;
+  /**
+   * SOLO DESARROLLO. Enciende premium en el saldo que la app tiene en
+   * memoria, para poder revisar los tonos y pantallas premium sin pagar.
+   *
+   * No desbloquea nada de verdad: el backend sigue cobrando créditos y
+   * respondiendo 402 cuando se acaben. Es una ayuda visual, no un atajo.
+   * Fuera de desarrollo no hace nada, y el interruptor que la llama tampoco
+   * se dibuja.
+   */
+  simularPremium: (valor: boolean) => void;
 }
 
 export const useSesion = create<EstadoSesion>((set, get) => ({
@@ -103,4 +113,13 @@ export const useSesion = create<EstadoSesion>((set, get) => ({
   },
 
   actualizarSaldo: (saldo) => set({ saldo }),
+
+  simularPremium: (valor) => {
+    if (!AppConfig.esDesarrollo) return;
+
+    const saldo = get().saldo;
+    if (!saldo) return;
+
+    set({ saldo: { ...saldo, esPremium: valor } });
+  },
 }));

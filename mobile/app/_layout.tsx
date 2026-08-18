@@ -1,8 +1,10 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { usarPreferencias } from '../src/core/di/preferencias';
 import { colors } from '../src/core/theme';
 
 /**
@@ -30,6 +32,15 @@ const queryClient = new QueryClient({
 });
 
 export default function LayoutRaiz() {
+  const cargarPreferencias = usarPreferencias((estado) => estado.cargar);
+
+  // Se leen aquí, en la raíz, para que la primera pantalla ya se pinte con
+  // los ajustes del usuario. Si se leyeran dentro de cada pantalla, quien
+  // apagó las animaciones las vería aparecer y desaparecer al arrancar.
+  useEffect(() => {
+    void cargarPreferencias();
+  }, [cargarPreferencias]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>

@@ -12,6 +12,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "db:setup": "ts-node scripts/setup-db.ts",
+    "probar:prompts": "ts-node scripts/probar-prompts.ts",
     "db:init": "npm run db:setup && prisma migrate dev --name inicial && prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",

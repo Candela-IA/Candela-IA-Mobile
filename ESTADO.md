@@ -117,6 +117,8 @@ Prisma — son reglas de negocio puras y testeables solas.
 - `POST /generar` con proveedor intercambiable
 - Errores de dominio traducidos a HTTP (402 → paywall)
 - 10 pruebas del dominio en verde
+- Banco de pruebas de prompts (`npm run probar:prompts`): dispara un lote
+  contra la API y lo imprime junto, con costo y latencia
 
 ### App ✅ funcional
 
@@ -147,7 +149,6 @@ Prisma — son reglas de negocio puras y testeables solas.
 | 🟡 | Conectar el cobro (RevenueCat) | La pantalla ya está; falta el pago. Necesita build nativo — no corre en Expo Go |
 | 🟡 | URLs de términos y privacidad | Sin ellas Apple rechaza el paywall. Las piden el paywall y Ajustes |
 | 🟡 | Lógica de primer arranque | Onboarding solo la primera vez |
-| 🟡 | `POST /generaciones/:id/calificar` | El widget "Muy buena" |
 | 🟢 | Webhook de RevenueCat | Suscripciones reales |
 | 🟢 | Pantalla de Términos dentro de la app | El prototipo la trae escrita; hoy Ajustes abre una URL |
 | 🟢 | "Tu opinión" | Debe abrir la ficha de la tienda; no existe hasta publicar |
@@ -168,8 +169,10 @@ mano. Nadie ha visto una respuesta real del modelo.
 # 2. En backend/.env:
 AI_PROVIDER="openai"
 OPENAI_API_KEY="sk-proj-..."
-# 3. Generar 20-30 mensajes reales en las 4 funciones
-# 4. Preguntarse por cada uno: ¿lo mandaría de verdad?
+# 3. Reiniciar el backend y disparar el lote:
+npm run probar:prompts
+npm run probar:prompts -- --capturas ./capturas   # incluye chat y stories
+# 4. Leer cada resultado y preguntarse: ¿lo mandaría de verdad?
 ```
 
 **Por qué antes que el paywall:** la calidad del mensaje **es** el producto;
@@ -214,6 +217,7 @@ barato hacerlo ahora que después de construir paywall, suscripciones y tiendas.
 | Rutas nuevas que no aparecen | Metro cachea el mapa de rutas → `npx expo start --clear` |
 | Errores rojos en VS Code que `tsc` no ve | Servidor de TypeScript desactualizado → *Developer: Reload Window* |
 | `Cannot find module 'dist/main'` | Se borró `dist` pero quedó el `.tsbuildinfo` (ya corregido) |
+| "El widget Muy buena" | **No existe tal widget.** En el prototipo, "Básica"/"Muy buena" es la etiqueta de calidad que compara el tono gratis con el premium — un argumento de venta, no una calificación del usuario. La columna `rating` de `generations` quedó de esa confusión y hoy nadie la escribe |
 
 **Regla de oro:** si la terminal (`npx tsc --noEmit`) dice que está bien y el
 editor dice que no, **gana la terminal**.

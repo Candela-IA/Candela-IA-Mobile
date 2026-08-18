@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { usarPreferencias } from '../src/core/di/preferencias';
+import { useSesion } from '../src/core/di/sesion';
 import { colors } from '../src/core/theme';
 
 /**
@@ -33,6 +34,7 @@ const queryClient = new QueryClient({
 
 export default function LayoutRaiz() {
   const cargarPreferencias = usarPreferencias((estado) => estado.cargar);
+  const iniciarSesion = useSesion((estado) => estado.iniciar);
 
   // Se leen aquí, en la raíz, para que la primera pantalla ya se pinte con
   // los ajustes del usuario. Si se leyeran dentro de cada pantalla, quien
@@ -40,6 +42,15 @@ export default function LayoutRaiz() {
   useEffect(() => {
     void cargarPreferencias();
   }, [cargarPreferencias]);
+
+  // La sesión también arranca aquí, no dentro de las pantallas de generación.
+  // El saldo hace falta en Ajustes y en el paywall, y si solo se pidiera al
+  // abrir una función, entrar directo a Ajustes mostraría "sin sesión" aunque
+  // el backend estuviera corriendo. Es idempotente: llamarla de más no hace
+  // una segunda petición.
+  useEffect(() => {
+    void iniciarSesion();
+  }, [iniciarSesion]);
 
   return (
     <QueryClientProvider client={queryClient}>

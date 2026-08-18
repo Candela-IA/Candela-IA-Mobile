@@ -57,6 +57,11 @@ export function Interruptor({ valor, onCambiar, etiqueta }: Props) {
         estilos.pista,
         !valor && estilos.apagado,
         valor &&
+          // Solo iOS: en Android `elevation` sobre una vista sin color de
+          // fondo —aquí el fondo lo pinta el degradado, que es un hijo—
+          // dibuja una sombra rectangular por detrás de la píldora. Y el
+          // resplandor rosa del diseño Android no lo sabe hacer de todas
+          // formas, porque `elevation` no admite color.
           Platform.select({
             ios: {
               shadowColor: colors.marca.rosa,
@@ -64,17 +69,19 @@ export function Interruptor({ valor, onCambiar, etiqueta }: Props) {
               shadowRadius: 9,
               shadowOffset: { width: 0, height: 0 },
             },
-            android: { elevation: 4 },
           }),
         pressed && estilos.presionado,
       ]}
     >
       {valor ? (
+        // El degradado trae su propio radio en vez de apoyarse en un
+        // `overflow: 'hidden'` del padre: en Android ese recorte convive mal
+        // con los hijos que proyectan sombra.
         <LinearGradient
           colors={degradados.marca}
           start={direccionMarca.start}
           end={direccionMarca.end}
-          style={StyleSheet.absoluteFill}
+          style={[StyleSheet.absoluteFill, estilos.relleno]}
         />
       ) : null}
 
@@ -91,8 +98,8 @@ const estilos = StyleSheet.create({
     height: 28,
     borderRadius: radio.pildora,
     padding: 3,
-    overflow: 'hidden',
   },
+  relleno: { borderRadius: radio.pildora },
   apagado: {
     backgroundColor: 'rgba(255,255,255,0.08)',
     borderWidth: 1,
@@ -108,6 +115,9 @@ const estilos = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     backgroundColor: colors.texto.blanco,
+    // En Android va SIN `elevation` a propósito: era lo que hacía
+    // desaparecer el círculo con el interruptor apagado. La sombra del
+    // círculo es decorativa; que el círculo se vea, no.
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -115,7 +125,6 @@ const estilos = StyleSheet.create({
         shadowRadius: 3,
         shadowOffset: { width: 0, height: 2 },
       },
-      android: { elevation: 3 },
     }),
   },
 });

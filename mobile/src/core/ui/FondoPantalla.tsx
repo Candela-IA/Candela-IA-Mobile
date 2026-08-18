@@ -1,0 +1,228 @@
+import { LinearGradient } from 'expo-linear-gradient';
+import { ReactNode, useEffect } from 'react';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
+
+import { colors, degradados } from '../theme';
+
+/**
+ * Fondo de todas las pantallas: auras de color latiendo y partículas.
+ *
+ * Todo se puede apagar desde Ajustes → Personalización, tal como el diseño.
+ */
+
+interface Props {
+  children: ReactNode;
+  /** Ajustes → Personalización → "Animaciones de fondo". */
+  animaciones?: boolean;
+  /** Ajustes → Personalización → "Partículas flotantes". */
+  particulas?: boolean;
+}
+
+const CANTIDAD_PARTICULAS = 14;
+
+/**
+ * Capas del aura, simulando el `filter: blur(120px)` del prototipo web.
+ *
+ * React Native no tiene ese filtro, y un `borderRadius` grande da un disco
+ * de canto duro. La solución es apilar muchos círculos concéntricos con
+ * opacidad MUY baja cada uno: en el centro se acumulan todos (~0.17) y
+ * hacia afuera solo queda el último (0.012), que es invisible. Así el borde
+ * desaparece en vez de cortarse.
+ *
+ * La clave está en el número de capas, no en la opacidad de cada una: con
+ * pocas capas el filo del círculo mayor sigue viéndose por más que se baje
+ * su opacidad.
+ */
+const CAPAS_AURA = Array.from({ length: 14 }, (_, i) => ({
+  escala: 1 - i * 0.062,
+  opacidad: 0.012,
+}));
+
+export function FondoPantalla({
+  children,
+  animaciones = true,
+  particulas = true,
+}: Props) {
+  return (
+    <View style={estilos.raiz}>
+      <LinearGradient colors={degradados.pantalla} style={StyleSheet.absoluteFill} />
+
+      {animaciones ? <Auras /> : null}
+      {particulas ? <Particulas /> : null}
+
+      <View style={estilos.contenido}>{children}</View>
+    </View>
+  );
+}
+
+function Auras() {
+  const { width, height } = useWindowDimensions();
+  const pulso = useSharedValue(0);
+
+  useEffect(() => {
+    pulso.value = withRepeat(
+      withTiming(1, { duration: 7000, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true,
+    );
+  }, [pulso]);
+
+  const base = width * 1.5;
+
+  return (
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      <Aura
+        color={colors.marca.rosa}
+        tamano={base}
+        pulso={pulso}
+        posicion={{ top: -base * 0.55, left: -base * 0.3 }}
+      />
+      <Aura
+        color={colors.marca.purpura}
+        tamano={base}
+        pulso={pulso}
+        posicion={{ top: height * 0.55, left: width - base * 0.55 }}
+      />
+    </View>
+  );
+}
+
+function Aura({
+  color,
+  tamano,
+  pulso,
+  posicion,
+}: {
+  color: string;
+  tamano: number;
+  pulso: { value: number };
+  posicion: { top: number; left: number };
+}) {
+  const estiloPulso = useAnimatedStyle(() => ({
+    opacity: 0.55 + pulso.value * 0.45,
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        estilos.grupoAura,
+        estiloPulso,
+        { width: tamano, height: tamano, ...posicion },
+      ]}
+    >
+      {CAPAS_AURA.map((capa, indice) => (
+        <View
+          key={indice}
+          style={[
+            estilos.capaAura,
+            {
+              width: tamano * capa.escala,
+              height: tamano * capa.escala,
+              borderRadius: (tamano * capa.escala) / 2,
+              backgroundColor: color,
+              opacity: capa.opacidad,
+            },
+          ]}
+        />
+      ))}
+    </Animated.View>
+  );
+}
+
+function Particulas() {
+  const { width, height } = useWindowDimensions();
+
+  return (
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      {Array.from({ length: CANTIDAD_PARTICULAS }).map((_, i) => (
+        <Particula key={i} indice={i} ancho={width} alto={height} />
+      ))}
+    </View>
+  );
+}
+
+const COLORES_PARTICULA = [
+  colors.marca.rosa,
+  colors.marca.purpura,
+  colors.marca.azul,
+  colors.marca.cian,
+  colors.texto.blanco,
+];
+
+function Particula({
+  indice,
+  ancho,
+  alto,
+}: {
+  indice: number;
+  ancho: number;
+  alto: number;
+}) {
+  const progreso = useSharedValue(0);
+
+  // Posición determinista a partir del índice: si fuera aleatoria, las
+  // partículas saltarían de sitio en cada re-render.
+  const x = ((indice * 137) % 100) / 100;
+  const y = ((indice * 251) % 100) / 100;
+  const tamano = 2 + (indice % 3);
+  const color = COLORES_PARTICULA[indice % COLORES_PARTICULA.length]!;
+  const duracion = 4000 + (indice % 5) * 900;
+
+  useEffect(() => {
+    progreso.value = withRepeat(
+      withTiming(1, { duration: duracion, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true,
+    );
+  }, [progreso, duracion]);
+
+  const estilo = useAnimatedStyle(() => ({
+    opacity: 0.12 + progreso.value * 0.45,
+    transform: [{ translateY: -progreso.value * 22 }],
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        estilos.particula,
+        estilo,
+        {
+          left: x * ancho,
+          top: y * alto,
+          width: tamano,
+          height: tamano,
+          borderRadius: tamano,
+          backgroundColor: color,
+        },
+      ]}
+    />
+  );
+}
+
+const estilos = StyleSheet.create({
+  raiz: {
+    flex: 1,
+    backgroundColor: colors.fondo,
+  },
+  contenido: {
+    flex: 1,
+  },
+  grupoAura: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  capaAura: {
+    position: 'absolute',
+  },
+  particula: {
+    position: 'absolute',
+  },
+});

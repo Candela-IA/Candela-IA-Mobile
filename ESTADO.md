@@ -1,0 +1,236 @@
+# Candela IA — Estado del proyecto
+
+> Documento de continuidad. Si retomas el proyecto en una conversación nueva,
+> empieza leyendo esto.
+
+**Última actualización:** 16 de agosto de 2026
+
+---
+
+## 1. Qué es
+
+App móvil que ayuda a ligar. El usuario sube una captura de un chat o una
+historia de Instagram y la IA le devuelve un mensaje listo para copiar, en el
+tono que elija.
+
+Es un **encargo de un cliente externo**. Sebastián desarrolla; el cliente
+entrega el diseño (Figma) y pone las cuentas de infraestructura.
+
+**Modelo de negocio:** 5 generaciones gratis por dispositivo → suscripción.
+Plan anual **$39.99** / semanal **$4.99**, con 3 días de prueba.
+
+> ⚠️ Estos son los precios del diseño de Figma, y son los que están en el
+> código (`mobile/src/features/premium/planes.ts`). Una versión anterior de
+> este documento decía $32.99 / $4.40 — **falta confirmar con el cliente cuál
+> es el bueno**. El precio definitivo lo fija la ficha del producto en las
+> tiendas, no la app.
+
+### Las cuatro funciones
+
+| Función | ¿Captura? | ¿Contexto? | Notas |
+|---|---|---|---|
+| Analizar chat | Sí | Sí | 6 tonos gratis + 3 premium |
+| Analizar Stories | Sí (vertical) | No | 4 gratis + 2 premium |
+| Rompehielos | No | No | Solo "Básico" gratis; 4 premium |
+| Crear notas | No | Sí | Máx. 60 caracteres (límite de Instagram) |
+
+---
+
+## 2. Dónde está
+
+```
+C:\Users\PERSONAL\Desktop\candela-ia\
+├── backend/     NestJS + Prisma + MySQL (arquitectura DDD)
+├── mobile/      React Native + Expo SDK 54
+└── ESTADO.md    este archivo
+```
+
+> 🔴 **Todavía NO hay repositorio Git.** Todo el proyecto vive sin versionar
+> en el Desktop. Los `.gitignore` de `backend/` y `mobile/` ya están escritos
+> y dejan fuera `node_modules/`, `dist/` y el `.env`, así que basta con:
+>
+> ```bash
+> git init && git add -A && git status --short && git commit -m "Estado inicial"
+> ```
+>
+> Y después subirlo a un repositorio **privado** en GitHub.
+
+---
+
+## 3. Cómo levantarlo
+
+**Backend** (terminal 1):
+
+```bash
+cd C:\Users\PERSONAL\Desktop\candela-ia\backend
+npm run dev
+```
+
+→ API en `localhost:3000/api/v1` · Swagger en `localhost:3000/api/docs`
+
+**App** (terminal 2):
+
+```bash
+cd C:\Users\PERSONAL\Desktop\candela-ia\mobile
+npx expo start
+```
+
+→ Escanear el QR **desde dentro de Expo Go** (en Android no sirve la cámara).
+Celular y laptop en la misma red WiFi.
+
+**Si algo se comporta raro:** `npx expo start --clear`
+
+---
+
+## 4. Stack y por qué
+
+| Capa | Elección | Motivo |
+|---|---|---|
+| Backend | NestJS + TypeScript | Swagger sale solo de los decoradores |
+| ORM | Prisma + MySQL 8 | Migraciones limpias, tipos automáticos |
+| App | React Native + Expo | Un código para Android e iOS; compila desde Windows sin Mac |
+| Navegación | expo-router | Rutas por archivos |
+| IA | **GPT-5.6 Luna** (`gpt-5.6-luna`) | ~$0.0009/generación, el más barato tras comparar con Claude y Gemini |
+| Pagos | RevenueCat → Google Play Billing / Apple IAP | Obligatorio para suscripciones digitales |
+
+**Arquitectura del backend:** DDD por módulos. `domain/` no importa NestJS ni
+Prisma — son reglas de negocio puras y testeables solas.
+
+---
+
+## 5. Qué está hecho
+
+### Backend ✅ funcional
+
+- 4 tablas (`devices`, `credit_balances`, `subscriptions`, `generations`)
+- Registro de dispositivo sin login → JWT
+- Créditos: 5 gratis de por vida + tope de 50/día para suscriptores
+- Catálogo de 4 funciones y 25 tonos servido por API
+- `POST /generar` con proveedor intercambiable
+- Errores de dominio traducidos a HTTP (402 → paywall)
+- 10 pruebas del dominio en verde
+
+### App ✅ funcional
+
+- Onboarding de 5 pantallas
+- Home con hero, grid 2×2 y barra Inicio/Ajustes
+- **Las 4 funciones generando de punta a punta**
+- Sistema de diseño completo copiado del prototipo de Figma
+- Selección de captura con compresión (3 MB → 200 KB)
+- Vistas previas contextuales: mock de Instagram, mock de chat, respuesta
+- Checklist de carga, copiar al portapapeles
+- **Paywall `/premium`** completo: dos planes, ahorro calculado, pie fijo,
+  enlaces legales. Se abre solo al agotar créditos (402) y desde Ajustes.
+  El cobro está sin conectar y **no concede premium a nadie** (a propósito)
+
+---
+
+## 6. Qué falta
+
+| Prioridad | Qué | Nota |
+|---|---|---|
+| 🔴 | **Poner el proyecto en Git** | Ver sección 2. Cinco minutos |
+| 🔴 | **Validar calidad de prompts con IA real** | ~$1. Ver sección 7 |
+| 🟡 | Conectar el cobro (RevenueCat) | La pantalla ya está; falta el pago. Necesita build nativo — no corre en Expo Go |
+| 🟡 | URLs de términos y privacidad | Sin ellas, Apple rechaza el paywall |
+| 🟡 | Resto de la pantalla de Ajustes | Solo está la fila de Premium |
+| 🟡 | Lógica de primer arranque | Onboarding solo la primera vez |
+| 🟡 | `POST /generaciones/:id/calificar` | El widget "Muy buena" |
+| 🟢 | Webhook de RevenueCat | Suscripciones reales |
+| 🟢 | Historial | Se quitó de la barra; decidir dónde va |
+| 🟢 | Íconos de la app en 1024×1024 | `assets/icon.png` sigue con el de Expo |
+
+---
+
+## 7. ⚠️ Lo más importante pendiente
+
+**Validar la calidad de los prompts con la IA real.** Todavía no se ha hecho.
+
+Todo se construyó con `AI_PROVIDER="mock"`, que devuelve frases escritas a
+mano. Nadie ha visto una respuesta real del modelo.
+
+```bash
+# 1. Sacar API key en platform.openai.com y cargar $5
+# 2. En backend/.env:
+AI_PROVIDER="openai"
+OPENAI_API_KEY="sk-proj-..."
+# 3. Generar 20-30 mensajes reales en las 4 funciones
+# 4. Preguntarse por cada uno: ¿lo mandaría de verdad?
+```
+
+**Por qué antes que el paywall:** la calidad del mensaje **es** el producto;
+lo demás es el envase. Si los mensajes no convencen, hay que ajustar
+`backend/src/modules/generation/domain/prompt-builder.ts` — y sale mucho más
+barato hacerlo ahora que después de construir paywall, suscripciones y tiendas.
+
+---
+
+## 8. Decisiones tomadas (no volver a discutirlas sin motivo)
+
+- **Sin login.** Identidad por `ANDROID_ID` (Android) y UUID en Keychain (iOS).
+  Ambos sobreviven a desinstalar, así que reinstalar no regala 5 intentos.
+- **1 acción = 1 crédito**, sin excepciones. Regenerar cuesta igual.
+- **El crédito se cobra ANTES de llamar a la IA** y se devuelve si falla. Al
+  revés, dos peticiones simultáneas se saltarían el tope.
+- **El catálogo se sirve por API.** Permite mover un tono a premium o cambiar
+  textos **sin publicar versión en las tiendas**.
+- **Una sola pantalla para las 4 funciones.** Lo que las diferencia lo dice el
+  catálogo.
+- **Android primero**, iOS después (mismo código, otro comando de compilación).
+
+---
+
+## 9. Trampas que ya nos costaron tiempo
+
+| Síntoma | Causa |
+|---|---|
+| `Cannot find module 'X'` tras editar `package.json` | Falta `npm install` |
+| Error de módulo nativo / codegen | Dependencia nativa **no declarada**; instalarla con `npx expo install <paquete>` |
+| Cambios que "no se aplican" | El celular se desconectó de Metro (`No apps connected`) |
+| Rutas nuevas que no aparecen | Metro cachea el mapa de rutas → `npx expo start --clear` |
+| Errores rojos en VS Code que `tsc` no ve | Servidor de TypeScript desactualizado → *Developer: Reload Window* |
+| `Cannot find module 'dist/main'` | Se borró `dist` pero quedó el `.tsbuildinfo` (ya corregido) |
+
+**Regla de oro:** si la terminal (`npx tsc --noEmit`) dice que está bien y el
+editor dice que no, **gana la terminal**.
+
+**Regla de paquetes:** todo lo que empiece con `expo-` o sea nativo va con
+`npx expo install`, nunca con `npm install` — Expo elige la versión compatible
+con el SDK.
+
+---
+
+## 10. Cómo trabajamos
+
+- Claude escribe y edita archivos directamente.
+- **Sebastián corre los comandos** (`npm install`, migraciones, `expo start`).
+  Claude los indica, no los ejecuta.
+- Claude sí ejecuta verificaciones de solo lectura (`tsc --noEmit`, `curl`).
+- Las capturas del celular son la forma de validar el diseño.
+
+---
+
+## 11. Comercial
+
+| | |
+|---|---|
+| Cotización Android + iOS | $8,000–10,000 (S/30,000–37,500) |
+| Solo Android | $6,500–8,000 |
+| Mantenimiento | $500–700/mes |
+| Infraestructura | **La paga el cliente, con sus cuentas** |
+
+Pendientes con el cliente:
+- **Confirmar los precios.** El diseño dice $39.99 / $4.99; una nota vieja
+  decía $32.99 / $4.40. Van los del diseño hasta que el cliente confirme.
+- **Entregar las URL de términos de uso y política de privacidad.** Apple
+  (guía 3.1.2) y Google exigen que estén enlazadas en el paywall. Sin ellas
+  la app se rechaza en revisión. La pantalla ya tiene los enlaces puestos y
+  avisa mientras las URL estén vacías.
+- ~~"Ahorra 37%"~~ **resuelto en código.** El porcentaje y el precio tachado
+  ya no se escriben a mano: se calculan desde los dos precios, así que no
+  pueden volver a contradecirse. Anunciar un descuento falso es causa de
+  rechazo en las tiendas.
+- El toggle **"Paywall Premium"** de Ajustes es de pruebas. Si llega a
+  producción, cualquiera desbloquea premium gratis. Debe quedar solo en `__DEV__`.
+  Por eso `usarCompra.ts` **no activa premium por su cuenta**: cuando se
+  conecte RevenueCat, premium se dará por webhook contra el backend.

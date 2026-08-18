@@ -1,0 +1,22 @@
+{
+  // Usa la versión de TypeScript del proyecto (5.9.3), no la que trae VS
+  // Code. Si difieren, el editor puede reportar errores que `tsc` no ve.
+  "typescript.tsdk": "backend/node_modules/typescript/lib",
+
+  // Oculta código generado del explorador. Nunca hay que editarlo, y
+  // tenerlo abierto en pestañas confunde al servidor de TypeScript.
+  "files.exclude": {
+    "**/dist": true,
+    "**/node_modules": true
+  },
+
+  // Que las búsquedas no traigan resultados de código compilado.
+  "search.exclude": {
+    "**/dist": true,
+    "**/node_modules": true,
+    "**/package-lock.json": true
+  },
+
+  "editor.formatOnSave": true,
+  "files.eol": "\n"
+}

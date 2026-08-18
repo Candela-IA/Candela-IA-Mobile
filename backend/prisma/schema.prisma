@@ -1,0 +1,143 @@
+// Esquema de datos de Candela IA
+//
+// PRINCIPIO DE PRIVACIDAD: aquí NO se guarda ninguna captura ni el texto de
+// las conversaciones. Solo metadatos de uso (qué función, qué tono, cuánto
+// costó). La imagen se procesa en memoria y se descarta.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// DISPOSITIVOS — identidad sin login
+// ─────────────────────────────────────────────────────────────────────────
+
+enum Platform {
+  ANDROID
+  IOS
+}
+
+model Device {
+  id        String   @id @default(uuid())
+  /// ANDROID_ID en Android, UUID de Keychain en iOS.
+  /// Ambos sobreviven a desinstalar y reinstalar la app.
+  deviceKey String   @unique @db.VarChar(128)
+  platform  Platform
+  appVersion String? @db.VarChar(20)
+  createdAt DateTime @default(now())
+  lastSeenAt DateTime @updatedAt
+
+  credits      CreditBalance?
+  subscription Subscription?
+  generations  Generation[]
+
+  @@index([createdAt])
+  @@map("devices")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// CRÉDITOS — 5 gratis de por vida + tope diario para suscriptores
+// ─────────────────────────────────────────────────────────────────────────
+
+model CreditBalance {
+  id       String @id @default(uuid())
+  deviceId String @unique
+  device   Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  /// Cuántos de los 5 intentos gratis ya gastó. No se renueva nunca.
+  freeUsed Int @default(0)
+
+  /// Uso del día para suscriptores (tope de uso justo).
+  dailyUsed    Int      @default(0)
+  dailyResetAt DateTime
+
+  /// Total histórico, solo para métricas.
+  lifetimeUsed Int @default(0)
+
+  updatedAt DateTime @updatedAt
+
+  @@map("credit_balances")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// SUSCRIPCIONES — la fuente de verdad es RevenueCat vía webhook
+// ─────────────────────────────────────────────────────────────────────────
+
+enum SubscriptionStatus {
+  NONE
+  TRIAL
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  BILLING_ISSUE
+}
+
+enum SubscriptionPlan {
+  WEEKLY
+  ANNUAL
+}
+
+model Subscription {
+  id       String @id @default(uuid())
+  deviceId String @unique
+  device   Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  /// App User ID de RevenueCat.
+  rcUserId String? @unique @db.VarChar(128)
+
+  status SubscriptionStatus @default(NONE)
+  plan   SubscriptionPlan?
+
+  expiresAt        DateTime?
+  lastEventAt      DateTime?
+  /// Guardamos el id del último evento para descartar webhooks duplicados.
+  lastEventId      String?   @db.VarChar(128)
+
+  updatedAt DateTime @updatedAt
+
+  @@index([status, expiresAt])
+  @@map("subscriptions")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// GENERACIONES — solo metadatos, nunca contenido
+// ─────────────────────────────────────────────────────────────────────────
+
+enum Feature {
+  ANALIZAR_CHAT
+  ANALIZAR_STORIES
+  ROMPEHIELOS
+  CREAR_NOTAS
+}
+
+model Generation {
+  id       String @id @default(uuid())
+  deviceId String
+  device   Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  feature Feature
+  tone    String  @db.VarChar(40)
+
+  /// true si el usuario tocó "Generar otra respuesta".
+  isRegeneration Boolean @default(false)
+
+  // Métricas de costo y rendimiento
+  tokensIn  Int
+  tokensOut Int
+  costUsd   Decimal @db.Decimal(10, 8)
+  latencyMs Int
+
+  /// Feedback del widget de calificación (1 a 5). Null si no calificó.
+  rating Int?
+
+  createdAt DateTime @default(now())
+
+  @@index([deviceId, createdAt])
+  @@index([feature, createdAt])
+  @@map("generations")
+}

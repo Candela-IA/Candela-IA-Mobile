@@ -1,0 +1,23 @@
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+
+# Secretos — nunca al repositorio
+.env
+.env.local
+.env.production
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor / SO
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Tests
+coverage/

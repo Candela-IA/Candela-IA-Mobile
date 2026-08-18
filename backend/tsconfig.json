@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    // Sin declaraciones: esto es una aplicación, no una librería que otros
+    // importen. Generar .d.ts solo ensucia dist/ y confunde al editor.
+    "declaration": false,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2023",
+    "sourceMap": true,
+    "outDir": "./dist",
+    // TypeScript 6 exige declararlo explícitamente. Además garantiza que
+    // dist/ replique la estructura de src/ sin carpetas intermedias raras.
+    "rootDir": "./src",
+    "incremental": true,
+    // Dentro de dist/ a propósito: si el registro incremental vive fuera,
+    // borrar dist deja a TypeScript creyendo que ya compiló todo y no
+    // vuelve a generar nada — el servidor arranca buscando un dist/main.js
+    // que no existe.
+    "tsBuildInfoFile": "./dist/.tsbuildinfo",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // Explícito a propósito. Sin esta línea funciona igual, pero si el
+    // editor entra en un estado raro deja de reconocer describe/it/expect
+    // en los .spec.ts. Declararlo elimina toda ambigüedad.
+    "types": ["node", "jest"],
+
+    "strict": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "strictBindCallApply": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+
+    "paths": {
+      "@shared/*": ["./src/shared/*"],
+      "@modules/*": ["./src/modules/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

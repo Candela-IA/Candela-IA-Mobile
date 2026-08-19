@@ -12,7 +12,15 @@ import { TonoAcento } from '../../core/theme';
 
 export interface FuncionHome {
   id: string;
-  ruta: string;
+  /**
+   * Las cuatro rutas enumeradas en vez de un `string` suelto: así un error
+   * de dedo lo caza el compilador, y navegar no obliga a forzar el tipo.
+   */
+  ruta:
+    | '/analizar-chat'
+    | '/analizar-stories'
+    | '/rompehielos'
+    | '/crear-notas';
   /** El `funcion` que espera el backend en `/generar`. */
   funcionApi: 'ANALIZAR_CHAT' | 'ROMPEHIELOS' | 'CREAR_NOTAS' | 'ANALIZAR_STORIES';
   icono: keyof typeof Ionicons.glyphMap;

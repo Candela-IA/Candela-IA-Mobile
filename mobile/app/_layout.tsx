@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -38,6 +38,11 @@ export default function LayoutRaiz() {
   const cargarArranque = usarArranque((estado) => estado.cargar);
   const iniciarSesion = useSesion((estado) => estado.iniciar);
 
+  const arranqueCargado = usarArranque((estado) => estado.cargado);
+  const onboardingVisto = usarArranque((estado) => estado.onboardingVisto);
+  const segmentos = useSegments();
+  const router = useRouter();
+
   // Se leen aquí, en la raíz, para que la primera pantalla ya se pinte con
   // los ajustes del usuario. Si se leyeran dentro de cada pantalla, quien
   // apagó las animaciones las vería aparecer y desaparecer al arrancar.
@@ -54,6 +59,32 @@ export default function LayoutRaiz() {
   useEffect(() => {
     void iniciarSesion();
   }, [iniciarSesion]);
+
+  /**
+   * Quien no ha visto la bienvenida va a la bienvenida, entre por donde
+   * entre.
+   *
+   * Vive en la raíz y no en el Home a propósito: una comprobación dentro de
+   * una pantalla solo protege esa pantalla. Cualquier otra forma de entrar
+   * —un enlace `candelaia://`, una notificación, o Expo Go recordando la
+   * última ruta en desarrollo— se la saltaría, y el usuario nuevo caería en
+   * medio de la app sin haber visto nunca qué hace ni que tiene 5 intentos
+   * gratis.
+   *
+   * Se comprueba el segmento actual para no redirigir cuando ya se está en
+   * el onboarding: sin eso, cada render volvería a lanzar la navegación.
+   */
+  useEffect(() => {
+    if (!arranqueCargado || onboardingVisto) return;
+    if (segmentos[0] === 'onboarding') return;
+
+    router.replace('/onboarding');
+  }, [arranqueCargado, onboardingVisto, segmentos, router]);
+
+  // Hasta saber si es la primera vez no se pinta nada. El splash es de este
+  // mismo negro, así que no se ve un hueco, y evita el parpadeo de mostrar
+  // una pantalla un instante antes de saltar a la bienvenida.
+  if (!arranqueCargado) return null;
 
   return (
     <QueryClientProvider client={queryClient}>

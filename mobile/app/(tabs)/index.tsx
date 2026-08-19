@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Redirect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import {
   Platform,
   Pressable,
@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { usarArranque } from '../../src/core/di/arranque';
 import {
   FUNCIONES,
   FuncionHome,
@@ -30,20 +29,6 @@ const HERO_ART = require('../../assets/hero-home.png');
 
 export default function Home() {
   const insets = useSafeAreaInsets();
-
-  const cargado = usarArranque((estado) => estado.cargado);
-  const onboardingVisto = usarArranque((estado) => estado.onboardingVisto);
-
-  // El Home es la primera pantalla, así que aquí es donde se decide si el
-  // usuario es nuevo. Mientras no se sepa no se pinta nada: el fondo del
-  // splash es de este mismo negro, así que no se ve un hueco, y se evita el
-  // parpadeo de mostrar el Home un instante antes de saltar al onboarding.
-  if (!cargado) return null;
-
-  // `Redirect` en vez de navegar desde un efecto: no deja entrada en el
-  // historial, así que el gesto de "atrás" del onboarding no devuelve a un
-  // Home que el usuario nunca pidió ver.
-  if (!onboardingVisto) return <Redirect href="/onboarding" />;
 
   return (
     <FondoPantalla>
@@ -201,7 +186,7 @@ function TarjetaFuncion({
 
   return (
     <Pressable
-      onPress={() => router.push(funcion.ruta as never)}
+      onPress={() => router.push(funcion.ruta)}
       accessibilityRole="button"
       accessibilityLabel={`${funcion.titulo}. ${funcion.descripcion}`}
       // Sin alto propio: la fila lo estira al de la tarjeta más alta, para

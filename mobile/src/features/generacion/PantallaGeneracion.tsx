@@ -151,7 +151,7 @@ export function PantallaGeneracion({
   } = usarGeneracion({
     funcion,
     // Sin créditos o tono premium sin suscripción → paywall, no un error.
-    onSinCreditos: () => router.push('/premium' as never),
+    onSinCreditos: () => router.push('/premium'),
   });
 
   const faltaCaptura = Boolean(definicion?.requiereImagen) && !captura;
@@ -325,7 +325,7 @@ export function PantallaGeneracion({
                           ancho={anchoDe(columnasDe(premium))}
                           onPress={() => {
                             if (saldo?.esPremium) setTonoId(t.id);
-                            else router.push('/premium' as never);
+                            else router.push('/premium');
                           }}
                         />
                       ))}

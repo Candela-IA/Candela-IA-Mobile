@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -23,6 +24,16 @@ import { TarjetaGlass } from '../../core/ui/TarjetaGlass';
  * Antes de generar muestra un ejemplo etiquetado como tal, así la pantalla
  * nunca se ve vacía y se entiende de inmediato qué se va a obtener.
  */
+
+/**
+ * Foto de perfil de la maqueta.
+ *
+ * Es decorativa: representa al usuario dentro del mock de Instagram. Con el
+ * icono genérico anterior la vista previa se leía como un formulario; con
+ * una foto real se lee como la bandeja de Instagram, que es justo lo que
+ * esta pantalla intenta comunicar.
+ */
+const AVATAR = require('../../../assets/avatar-nota.webp');
 
 export const NOTA_EJEMPLO = 'Buscando a alguien que me robe una sonrisa 💜';
 
@@ -67,7 +78,7 @@ export function VistaPreviaNota({
           style={estilos.anillo}
         >
           <View style={estilos.avatar}>
-            <Ionicons name="person" size={26} color={colors.texto.tenue} />
+            <Image source={AVATAR} style={estilos.foto} contentFit="cover" />
           </View>
         </LinearGradient>
 
@@ -165,10 +176,14 @@ const estilos = StyleSheet.create({
   avatar: {
     flex: 1,
     borderRadius: 36,
+    // `overflow` recorta la foto al círculo: sin él, la imagen cuadrada
+    // asoma por las esquinas y se come el anillo degradado.
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.oscuro.carbon,
   },
+  foto: { width: '100%', height: '100%' },
   tuNota: {
     ...tipografia.pequeno,
     fontSize: 11,

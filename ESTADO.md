@@ -3,7 +3,7 @@
 > Documento de continuidad. Si retomas el proyecto en una conversación nueva,
 > empieza leyendo esto.
 
-**Última actualización:** 17 de agosto de 2026
+**Última actualización:** 18 de agosto de 2026
 
 ---
 
@@ -137,6 +137,9 @@ Prisma — son reglas de negocio puras y testeables solas.
   El cobro está sin conectar y **no concede premium a nadie** (a propósito)
 - **Ajustes** completo: Premium, Onboarding, Contáctanos (abre el correo),
   legal y Personalización, más la tarjeta de versión
+- **Primer arranque**: el onboarding se muestra solo la primera vez y se
+  recuerda en el teléfono. Antes no lo veía nadie — solo se llegaba desde
+  Ajustes
 - **Personalización** con sus tres interruptores (animaciones, partículas,
   brillo neón). Se guardan en el teléfono y los respetan `FondoPantalla`,
   `TarjetaGlass` e `IconoDegradado`, así que el cambio se ve en toda la app
@@ -151,7 +154,6 @@ Prisma — son reglas de negocio puras y testeables solas.
 | 🟡 | Renombrar el repo a `Candela-IA` | Se llama `-Mobile` pero tiene backend + mobile |
 | 🟡 | Conectar el cobro (RevenueCat) | La pantalla ya está; falta el pago. Necesita build nativo — no corre en Expo Go |
 | 🟡 | URLs de términos y privacidad | Sin ellas Apple rechaza el paywall. Las piden el paywall y Ajustes |
-| 🟡 | Lógica de primer arranque | Onboarding solo la primera vez |
 | 🟡 | Poner `REVENUECAT_WEBHOOK_SECRET` y configurar la URL en el panel | El webhook ya está escrito; falta la cuenta del cliente |
 | 🟢 | Pantalla de Términos dentro de la app | El prototipo la trae escrita; hoy Ajustes abre una URL |
 | 🟢 | "Tu opinión" | Debe abrir la ficha de la tienda; no existe hasta publicar |

@@ -12,6 +12,7 @@ import {
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { usarArranque } from '../src/core/di/arranque';
 import { PASOS, REGALO, SELLOS } from '../src/features/onboarding/pasos';
 import {
   colors,
@@ -40,6 +41,7 @@ export default function Onboarding() {
   const [indice, setIndice] = useState(0);
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const marcarVisto = usarArranque((estado) => estado.marcarOnboardingVisto);
 
   const paso = PASOS[indice]!;
   const esUltimo = indice === PASOS.length - 1;
@@ -50,9 +52,13 @@ export default function Onboarding() {
   };
 
   const terminar = () => {
-    // TODO: guardar en almacenamiento que el onboarding ya se vio, para no
-    // repetirlo en el próximo arranque.
-    router.replace('/');
+    marcarVisto();
+
+    // Si se llegó desde Ajustes → "Onboarding", hay a dónde volver y se
+    // vuelve ahí. Si vino del arranque, el `Redirect` no dejó historial y
+    // toca reemplazar por el Home.
+    if (router.canGoBack()) router.back();
+    else router.replace('/');
   };
 
   return (

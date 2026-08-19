@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { usarArranque } from '../src/core/di/arranque';
 import { usarPreferencias } from '../src/core/di/preferencias';
 import { useSesion } from '../src/core/di/sesion';
 import { colors } from '../src/core/theme';
@@ -34,6 +35,7 @@ const queryClient = new QueryClient({
 
 export default function LayoutRaiz() {
   const cargarPreferencias = usarPreferencias((estado) => estado.cargar);
+  const cargarArranque = usarArranque((estado) => estado.cargar);
   const iniciarSesion = useSesion((estado) => estado.iniciar);
 
   // Se leen aquí, en la raíz, para que la primera pantalla ya se pinte con
@@ -41,7 +43,8 @@ export default function LayoutRaiz() {
   // apagó las animaciones las vería aparecer y desaparecer al arrancar.
   useEffect(() => {
     void cargarPreferencias();
-  }, [cargarPreferencias]);
+    void cargarArranque();
+  }, [cargarPreferencias, cargarArranque]);
 
   // La sesión también arranca aquí, no dentro de las pantallas de generación.
   // El saldo hace falta en Ajustes y en el paywall, y si solo se pidiera al

@@ -32,7 +32,7 @@ Plan anual **$39.99** / semanal **$4.99**, con 3 días de prueba.
 | Analizar chat | Sí | Sí | 6 tonos gratis + 3 premium |
 | Analizar Stories | Sí (vertical) | No | 4 gratis + 2 premium |
 | Rompehielos | No | No | Solo "Básico" gratis; 4 premium |
-| Crear notas | No | Sí | Máx. 60 caracteres (límite de Instagram) |
+| Crear notas | No | No | Máx. 60 caracteres (límite de Instagram) |
 
 ---
 

@@ -348,7 +348,16 @@ export const CATALOGO: Readonly<Record<Funcion, DefinicionFuncion>> = {
     id: Funcion.CREAR_NOTAS,
     etiqueta: 'Crear notas',
     requiereImagen: false,
-    aceptaContexto: true,
+    /**
+     * Sin campo de contexto, igual que Rompehielos.
+     *
+     * Una nota no va dirigida a nadie: la lee todo el que sigue al usuario.
+     * No hay conversación ni persona concreta que explicarle a la IA, así
+     * que ese campo pedía información que no existe. Y como la pantalla
+     * tampoco lleva captura, quitarlo la deja en lo esencial: eliges el
+     * tono y generas.
+     */
+    aceptaContexto: false,
     /// Límite real de las notas de Instagram.
     maxCaracteres: 60,
     tonos: TONOS_NOTAS,

@@ -11,6 +11,9 @@ export default function CrearNotas() {
       icono="create"
       tono="cian"
       textoBoton="Generar nota"
+      // Sin captura ni contexto, la nota es lo unico que hay que mirar: va
+      // arriba, antes de los modos de respuesta.
+      previaArriba
     />
   );
 }

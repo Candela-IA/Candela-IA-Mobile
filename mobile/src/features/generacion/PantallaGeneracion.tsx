@@ -71,6 +71,14 @@ interface Props {
    * de tonos gratis y deja los premium como puro anzuelo (Rompehielos).
    */
   tonoImplicito?: boolean;
+  /**
+   * Sube la vista previa por encima de los modos de respuesta.
+   *
+   * Crear notas no pide captura ni contexto, así que sin esto la pantalla
+   * empieza directamente por la grilla de tonos y la nota —que es lo que el
+   * usuario viene a ver— queda enterrada al final.
+   */
+  previaArriba?: boolean;
 }
 
 /**
@@ -96,6 +104,7 @@ export function PantallaGeneracion({
   textoBoton,
   capturaVertical = false,
   tonoImplicito = false,
+  previaArriba = false,
 }: Props) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -192,6 +201,48 @@ export function PantallaGeneracion({
    * indicador del botón.
    */
   const conChecklist = generando && Boolean(definicion?.requiereImagen);
+
+  /**
+   * La vista previa, extraída para poder colocarla en dos sitios distintos
+   * sin duplicar el bloque: encima de los modos de respuesta cuando la
+   * pantalla no tiene captura ni contexto, y al final en el resto.
+   */
+  const bloquePrevia = definicion ? (
+    <View style={estilos.bloque}>
+      <Text style={estilos.etiquetaCaptura}>{ETIQUETA_PREVIA[funcion]}</Text>
+
+      {conChecklist ? (
+        <ChecklistCarga conImagen />
+      ) : (
+        // La clave es el propio mensaje: cuando llega uno nuevo el bloque se
+        // remonta y entra con un fundido, así el texto se releva en el mismo
+        // sitio en vez de aparecer de golpe.
+        <Animated.View
+          key={mensajeVisible}
+          entering={FadeIn.duration(260)}
+          style={generando ? estilos.previaGenerando : undefined}
+        >
+          <VistaPrevia
+            funcion={funcion}
+            mensaje={mensajeVisible}
+            esEjemplo={esEjemplo}
+            imagenUri={captura?.uri}
+            etiquetaTono={tonoElegido?.etiqueta ?? ''}
+            emojiTono={tonoElegido?.emoji ?? ''}
+          />
+        </Animated.View>
+      )}
+
+      {definicion.maxCaracteres !== null && !conChecklist ? (
+        <View style={estilos.contadorNota}>
+          <ContadorCaracteres
+            usados={[...mensajeVisible].length}
+            maximo={definicion.maxCaracteres}
+          />
+        </View>
+      ) : null}
+    </View>
+  ) : null;
 
   return (
     <FondoPantalla>
@@ -315,6 +366,8 @@ export function PantallaGeneracion({
                 </View>
               ) : null}
 
+              {previaArriba ? bloquePrevia : null}
+
               <View style={estilos.bloque}>
                 {tonoImplicito ? null : (
                   <>
@@ -379,43 +432,7 @@ export function PantallaGeneracion({
                 ) : null}
               </View>
 
-              {/* ── Vista previa ────────────────────────────────────── */}
-              <View style={estilos.bloque}>
-                <Text style={estilos.etiquetaCaptura}>
-                  {ETIQUETA_PREVIA[funcion]}
-                </Text>
-
-                {conChecklist ? (
-                  <ChecklistCarga conImagen />
-                ) : (
-                  // La clave es el propio mensaje: cuando llega uno nuevo el
-                  // bloque se remonta y entra con un fundido, así el texto
-                  // se releva en el mismo sitio en vez de aparecer de golpe.
-                  <Animated.View
-                    key={mensajeVisible}
-                    entering={FadeIn.duration(260)}
-                    style={generando ? estilos.previaGenerando : undefined}
-                  >
-                    <VistaPrevia
-                      funcion={funcion}
-                      mensaje={mensajeVisible}
-                      esEjemplo={esEjemplo}
-                      imagenUri={captura?.uri}
-                      etiquetaTono={tonoElegido?.etiqueta ?? ''}
-                      emojiTono={tonoElegido?.emoji ?? ''}
-                    />
-                  </Animated.View>
-                )}
-
-                {definicion.maxCaracteres !== null && !conChecklist ? (
-                  <View style={estilos.contadorNota}>
-                    <ContadorCaracteres
-                      usados={[...mensajeVisible].length}
-                      maximo={definicion.maxCaracteres}
-                    />
-                  </View>
-                ) : null}
-              </View>
+              {previaArriba ? null : bloquePrevia}
             </>
           ) : null}
         </ScrollView>

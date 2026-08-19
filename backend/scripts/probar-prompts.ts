@@ -99,8 +99,9 @@ const CASOS_SIN_IMAGEN: Caso[] = [
   {
     funcion: 'CREAR_NOTAS',
     tono: 'indirectas',
-    contexto: 'Quiero que la vea alguien con quien dejé de hablar hace poco.',
-    prueba: '¿Usa el contexto sin nombrar a nadie?',
+    // Sin contexto: la pantalla ya no lo pide, porque una nota no va
+    // dirigida a nadie en concreto.
+    prueba: '¿Suena a indirecta sin señalar a nadie?',
   },
   {
     funcion: 'CREAR_NOTAS',

@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -20,6 +21,7 @@ import {
   radio,
   resplandor,
   tipografia,
+  TONOS,
 } from '../src/core/theme';
 import { BotonDegradado } from '../src/core/ui/BotonDegradado';
 import { FondoPantalla } from '../src/core/ui/FondoPantalla';
@@ -29,6 +31,17 @@ import { TarjetaGlass } from '../src/core/ui/TarjetaGlass';
 import { TextoDegradado } from '../src/core/ui/TextoDegradado';
 
 const LOGO = require('../assets/logo-candela.png');
+
+/** Lado del bloque de hielo de la primera pantalla, según el diseño. */
+const LADO_HIELO = 184;
+
+/** Capas del halo helado, de fuera hacia dentro. */
+const CAPAS_HIELO = [
+  { crece: 22, opacidad: 0.04 },
+  { crece: 15, opacidad: 0.05 },
+  { crece: 9, opacidad: 0.06 },
+  { crece: 4, opacidad: 0.07 },
+];
 
 /**
  * Onboarding de 5 pantallas.
@@ -203,10 +216,55 @@ function Titulo({ lineas }: { lineas: { texto: string; destacar?: boolean }[] })
   );
 }
 
+/**
+ * El bloque de hielo de la primera pantalla.
+ *
+ * No es una tarjeta cualquiera con un emoji dentro: en el diseño es hielo
+ * —borde blanco azulado, tinte cian, escarcha en el canto superior y un
+ * halo helado—, y eso es lo que hace que la pantalla ilustre "tu chat se
+ * enfría" en vez de solo decirlo.
+ */
 function TarjetaEmoji({ emoji }: { emoji: string }) {
+  const cian = TONOS.cian.rgb;
+
   return (
     <View style={estilos.centro}>
-      <View style={[estilos.tarjetaEmoji, resplandor(colors.marca.purpura, 0.4)]}>
+      {/* El halo helado. En Android no hay sombra de color, así que va con
+          marcos concéntricos como el resto de resplandores de la app. */}
+      {CAPAS_HIELO.map((capa) => (
+        <View
+          key={capa.crece}
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            width: LADO_HIELO + capa.crece * 2,
+            height: LADO_HIELO + capa.crece * 2,
+            borderRadius: 40 + capa.crece,
+            backgroundColor: `rgba(${cian},${capa.opacidad})`,
+          }}
+        />
+      ))}
+
+      <View style={estilos.bloqueHielo}>
+        <LinearGradient
+          colors={[
+            'rgba(255,255,255,0.22)',
+            `rgba(${cian},0.12)`,
+            'rgba(17,17,24,0.9)',
+          ]}
+          locations={[0, 0.45, 1]}
+          start={{ x: 0.15, y: 0 }}
+          end={{ x: 0.85, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+
+        {/* Escarcha: el brillo que cae desde el canto superior. */}
+        <LinearGradient
+          colors={['rgba(255,255,255,0.22)', 'transparent']}
+          style={estilos.escarcha}
+          pointerEvents="none"
+        />
+
         <Text style={estilos.emoji}>{emoji}</Text>
       </View>
     </View>
@@ -287,17 +345,26 @@ const estilos = StyleSheet.create({
   },
 
   centro: { alignItems: 'center', marginVertical: espacio.xxl },
-  tarjetaEmoji: {
-    width: 160,
-    height: 160,
-    borderRadius: radio.xxl + 8,
-    backgroundColor: colors.oscuro.uvaSuave,
-    borderWidth: 1,
-    borderColor: colors.borde,
+  bloqueHielo: {
+    width: LADO_HIELO,
+    height: LADO_HIELO,
+    borderRadius: 40,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
+    // Blanco azulado, no gris: es lo que lo hace leer como hielo y no como
+    // una tarjeta más.
+    borderWidth: 1,
+    borderColor: 'rgba(190,240,255,0.5)',
   },
-  emoji: { fontSize: 76 },
+  escarcha: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 72,
+  },
+  emoji: { fontSize: 104, lineHeight: 124 },
   marcoLogo: { borderRadius: radio.xxl + 8 },
   logoGrande: { width: 168, height: 168, borderRadius: radio.xxl + 8 },
 

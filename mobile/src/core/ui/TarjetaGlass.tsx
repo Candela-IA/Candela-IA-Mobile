@@ -15,7 +15,23 @@ interface Props {
   onPress?: () => void;
   estilo?: ViewStyle;
   padding?: number;
+  /**
+   * Añade el halo de color alrededor de la tarjeta.
+   *
+   * Va por petición y no siempre porque obliga a envolver la tarjeta en otra
+   * vista, y eso cambia cómo se comporta dentro de una fila o una grilla.
+   * Se reserva para las tarjetas protagonistas de una pantalla.
+   */
+  resplandor?: boolean;
 }
+
+/** Marcos del halo, de fuera hacia dentro. Ver `IconoDegradado`. */
+const CAPAS_RESPLANDOR = [
+  { crece: 16, opacidad: 0.04 },
+  { crece: 11, opacidad: 0.05 },
+  { crece: 6, opacidad: 0.06 },
+  { crece: 3, opacidad: 0.07 },
+];
 
 /**
  * La tarjeta translúcida del diseño, replicada del prototipo de Figma:
@@ -35,6 +51,7 @@ export function TarjetaGlass({
   onPress,
   estilo,
   padding = 16,
+  resplandor = false,
 }: Props) {
   const t = TONOS[tono];
   // Ajustes → Personalización → "Brillo neón".
@@ -90,7 +107,33 @@ export function TarjetaGlass({
     </View>
   );
 
-  if (!onPress) return contenido;
+  const conHalo =
+    resplandor && brillo ? (
+      // Sin recorte y sin estilo propio: solo aloja las capas del halo, que
+      // tienen que poder salirse de la tarjeta.
+      <View>
+        {CAPAS_RESPLANDOR.map((capa) => (
+          <View
+            key={capa.crece}
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              top: -capa.crece,
+              bottom: -capa.crece,
+              left: -capa.crece,
+              right: -capa.crece,
+              borderRadius: 26 + capa.crece,
+              backgroundColor: `rgba(${t.rgb},${capa.opacidad})`,
+            }}
+          />
+        ))}
+        {contenido}
+      </View>
+    ) : (
+      contenido
+    );
+
+  if (!onPress) return conHalo;
 
   return (
     <Pressable
@@ -99,7 +142,7 @@ export function TarjetaGlass({
       accessibilityState={{ selected: activa }}
       style={({ pressed }) => (pressed ? estilos.presionada : undefined)}
     >
-      {contenido}
+      {conHalo}
     </Pressable>
   );
 }

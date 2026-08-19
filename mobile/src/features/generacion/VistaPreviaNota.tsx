@@ -51,7 +51,7 @@ export function VistaPreviaNota({
   const t = TONOS[tono];
 
   return (
-    <TarjetaGlass tono={tono} padding={0} estilo={estilos.tarjeta}>
+    <TarjetaGlass tono={tono} padding={0} resplandor estilo={estilos.tarjeta}>
       {/* Cabecera al estilo de la bandeja de Instagram */}
       <View style={estilos.cabecera}>
         <Text style={estilos.tituloNotas}>Notas</Text>
@@ -64,22 +64,6 @@ export function VistaPreviaNota({
       <View style={estilos.separador} />
 
       <View style={estilos.cuerpo}>
-        {esEjemplo ? (
-          <View
-            style={[
-              estilos.insigniaEjemplo,
-              {
-                borderColor: `rgba(${t.rgb},0.5)`,
-                backgroundColor: `rgba(${t.rgb},0.12)`,
-              },
-            ]}
-          >
-            <Text style={[estilos.textoEjemplo, { color: t.hex }]}>
-              EJEMPLO
-            </Text>
-          </View>
-        ) : null}
-
         <View
           style={[
             estilos.burbuja,
@@ -100,6 +84,28 @@ export function VistaPreviaNota({
               },
             ]}
           />
+
+          {/* La insignia cuelga del canto superior de la burbuja, montada
+              sobre su borde. Suelta encima parecía un elemento aparte;
+              pegada se lee como una etiqueta DE la burbuja, que es lo que
+              es: avisa de que ese texto es un ejemplo, no tu nota. */}
+          {esEjemplo ? (
+            <View style={estilos.filaInsignia} pointerEvents="none">
+              <View
+                style={[
+                  estilos.insigniaEjemplo,
+                  {
+                    borderColor: `rgba(${t.rgb},0.5)`,
+                    backgroundColor: `rgba(${t.rgb},0.12)`,
+                  },
+                ]}
+              >
+                <Text style={[estilos.textoEjemplo, { color: t.hex }]}>
+                  EJEMPLO
+                </Text>
+              </View>
+            </View>
+          ) : null}
         </View>
 
         {/* Foto de perfil con anillo degradado. */}
@@ -158,6 +164,13 @@ const estilos = StyleSheet.create({
     paddingVertical: espacio.md,
     gap: 6,
   },
+  filaInsignia: {
+    position: 'absolute',
+    top: -9,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
   insigniaEjemplo: {
     paddingHorizontal: espacio.sm,
     paddingVertical: 3,
@@ -174,6 +187,7 @@ const estilos = StyleSheet.create({
 
   burbuja: {
     maxWidth: '86%',
+    marginTop: espacio.sm,
     paddingHorizontal: espacio.base,
     paddingVertical: espacio.md,
     borderRadius: radio.xl,

@@ -1,13 +1,21 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  LayoutChangeEvent,
   Pressable,
   StyleSheet,
   Text,
   View,
   ViewStyle,
 } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 
 import {
   colors,
@@ -38,6 +46,10 @@ interface Props {
  * "Analizar chat", "Copiar y usar"), así que centralizarlo garantiza que
  * todos se vean y se sientan igual.
  */
+/** Ancho de la banda de luz que barre el botón, y cada cuánto lo cruza. */
+const ANCHO_BRILLO = 48;
+const DURACION_BRILLO = 3600;
+
 export function BotonDegradado({
   titulo,
   onPress,
@@ -49,6 +61,32 @@ export function BotonDegradado({
   estilo,
 }: Props) {
   const inactivo = deshabilitado || cargando;
+
+  // El barrido necesita saber cuánto tiene que recorrer, y eso solo se sabe
+  // cuando el botón ya se midió.
+  const [ancho, setAncho] = useState(0);
+  const progreso = useSharedValue(0);
+
+  useEffect(() => {
+    if (!ancho || inactivo) return;
+
+    progreso.value = 0;
+    progreso.value = withRepeat(
+      withTiming(1, {
+        duration: DURACION_BRILLO,
+        easing: Easing.inOut(Easing.ease),
+      }),
+      -1,
+      false,
+    );
+  }, [ancho, inactivo, progreso]);
+
+  const estiloBrillo = useAnimatedStyle(() => ({
+    // Arranca fuera por la izquierda y sale entero por la derecha.
+    transform: [
+      { translateX: -ANCHO_BRILLO + progreso.value * (ancho + ANCHO_BRILLO) },
+    ],
+  }));
 
   return (
     <Pressable
@@ -79,7 +117,31 @@ export function BotonDegradado({
           start={direccionMarca.start}
           end={direccionMarca.end}
           style={estilos.degradado}
+          onLayout={(e: LayoutChangeEvent) =>
+            setAncho(e.nativeEvent.layout.width)
+          }
         >
+          {/* Banda de luz que cruza el botón cada pocos segundos. Es lo que
+              lo hace ver "vivo" sin animar nada del contenido, que si se
+              moviera dificultaría leerlo. */}
+          {ancho > 0 ? (
+            <Animated.View
+              pointerEvents="none"
+              style={[estilos.brillo, estiloBrillo]}
+            >
+              <LinearGradient
+                colors={[
+                  'transparent',
+                  'rgba(255,255,255,0.28)',
+                  'transparent',
+                ]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={StyleSheet.absoluteFill}
+              />
+            </Animated.View>
+          ) : null}
+
           {iconoIzquierda}
           <Texto titulo={titulo} subtitulo={subtitulo} />
           {iconoDerecha}
@@ -134,6 +196,13 @@ const estilos = StyleSheet.create({
     paddingVertical: espacio.base + 2,
     paddingHorizontal: espacio.xl,
     minHeight: 56,
+  },
+  brillo: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    width: ANCHO_BRILLO,
   },
   inactivo: {
     backgroundColor: colors.tarjeta,

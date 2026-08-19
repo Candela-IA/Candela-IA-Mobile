@@ -19,6 +19,12 @@ interface Props {
   derecha?: ReactNode;
   /** Aire vertical. Las filas sueltas respiran más que las agrupadas. */
   compacta?: boolean;
+  /**
+   * Apaga el color del icono. Para filas con interruptor: comunica de un
+   * vistazo que ese ajuste está desactivado, sin tocar el texto, que tiene
+   * que seguir leyéndose igual de bien.
+   */
+  atenuada?: boolean;
 }
 
 /**
@@ -37,10 +43,13 @@ export function FilaAjuste({
   onPress,
   derecha,
   compacta = false,
+  atenuada = false,
 }: Props) {
   const contenido = (
     <View style={[estilos.fila, compacta && estilos.filaCompacta]}>
-      <IconoDegradado nombre={icono} tono={tono} tamano={44} radio={14} />
+      <View style={atenuada ? estilos.iconoApagado : undefined}>
+        <IconoDegradado nombre={icono} tono={tono} tamano={44} radio={14} />
+      </View>
 
       <View style={estilos.textos}>
         {destacado ? (
@@ -94,6 +103,7 @@ const estilos = StyleSheet.create({
     paddingVertical: espacio.base,
   },
   filaCompacta: { paddingVertical: 14 },
+  iconoApagado: { opacity: 0.35 },
   presionada: { opacity: 0.7 },
   textos: { flex: 1 },
   titulo: {

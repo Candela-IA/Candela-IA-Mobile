@@ -36,7 +36,15 @@ interface Efecto {
   icono: keyof typeof Ionicons.glyphMap;
   tono: TonoAcento;
   titulo: string;
-  subtitulo: string;
+  /**
+   * Qué dice la fila en cada estado.
+   *
+   * El interruptor por sí solo no explica nada: su posición indica que algo
+   * está encendido, pero no qué significa que lo esté ni qué se pierde al
+   * apagarlo. Con un texto por estado, la fila se explica sola.
+   */
+  encendido: string;
+  apagado: string;
 }
 
 const EFECTOS: readonly Efecto[] = [
@@ -45,21 +53,24 @@ const EFECTOS: readonly Efecto[] = [
     icono: 'sparkles',
     tono: 'purpura',
     titulo: 'Animaciones de fondo',
-    subtitulo: 'Auras y brillos en movimiento',
+    encendido: 'Auras de color latiendo detrás del contenido',
+    apagado: 'Fondo quieto, sin auras en movimiento',
   },
   {
     clave: 'particulasFlotantes',
     icono: 'flash',
     tono: 'cian',
     titulo: 'Partículas flotantes',
-    subtitulo: 'Destellos, orbes y luces en movimiento',
+    encendido: 'Destellos subiendo despacio por la pantalla',
+    apagado: 'Pantalla limpia, sin destellos',
   },
   {
     clave: 'brilloNeon',
     icono: 'color-wand',
     tono: 'rosa',
     titulo: 'Brillo neón',
-    subtitulo: 'Resplandor en iconos y tarjetas',
+    encendido: 'Resplandor de color en iconos y tarjetas',
+    apagado: 'Iconos y tarjetas sin resplandor',
   },
 ];
 
@@ -100,8 +111,14 @@ export default function Personalizacion() {
                 compacta
                 icono={efecto.icono}
                 tono={efecto.tono}
+                // Apagado, el icono se atenúa: el estado se ve de un vistazo
+                // sin tener que leer, y sin sacar un gris del sistema de
+                // tonos, que son los seis colores de marca a propósito.
+                atenuada={!preferencias[efecto.clave]}
                 titulo={efecto.titulo}
-                subtitulo={efecto.subtitulo}
+                subtitulo={
+                  preferencias[efecto.clave] ? efecto.encendido : efecto.apagado
+                }
                 derecha={
                   <Interruptor
                     valor={preferencias[efecto.clave]}

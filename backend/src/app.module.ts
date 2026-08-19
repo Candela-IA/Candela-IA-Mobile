@@ -7,6 +7,7 @@ import { DomainExceptionFilter } from './shared/infrastructure/http/domain-excep
 import { PrismaModule } from './shared/infrastructure/prisma/prisma.module';
 import { DevicesModule } from './modules/devices/devices.module';
 import { GenerationModule } from './modules/generation/generation.module';
+import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { GenerationModule } from './modules/generation/generation.module';
     PrismaModule,
     DevicesModule,
     GenerationModule,
+    SubscriptionsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

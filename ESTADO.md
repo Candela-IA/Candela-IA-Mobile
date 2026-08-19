@@ -116,9 +116,12 @@ Prisma — son reglas de negocio puras y testeables solas.
 - Catálogo de 4 funciones y 25 tonos servido por API
 - `POST /generar` con proveedor intercambiable
 - Errores de dominio traducidos a HTTP (402 → paywall)
-- 10 pruebas del dominio en verde
+- 24 pruebas del dominio en verde
 - Banco de pruebas de prompts (`npm run probar:prompts`): dispara un lote
-  contra la API y lo imprime junto, con costo y latencia
+  contra la API y lo imprime junto, con su costo y su latencia
+- **Webhook de RevenueCat** (`POST /webhooks/revenuecat`): traduce los eventos
+  de la tienda a estados de suscripción, con idempotencia, descarte de
+  eventos fuera de orden y guard de tiempo constante. 14 pruebas de dominio
 
 ### App ✅ funcional
 
@@ -149,7 +152,7 @@ Prisma — son reglas de negocio puras y testeables solas.
 | 🟡 | Conectar el cobro (RevenueCat) | La pantalla ya está; falta el pago. Necesita build nativo — no corre en Expo Go |
 | 🟡 | URLs de términos y privacidad | Sin ellas Apple rechaza el paywall. Las piden el paywall y Ajustes |
 | 🟡 | Lógica de primer arranque | Onboarding solo la primera vez |
-| 🟢 | Webhook de RevenueCat | Suscripciones reales |
+| 🟡 | Poner `REVENUECAT_WEBHOOK_SECRET` y configurar la URL en el panel | El webhook ya está escrito; falta la cuenta del cliente |
 | 🟢 | Pantalla de Términos dentro de la app | El prototipo la trae escrita; hoy Ajustes abre una URL |
 | 🟢 | "Tu opinión" | Debe abrir la ficha de la tienda; no existe hasta publicar |
 | 🟢 | Historial | Se quitó de la barra; decidir dónde va |

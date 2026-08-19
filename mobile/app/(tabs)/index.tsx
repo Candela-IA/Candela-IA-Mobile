@@ -27,6 +27,12 @@ import { TextoDegradado } from '../../src/core/ui/TextoDegradado';
 const LOGO = require('../../assets/logo-candela.png');
 const HERO_ART = require('../../assets/hero-home.png');
 
+/**
+ * Diámetros del resplandor de esquina de cada tarjeta, de fuera hacia
+ * dentro. Doce capas para que el círculo exterior no deje canto visible.
+ */
+const CAPAS_BRILLO = Array.from({ length: 12 }, (_, i) => 112 - i * 8);
+
 export default function Home() {
   const insets = useSafeAreaInsets();
 
@@ -197,10 +203,16 @@ function TarjetaFuncion({
       <TarjetaGlass tono={funcion.tono} estilo={estilos.tarjeta} padding={16}>
         {/* Resplandor de la esquina superior derecha.
             En el prototipo es un radial-gradient con blur; aquí se simula
-            con círculos concéntricos de opacidad mínima, igual que las
-            auras del fondo — un solo círculo dejaría un filo visible. */}
+            con círculos concéntricos de opacidad mínima.
+
+            La clave está en el NÚMERO de capas, no en la opacidad de cada
+            una: con cuatro círculos al 0.05 el filo del mayor seguía
+            viéndose y la tarjeta mostraba un disco en vez de un halo. Con
+            doce al 0.012 el borde exterior es invisible y la opacidad se
+            acumula hacia el centro. Es la misma lección que ya estaba
+            aprendida en `FondoPantalla`. */}
         <View pointerEvents="none" style={estilos.grupoBrillo}>
-          {[112, 92, 72, 52].map((tamano) => (
+          {CAPAS_BRILLO.map((tamano) => (
             <View
               key={tamano}
               style={{
@@ -208,7 +220,7 @@ function TarjetaFuncion({
                 width: tamano,
                 height: tamano,
                 borderRadius: tamano / 2,
-                backgroundColor: `rgba(${t.rgb},0.05)`,
+                backgroundColor: `rgba(${t.rgb},0.012)`,
               }}
             />
           ))}

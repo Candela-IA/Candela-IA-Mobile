@@ -384,7 +384,7 @@ export function PantallaGeneracion({
                           etiqueta={t.etiqueta}
                           descripcion={t.descripcion ?? undefined}
                           seleccionado={t.id === tonoId}
-                          tono={tono}
+                          tono={t.color}
                           ancho={anchoDe(columnasDe(gratis))}
                           onPress={() => setTonoId(t.id)}
                         />
@@ -419,7 +419,7 @@ export function PantallaGeneracion({
                           descripcion={t.descripcion ?? undefined}
                           seleccionado={t.id === tonoId}
                           bloqueado={!saldo?.esPremium}
-                          tono={tono}
+                          tono={t.color}
                           ancho={anchoDe(columnasDe(premium))}
                           onPress={() => {
                             if (saldo?.esPremium) setTonoId(t.id);

@@ -28,6 +28,15 @@ export class TonoDto {
     description: 'Si es true, la app pinta la corona 👑 y exige suscripción.',
   })
   esPremium!: boolean;
+
+  @ApiProperty({
+    example: 'rosa',
+    enum: ['rosa', 'rose', 'purpura', 'azul', 'cian', 'ambar'],
+    description:
+      'Acento de la marca con el que la app pinta el tono. Viaja por API ' +
+      'para poder recolorear la paleta sin publicar una versión nueva.',
+  })
+  color!: string;
 }
 
 export class FuncionDto {

@@ -40,6 +40,7 @@ export class CatalogoController {
             emoji: t.emoji,
             descripcion: t.descripcion ?? null,
             esPremium: t.nivel === Nivel.PREMIUM,
+            color: t.color,
           }),
         ),
       };

@@ -93,12 +93,47 @@ function medidasHero(anchoPantalla: number) {
   };
 }
 
+/**
+ * Capas del resplandor del hero, de fuera hacia dentro.
+ *
+ * El prototipo lo hace con dos `box-shadow` de color, uno rosa proyectado
+ * hacia abajo y otro púrpura alrededor. En Android no hay sombra con color
+ * —`elevation` solo pinta gris—, así que se reconstruye con marcos
+ * concéntricos, la misma técnica que las auras del fondo.
+ *
+ * `abajo` desplaza cada capa para reproducir la caída del diseño: el halo
+ * pesa más bajo la tarjeta que sobre ella.
+ */
+const CAPAS_HERO = [
+  { crece: 18, abajo: 12, color: '168,85,247', opacidad: 0.05 },
+  { crece: 13, abajo: 9, color: '255,45,138', opacidad: 0.05 },
+  { crece: 8, abajo: 6, color: '255,45,138', opacidad: 0.06 },
+  { crece: 4, abajo: 3, color: '255,45,138', opacidad: 0.07 },
+];
+
 function Hero() {
   const { width } = useWindowDimensions();
   const { anchoArte, tamanoTitulo, interlineado } = medidasHero(width);
 
   return (
-    <View style={estilos.hero}>
+    <View style={estilos.marcoHero}>
+      {CAPAS_HERO.map((capa) => (
+        <View
+          key={capa.crece}
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            top: -capa.crece + capa.abajo,
+            bottom: -capa.crece - capa.abajo,
+            left: -capa.crece,
+            right: -capa.crece,
+            borderRadius: 30 + capa.crece,
+            backgroundColor: `rgba(${capa.color},${capa.opacidad})`,
+          }}
+        />
+      ))}
+
+      <View style={estilos.hero}>
       <LinearGradient
         colors={[
           colors.oscuro.violetaSuave,
@@ -155,6 +190,7 @@ function Hero() {
           {HERO.destacado}
         </TextoDegradado>
         <Text style={estilos.descripcionHero}>{HERO.descripcion}</Text>
+      </View>
       </View>
     </View>
   );
@@ -289,19 +325,27 @@ const estilos = StyleSheet.create({
     color: colors.texto.blanco,
   },
 
+  // Contenedor sin recorte: aquí viven las capas del resplandor, que tienen
+  // que poder salirse del hero. El margen es el de la pantalla, así que el
+  // halo llega justo al borde sin pasarse.
+  marcoHero: { marginHorizontal: espacio.lg },
   hero: {
     height: 240,
-    marginHorizontal: espacio.lg,
     borderRadius: 30,
     overflow: 'hidden',
+    // El filo que se ve en el diseño. Sin él, la tarjeta se funde con el
+    // fondo y el resplandor no tiene contra qué contrastar.
+    borderWidth: 1,
+    borderColor: 'rgba(255,45,138,0.22)',
     ...Platform.select({
+      // En iOS la sombra sí lleva color, así que ahí se usa la nativa y las
+      // capas de arriba solo suman.
       ios: {
         shadowColor: colors.marca.rosa,
         shadowOpacity: 0.75,
         shadowRadius: 26,
         shadowOffset: { width: 0, height: 16 },
       },
-      android: { elevation: 10 },
     }),
   },
   franjaArte: {

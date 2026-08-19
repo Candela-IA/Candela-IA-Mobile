@@ -1,3 +1,4 @@
+import { TonoAcento } from '../theme';
 import { peticion } from './cliente';
 
 /**
@@ -22,6 +23,8 @@ export interface TonoApi {
   emoji: string;
   descripcion: string | null;
   esPremium: boolean;
+  /** Acento de la marca con el que se pinta. Lo decide el catálogo. */
+  color: TonoAcento;
 }
 
 export interface DefinicionFuncionApi {
@@ -41,6 +44,8 @@ export function obtenerCatalogo(): Promise<DefinicionFuncionApi[]> {
 
 export interface SaldoApi {
   esPremium: boolean;
+  /** Acento de la marca con el que se pinta. Lo decide el catálogo. */
+  color: TonoAcento;
   gratisUsados: number;
   gratisTotales: number;
   gratisRestantes: number;

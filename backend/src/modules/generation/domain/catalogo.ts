@@ -20,6 +20,26 @@ export enum Nivel {
   PREMIUM = 'PREMIUM',
 }
 
+/**
+ * Color con el que la app pinta cada tono.
+ *
+ * Vive en el catálogo y no en la app por la misma razón que todo lo demás:
+ * cambiar la paleta de un tono no debería obligar a publicar una versión
+ * nueva en las tiendas.
+ *
+ * Los nombres son los seis acentos de la marca. Los premium van todos en
+ * ÁMBAR a propósito: es el dorado de la corona, y que compartan color hace
+ * que la fila de arriba se lea como un bloque distinto del resto.
+ */
+export enum ColorTono {
+  ROSA = 'rosa',
+  ROSE = 'rose',
+  PURPURA = 'purpura',
+  AZUL = 'azul',
+  CIAN = 'cian',
+  AMBAR = 'ambar',
+}
+
 export interface Tono {
   /** Identificador estable. Nunca cambia — la app lo manda tal cual. */
   readonly id: string;
@@ -29,6 +49,8 @@ export interface Tono {
   /** Subtítulo en la tarjeta. Opcional: no todas las pantallas lo muestran. */
   readonly descripcion?: string;
   readonly nivel: Nivel;
+  /** Con qué acento de la marca lo pinta la app. */
+  readonly color: ColorTono;
   /** Instrucción que se inyecta al prompt. El producto vive aquí. */
   readonly instruccion: string;
 }
@@ -54,6 +76,7 @@ const TONOS_CHAT: readonly Tono[] = [
     etiqueta: 'Divertida',
     emoji: '😄',
     nivel: Nivel.GRATIS,
+    color: ColorTono.CIAN,
     instruccion:
       'Humor genuino, no chiste de tío. Una observación ingeniosa sobre algo ' +
       'concreto de la conversación. Puede ser absurdo o autoparódico, pero ' +
@@ -64,6 +87,7 @@ const TONOS_CHAT: readonly Tono[] = [
     etiqueta: 'Seguro',
     emoji: '😎',
     nivel: Nivel.GRATIS,
+    color: ColorTono.AZUL,
     instruccion:
       'Confianza tranquila, sin arrogancia. Dice lo que piensa sin pedir ' +
       'permiso ni buscar aprobación. Corto y firme.',
@@ -73,6 +97,7 @@ const TONOS_CHAT: readonly Tono[] = [
     etiqueta: 'Ingenioso',
     emoji: '🧠',
     nivel: Nivel.GRATIS,
+    color: ColorTono.PURPURA,
     instruccion:
       'Agudo e inesperado. Juega con las palabras o con la lógica de lo que ' +
       'dijo la otra persona. Hace pensar antes de dar risa.',
@@ -82,6 +107,7 @@ const TONOS_CHAT: readonly Tono[] = [
     etiqueta: 'Romántico',
     emoji: '❤️',
     nivel: Nivel.GRATIS,
+    color: ColorTono.ROSE,
     instruccion:
       'Cálido y sincero sin ser cursi ni empalagoso. Dice algo bonito de ' +
       'forma original, no con frases hechas.',
@@ -91,6 +117,7 @@ const TONOS_CHAT: readonly Tono[] = [
     etiqueta: 'Ligar',
     emoji: '😘',
     nivel: Nivel.GRATIS,
+    color: ColorTono.ROSA,
     instruccion:
       'Coqueto con clase. Insinúa interés sin ser explícito ni baboso. ' +
       'La gracia está en lo que NO dice.',
@@ -100,6 +127,7 @@ const TONOS_CHAT: readonly Tono[] = [
     etiqueta: 'Dominante',
     emoji: '👑',
     nivel: Nivel.GRATIS,
+    color: ColorTono.PURPURA,
     instruccion:
       'Toma el control de la conversación con seguridad. Propone en vez de ' +
       'preguntar. Nunca prepotente ni irrespetuoso — seguridad, no ego.',
@@ -109,6 +137,7 @@ const TONOS_CHAT: readonly Tono[] = [
     etiqueta: 'Salvar situación',
     emoji: '🆘',
     nivel: Nivel.PREMIUM,
+    color: ColorTono.AMBAR,
     instruccion:
       'La conversación se murió o quedó incómoda. Revívela con autoironía ' +
       'sobre el silencio o un giro inesperado. Nunca reclamar el visto ni ' +
@@ -119,6 +148,7 @@ const TONOS_CHAT: readonly Tono[] = [
     etiqueta: 'Dar celos',
     emoji: '😈',
     nivel: Nivel.PREMIUM,
+    color: ColorTono.AMBAR,
     instruccion:
       'Insinúa que tienes una vida interesante y opciones, de forma sutil y ' +
       'con humor. NUNCA mentir sobre otra persona ni manipular — es mostrar ' +
@@ -129,6 +159,7 @@ const TONOS_CHAT: readonly Tono[] = [
     etiqueta: 'Mantener interés',
     emoji: '🎯',
     nivel: Nivel.PREMIUM,
+    color: ColorTono.AMBAR,
     instruccion:
       'Deja algo en el aire que genere ganas de responder. Menos ' +
       'información, más intriga. Nunca críptico al punto de ser molesto.',
@@ -146,6 +177,7 @@ const TONOS_STORIES: readonly Tono[] = [
     emoji: '😄',
     descripcion: 'Con humor y chispa',
     nivel: Nivel.GRATIS,
+    color: ColorTono.CIAN,
     instruccion: 'Humor genuino sobre algo concreto que se ve en la historia.',
   },
   {
@@ -154,6 +186,7 @@ const TONOS_STORIES: readonly Tono[] = [
     emoji: '❤️',
     descripcion: 'Tierno y coqueto',
     nivel: Nivel.GRATIS,
+    color: ColorTono.ROSA,
     instruccion: 'Cálido y coqueto sin ser cursi. Original, no frases hechas.',
   },
   {
@@ -162,6 +195,7 @@ const TONOS_STORIES: readonly Tono[] = [
     emoji: '😎',
     descripcion: 'Confiado y atractivo',
     nivel: Nivel.GRATIS,
+    color: ColorTono.AZUL,
     instruccion: 'Confianza tranquila. Comenta sin buscar aprobación.',
   },
   {
@@ -170,6 +204,7 @@ const TONOS_STORIES: readonly Tono[] = [
     emoji: '🔥',
     descripcion: 'Audaz y provocador',
     nivel: Nivel.GRATIS,
+    color: ColorTono.PURPURA,
     instruccion:
       'Se atreve a decir lo que otros no dirían, con picardía. Nunca ' +
       'vulgar ni sexual explícito.',
@@ -180,6 +215,7 @@ const TONOS_STORIES: readonly Tono[] = [
     emoji: '😈',
     descripcion: 'Haz que te eche de menos',
     nivel: Nivel.PREMIUM,
+    color: ColorTono.AMBAR,
     instruccion:
       'Insinúa vida propia interesante, con humor y sutileza. Nunca ' +
       'mentir ni manipular.',
@@ -190,6 +226,7 @@ const TONOS_STORIES: readonly Tono[] = [
     emoji: '🎯',
     descripcion: 'Respuestas que enganchan',
     nivel: Nivel.PREMIUM,
+    color: ColorTono.AMBAR,
     instruccion: 'Deja algo en el aire que invite a seguir la conversación.',
   },
 ];
@@ -209,6 +246,7 @@ const TONOS_ROMPEHIELOS: readonly Tono[] = [
     etiqueta: 'Básico',
     emoji: '✨',
     nivel: Nivel.GRATIS,
+    color: ColorTono.ROSA,
     instruccion:
       'Un primer mensaje correcto y agradable, fácil de responder. Sin ' +
       'una personalidad marcada: amable y natural, sin arriesgar.',
@@ -218,6 +256,7 @@ const TONOS_ROMPEHIELOS: readonly Tono[] = [
     etiqueta: 'Divertido',
     emoji: '😄',
     nivel: Nivel.PREMIUM,
+    color: ColorTono.AMBAR,
     instruccion:
       'Un primer mensaje que da risa de entrada. Nada de "hola, ¿cómo ' +
       'estás?" — algo que obligue a responder.',
@@ -227,6 +266,7 @@ const TONOS_ROMPEHIELOS: readonly Tono[] = [
     etiqueta: 'Misterioso',
     emoji: '🌙',
     nivel: Nivel.PREMIUM,
+    color: ColorTono.AMBAR,
     instruccion:
       'Genera curiosidad desde la primera línea. Dice poco y sugiere mucho.',
   },
@@ -235,6 +275,7 @@ const TONOS_ROMPEHIELOS: readonly Tono[] = [
     etiqueta: 'Directo',
     emoji: '⚡',
     nivel: Nivel.PREMIUM,
+    color: ColorTono.AMBAR,
     instruccion:
       'Va al grano con seguridad. Dice que le interesa sin rodeos ni ' +
       'arrodillarse. Corto.',
@@ -244,6 +285,7 @@ const TONOS_ROMPEHIELOS: readonly Tono[] = [
     etiqueta: 'Romántico',
     emoji: '❤️',
     nivel: Nivel.PREMIUM,
+    color: ColorTono.AMBAR,
     instruccion: 'Cálido y encantador de entrada, sin sonar cursi ni intenso.',
   },
 ];
@@ -259,6 +301,7 @@ const TONOS_NOTAS: readonly Tono[] = [
     emoji: '😄',
     descripcion: 'Con humor y chispa',
     nivel: Nivel.GRATIS,
+    color: ColorTono.CIAN,
     instruccion: 'Una nota que da risa y da ganas de contestarla.',
   },
   {
@@ -267,6 +310,7 @@ const TONOS_NOTAS: readonly Tono[] = [
     emoji: '❤️',
     descripcion: 'Tiernas y coquetas',
     nivel: Nivel.GRATIS,
+    color: ColorTono.ROSA,
     instruccion: 'Cálida y coqueta, sin ser cursi ni obvia.',
   },
   {
@@ -275,6 +319,7 @@ const TONOS_NOTAS: readonly Tono[] = [
     emoji: '🔥',
     descripcion: 'Audaces y directas',
     nivel: Nivel.GRATIS,
+    color: ColorTono.PURPURA,
     instruccion: 'Se atreve a decir algo que otros no pondrían. Nunca vulgar.',
   },
   {
@@ -283,6 +328,7 @@ const TONOS_NOTAS: readonly Tono[] = [
     emoji: '😏',
     descripcion: 'Sutiles e inteligentes',
     nivel: Nivel.GRATIS,
+    color: ColorTono.AZUL,
     instruccion:
       'Dirigida a alguien en particular sin nombrarlo. Quien tiene que ' +
       'entenderlo, lo entiende.',
@@ -293,6 +339,7 @@ const TONOS_NOTAS: readonly Tono[] = [
     emoji: '💎',
     descripcion: 'Notas que llaman la atención',
     nivel: Nivel.PREMIUM,
+    color: ColorTono.AMBAR,
     instruccion:
       'Una frase que detiene el scroll. Contundente, memorable, citable.',
   },
@@ -302,6 +349,7 @@ const TONOS_NOTAS: readonly Tono[] = [
     emoji: '💭',
     descripcion: 'Notas que generan curiosidad',
     nivel: Nivel.PREMIUM,
+    color: ColorTono.AMBAR,
     instruccion:
       'Deja una pregunta abierta en la cabeza de quien la lee. Sin ' +
       'responderla.',

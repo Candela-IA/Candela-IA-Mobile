@@ -221,7 +221,7 @@ barato hacerlo ahora que después de construir paywall, suscripciones y tiendas.
 | `Cannot find module 'X'` tras editar `package.json` | Falta `npm install` |
 | Error de módulo nativo / codegen | Dependencia nativa **no declarada**; instalarla con `npx expo install <paquete>` |
 | Cambios que "no se aplican" | El celular se desconectó de Metro (`No apps connected`) |
-| Rutas nuevas que no aparecen | Metro cachea el mapa de rutas → `npx expo start --clear` |
+| Rutas nuevas que no aparecen, o cambios en `_layout.tsx` que no surten efecto | Metro cachea el mapa de rutas, y ahí entran `unstable_settings` y los hijos declarados del `Stack`. Recargar no basta → `npx expo start --clear` |
 | Errores rojos en VS Code que `tsc` no ve | Servidor de TypeScript desactualizado → *Developer: Reload Window* |
 | `Cannot find module 'dist/main'` | Se borró `dist` pero quedó el `.tsbuildinfo` (ya corregido) |
 | "El widget Muy buena" | **No existe tal widget.** En el prototipo, "Básica"/"Muy buena" es la etiqueta de calidad que compara el tono gratis con el premium — un argumento de venta, no una calificación del usuario. La columna `rating` de `generations` quedó de esa confusión y hoy nadie la escribe |

@@ -26,10 +26,10 @@ interface Props {
  * lo que hace un desenfoque de verdad.
  */
 const CAPAS_RESPLANDOR = [
-  { crece: 0.22, opacidad: 0.1 },
-  { crece: 0.15, opacidad: 0.12 },
-  { crece: 0.09, opacidad: 0.14 },
-  { crece: 0.04, opacidad: 0.16 },
+  { crece: 0.22, opacidad: 0.05 },
+  { crece: 0.15, opacidad: 0.06 },
+  { crece: 0.09, opacidad: 0.07 },
+  { crece: 0.04, opacidad: 0.08 },
 ];
 
 /**

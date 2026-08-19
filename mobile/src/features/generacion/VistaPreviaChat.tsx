@@ -9,6 +9,8 @@ import {
   espacio,
   radio,
   tipografia,
+  TonoAcento,
+  TONOS,
 } from '../../core/theme';
 import { TarjetaGlass } from '../../core/ui/TarjetaGlass';
 
@@ -32,14 +34,18 @@ export function VistaPreviaChat({
   etiquetaTono,
   emojiTono,
   esEjemplo,
+  tono,
 }: {
   mensaje: string;
   etiquetaTono: string;
   emojiTono: string;
   esEjemplo: boolean;
+  tono: TonoAcento;
 }) {
+  const t = TONOS[tono];
+
   return (
-    <TarjetaGlass tono="rosa" padding={0} estilo={estilos.tarjeta}>
+    <TarjetaGlass tono={tono} padding={0} estilo={estilos.tarjeta}>
       {/* Cabecera de la conversación */}
       <View style={estilos.cabecera}>
         <View style={estilos.avatar}>
@@ -54,8 +60,16 @@ export function VistaPreviaChat({
           </View>
         </View>
 
-        <View style={estilos.insigniaTono}>
-          <Text style={estilos.textoInsignia}>
+        <View
+          style={[
+            estilos.insigniaTono,
+            {
+              borderColor: `rgba(${t.rgb},0.45)`,
+              backgroundColor: `rgba(${t.rgb},0.10)`,
+            },
+          ]}
+        >
+          <Text style={[estilos.textoInsignia, { color: t.hex }]}>
             {emojiTono} {etiquetaTono}
           </Text>
         </View>
@@ -65,8 +79,18 @@ export function VistaPreviaChat({
 
       <View style={estilos.conversacion}>
         {esEjemplo ? (
-          <View style={estilos.insigniaEjemplo}>
-            <Text style={estilos.textoEjemplo}>EJEMPLO</Text>
+          <View
+            style={[
+              estilos.insigniaEjemplo,
+              {
+                borderColor: `rgba(${t.rgb},0.5)`,
+                backgroundColor: `rgba(${t.rgb},0.12)`,
+              },
+            ]}
+          >
+            <Text style={[estilos.textoEjemplo, { color: t.hex }]}>
+              EJEMPLO
+            </Text>
           </View>
         ) : null}
 

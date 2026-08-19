@@ -1,7 +1,13 @@
 import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, espacio, radio, tipografia } from '../../core/theme';
+import {
+  colors,
+  espacio,
+  radio,
+  tipografia,
+  TonoAcento,
+} from '../../core/theme';
 import { TarjetaGlass } from '../../core/ui/TarjetaGlass';
 
 /**
@@ -19,10 +25,12 @@ export function VistaPreviaRespuesta({
   mensaje,
   imagenUri,
   esEjemplo,
+  tono,
 }: {
   mensaje: string;
   imagenUri?: string;
   esEjemplo: boolean;
+  tono: TonoAcento;
 }) {
   return (
     <View style={estilos.contenedor}>
@@ -42,7 +50,7 @@ export function VistaPreviaRespuesta({
         <View style={estilos.linea} />
       </View>
 
-      <TarjetaGlass tono="rosa" activa={!esEjemplo} padding={espacio.base}>
+      <TarjetaGlass tono={tono} activa={!esEjemplo} padding={espacio.base}>
         <Text style={estilos.mensaje}>{mensaje}</Text>
       </TarjetaGlass>
     </View>

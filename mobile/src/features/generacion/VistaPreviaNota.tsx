@@ -10,6 +10,8 @@ import {
   espacio,
   radio,
   tipografia,
+  TonoAcento,
+  TONOS,
 } from '../../core/theme';
 import { TarjetaGlass } from '../../core/ui/TarjetaGlass';
 
@@ -40,12 +42,16 @@ export const NOTA_EJEMPLO = 'Buscando a alguien que me robe una sonrisa 💜';
 export function VistaPreviaNota({
   nota,
   esEjemplo,
+  tono,
 }: {
   nota: string;
   esEjemplo: boolean;
+  tono: TonoAcento;
 }) {
+  const t = TONOS[tono];
+
   return (
-    <TarjetaGlass tono="rosa" padding={0} estilo={estilos.tarjeta}>
+    <TarjetaGlass tono={tono} padding={0} estilo={estilos.tarjeta}>
       {/* Cabecera al estilo de la bandeja de Instagram */}
       <View style={estilos.cabecera}>
         <Text style={estilos.tituloNotas}>Notas</Text>
@@ -59,15 +65,41 @@ export function VistaPreviaNota({
 
       <View style={estilos.cuerpo}>
         {esEjemplo ? (
-          <View style={estilos.insigniaEjemplo}>
-            <Text style={estilos.textoEjemplo}>EJEMPLO</Text>
+          <View
+            style={[
+              estilos.insigniaEjemplo,
+              {
+                borderColor: `rgba(${t.rgb},0.5)`,
+                backgroundColor: `rgba(${t.rgb},0.12)`,
+              },
+            ]}
+          >
+            <Text style={[estilos.textoEjemplo, { color: t.hex }]}>
+              EJEMPLO
+            </Text>
           </View>
         ) : null}
 
-        <View style={estilos.burbuja}>
+        <View
+          style={[
+            estilos.burbuja,
+            {
+              borderColor: `rgba(${t.rgb},0.45)`,
+              backgroundColor: `rgba(${t.rgb},0.10)`,
+            },
+          ]}
+        >
           <Text style={estilos.textoNota}>{nota}</Text>
           {/* Colita de la burbuja, como en Instagram. */}
-          <View style={estilos.colita} />
+          <View
+            style={[
+              estilos.colita,
+              {
+                borderColor: `rgba(${t.rgb},0.45)`,
+                backgroundColor: `rgba(${t.rgb},0.10)`,
+              },
+            ]}
+          />
         </View>
 
         {/* Foto de perfil con anillo degradado. */}
@@ -88,7 +120,7 @@ export function VistaPreviaNota({
       <View style={estilos.separador} />
 
       <View style={estilos.pie}>
-        <Ionicons name="logo-instagram" size={12} color={colors.marca.rosa} />
+        <Ionicons name="logo-instagram" size={12} color={t.hex} />
         <Text style={estilos.textoPie}>Vista previa de tu nota</Text>
         <Text style={estilos.punto}>•</Text>
         <Ionicons name="time-outline" size={12} color={colors.texto.tenue} />
@@ -123,8 +155,8 @@ const estilos = StyleSheet.create({
 
   cuerpo: {
     alignItems: 'center',
-    paddingVertical: espacio.lg,
-    gap: espacio.sm,
+    paddingVertical: espacio.md,
+    gap: 6,
   },
   insigniaEjemplo: {
     paddingHorizontal: espacio.sm,
@@ -167,15 +199,15 @@ const estilos = StyleSheet.create({
   },
 
   anillo: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     padding: 2.5,
-    marginTop: espacio.sm,
+    marginTop: espacio.xs,
   },
   avatar: {
     flex: 1,
-    borderRadius: 36,
+    borderRadius: 30,
     // `overflow` recorta la foto al círculo: sin él, la imagen cuadrada
     // asoma por las esquinas y se come el anillo degradado.
     overflow: 'hidden',

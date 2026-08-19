@@ -144,6 +144,16 @@ export function PantallaGeneracion({
 
   const tonoElegido = definicion?.tonos.find((t) => t.id === tonoId) ?? null;
 
+  /**
+   * El acento de TODA la pantalla, no solo del chip.
+   *
+   * En el diseño, elegir un modo repinta el banner, los bordes y la vista
+   * previa: el color es la confirmación de qué modo está activo, y verlo
+   * solo en el chip obliga a buscarlo. Mientras el catálogo no ha llegado
+   * se usa el tono propio de la pantalla.
+   */
+  const acento: TonoAcento = tonoElegido?.color ?? tono;
+
   const { gratis, premium } = useMemo(() => separarTonos(definicion), [definicion]);
 
   // Los chips con descripción necesitan más ancho, así que van de a dos por
@@ -229,6 +239,7 @@ export function PantallaGeneracion({
             imagenUri={captura?.uri}
             etiquetaTono={tonoElegido?.etiqueta ?? ''}
             emojiTono={tonoElegido?.emoji ?? ''}
+            tono={acento}
           />
         </Animated.View>
       )}
@@ -261,9 +272,9 @@ export function PantallaGeneracion({
           contentContainerStyle={estilos.scroll}
         >
           {/* Banner del gancho */}
-          <TarjetaGlass tono={tono} estilo={estilos.banner}>
+          <TarjetaGlass tono={acento} estilo={estilos.banner}>
             <View style={estilos.filaBanner}>
-              <IconoDegradado nombre={icono} tono={tono} tamano={44} radio={14} />
+              <IconoDegradado nombre={icono} tono={acento} tamano={44} radio={14} />
               <View style={estilos.flex}>
                 <Text style={estilos.textoGancho}>
                   {gancho}
@@ -339,7 +350,7 @@ export function PantallaGeneracion({
                     captura={captura}
                     onCambio={setCaptura}
                     vertical={capturaVertical}
-                    tono={capturaVertical ? tono : 'cian'}
+                    tono={acento}
                     subtextoVacio={
                       capturaVertical
                         ? 'Sube la historia que quieres analizar'
@@ -506,6 +517,7 @@ function VistaPrevia({
   imagenUri,
   etiquetaTono,
   emojiTono,
+  tono,
 }: {
   funcion: FuncionApi;
   mensaje: string;
@@ -513,9 +525,10 @@ function VistaPrevia({
   imagenUri?: string;
   etiquetaTono: string;
   emojiTono: string;
+  tono: TonoAcento;
 }) {
   if (funcion === 'CREAR_NOTAS') {
-    return <VistaPreviaNota nota={mensaje} esEjemplo={esEjemplo} />;
+    return <VistaPreviaNota nota={mensaje} esEjemplo={esEjemplo} tono={tono} />;
   }
 
   if (funcion === 'ROMPEHIELOS') {
@@ -525,6 +538,7 @@ function VistaPrevia({
         etiquetaTono={etiquetaTono}
         emojiTono={emojiTono}
         esEjemplo={esEjemplo}
+        tono={tono}
       />
     );
   }
@@ -534,6 +548,7 @@ function VistaPrevia({
       mensaje={mensaje}
       imagenUri={imagenUri}
       esEjemplo={esEjemplo}
+      tono={tono}
     />
   );
 }

@@ -5,6 +5,7 @@ import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppConfig } from '../../src/config/app_config';
+import { usarArranque } from '../../src/core/di/arranque';
 import { useSesion } from '../../src/core/di/sesion';
 import { abrirEnlaceLegal, contactarSoporte } from '../../src/core/legal';
 import { colors, espacio, radio, tipografia } from '../../src/core/theme';
@@ -29,6 +30,7 @@ export default function Ajustes() {
   const esPremium = useSesion((estado) => estado.saldo?.esPremium ?? false);
   const haySesion = useSesion((estado) => estado.saldo !== null);
   const simularPremium = useSesion((estado) => estado.simularPremium);
+  const olvidarOnboarding = usarArranque((estado) => estado.olvidarOnboarding);
 
   // De app.json, no de expo-application: dentro de Expo Go esa librería
   // devuelve la versión de Expo Go, no la de Candela.
@@ -105,6 +107,29 @@ export default function Ajustes() {
             subtitulo="Vuelve a ver el tutorial inicial"
             onPress={() => router.push('/onboarding')}
           />
+
+          {/* Solo en desarrollo: la bienvenida se muestra una vez y ya, así
+              que sin esto habría que borrar los datos de Expo Go cada vez
+              que se quiera revisar el flujo de usuario nuevo. */}
+          {AppConfig.esDesarrollo ? (
+            <>
+              <SeparadorAjuste />
+              <FilaAjuste
+                compacta
+                icono="refresh"
+                tono="azul"
+                titulo="Reiniciar primer arranque (pruebas)"
+                subtitulo="La próxima vez volverá a salir la bienvenida"
+                onPress={() => {
+                  olvidarOnboarding();
+                  Alert.alert(
+                    'Listo',
+                    'Recarga la app y verás la bienvenida desde el principio.',
+                  );
+                }}
+              />
+            </>
+          ) : null}
         </TarjetaGlass>
 
         <TarjetaGlass tono="purpura" padding={0} estilo={estilos.tarjeta}>

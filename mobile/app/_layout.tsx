@@ -16,6 +16,21 @@ import { colors } from '../src/core/theme';
  * a todas. Aquí van los proveedores globales y la configuración de navegación.
  */
 
+/**
+ * Cuál es la primera pantalla del Stack.
+ *
+ * Hace falta porque más abajo se declara `<Stack.Screen name="premium">`
+ * para darle su animación. Al ser el único hijo declarado, expo-router lo
+ * tomaba como ruta inicial y la app abría directamente en el paywall.
+ *
+ * Con esto la app arranca siempre en las pestañas, y `premium` vuelve a ser
+ * lo que debe: una pantalla a la que solo se llega al quedarse sin créditos
+ * o desde Ajustes.
+ */
+export const unstable_settings = {
+  initialRouteName: '(tabs)',
+};
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

@@ -26,6 +26,11 @@ interface EstadoArranque {
 
   cargar: () => Promise<void>;
   marcarOnboardingVisto: () => void;
+  /**
+   * SOLO DESARROLLO. Olvida que ya se vio la bienvenida, para poder probar
+   * el flujo de usuario nuevo sin borrar los datos de Expo Go.
+   */
+  olvidarOnboarding: () => void;
 }
 
 export const usarArranque = create<EstadoArranque>((set, get) => ({
@@ -50,5 +55,12 @@ export const usarArranque = create<EstadoArranque>((set, get) => ({
 
     set({ onboardingVisto: true });
     void SecureStore.setItemAsync(CLAVE, 'si');
+  },
+
+  olvidarOnboarding: () => {
+    if (!__DEV__) return;
+
+    set({ onboardingVisto: false });
+    void SecureStore.deleteItemAsync(CLAVE);
   },
 }));

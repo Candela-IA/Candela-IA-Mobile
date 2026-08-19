@@ -15,6 +15,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
@@ -179,6 +180,18 @@ export function PantallaGeneracion({
 
   /** El texto que se muestra: el resultado real o el ejemplo de la función. */
   const mensajeVisible = resultado ?? ejemploDe(funcion);
+
+  /**
+   * El checklist solo tiene sentido cuando hay una captura que analizar.
+   *
+   * Sus pasos —"leyendo la captura", "entendiendo el contexto"— describen
+   * un trabajo que en Rompehielos y Crear notas no existe: ahí no hay
+   * imagen y la respuesta llega en un par de segundos. Mostrarlo sería
+   * inventar una espera, y encima taparía la vista previa que el usuario
+   * está mirando. En esas dos el texto se releva en su sitio y basta con el
+   * indicador del botón.
+   */
+  const conChecklist = generando && Boolean(definicion?.requiereImagen);
 
   return (
     <FondoPantalla>
@@ -372,20 +385,29 @@ export function PantallaGeneracion({
                   {ETIQUETA_PREVIA[funcion]}
                 </Text>
 
-                {generando ? (
-                  <ChecklistCarga conImagen={definicion.requiereImagen} />
+                {conChecklist ? (
+                  <ChecklistCarga conImagen />
                 ) : (
-                  <VistaPrevia
-                    funcion={funcion}
-                    mensaje={mensajeVisible}
-                    esEjemplo={esEjemplo}
-                    imagenUri={captura?.uri}
-                    etiquetaTono={tonoElegido?.etiqueta ?? ''}
-                    emojiTono={tonoElegido?.emoji ?? ''}
-                  />
+                  // La clave es el propio mensaje: cuando llega uno nuevo el
+                  // bloque se remonta y entra con un fundido, así el texto
+                  // se releva en el mismo sitio en vez de aparecer de golpe.
+                  <Animated.View
+                    key={mensajeVisible}
+                    entering={FadeIn.duration(260)}
+                    style={generando ? estilos.previaGenerando : undefined}
+                  >
+                    <VistaPrevia
+                      funcion={funcion}
+                      mensaje={mensajeVisible}
+                      esEjemplo={esEjemplo}
+                      imagenUri={captura?.uri}
+                      etiquetaTono={tonoElegido?.etiqueta ?? ''}
+                      emojiTono={tonoElegido?.emoji ?? ''}
+                    />
+                  </Animated.View>
                 )}
 
-                {definicion.maxCaracteres !== null && !generando ? (
+                {definicion.maxCaracteres !== null && !conChecklist ? (
                   <View style={estilos.contadorNota}>
                     <ContadorCaracteres
                       usados={[...mensajeVisible].length}
@@ -576,6 +598,7 @@ const estilos = StyleSheet.create({
   textoSubGancho: { ...tipografia.pequeno, color: colors.texto.suave },
 
   cargando: { paddingVertical: espacio.xxl, alignItems: 'center' },
+  previaGenerando: { opacity: 0.45 },
   error: { marginBottom: espacio.base },
   textoError: { ...tipografia.cuerpo, color: colors.texto.claro },
   botonReintentar: {

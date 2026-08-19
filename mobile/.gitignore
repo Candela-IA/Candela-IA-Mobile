@@ -39,3 +39,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Configuracion local de herramientas de edicion, no del proyecto.
+.claude/

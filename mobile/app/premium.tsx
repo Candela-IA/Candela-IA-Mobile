@@ -172,7 +172,10 @@ export default function Premium() {
         <View style={estilos.legales}>
           <Enlace texto="Restaurar compras" onPress={restaurar} />
           <Text style={estilos.separador}>·</Text>
-          <Enlace texto="Términos" onPress={() => abrirLegal('terminos')} />
+          {/* Los términos viven dentro de la app, así que se navega en vez
+              de abrir una URL. La privacidad sigue siendo un enlace externo
+              hasta que el cliente entregue ese documento. */}
+          <Enlace texto="Términos" onPress={() => router.push('/terminos')} />
           <Text style={estilos.separador}>·</Text>
           <Enlace texto="Privacidad" onPress={() => abrirLegal('privacidad')} />
         </View>

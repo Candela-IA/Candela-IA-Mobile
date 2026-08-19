@@ -112,9 +112,15 @@ export default function LayoutRaiz() {
             animation: 'fade',
           }}
         >
-          {/* El paywall sube desde abajo y tapa la pantalla entera. Se
-              declara aquí porque es la única ruta que no usa el fundido
-              del resto; las demás se registran solas por su archivo. */}
+          {/* Las pestañas van declaradas PRIMERO y a propósito. El orden de
+              los hijos define el de las pantallas del navegador, y la
+              primera es la que se abre: cuando aquí solo estaba `premium`,
+              la app arrancaba en el paywall. */}
+          <Stack.Screen name="(tabs)" />
+
+          {/* El paywall sube desde abajo y tapa la pantalla entera. Es la
+              única ruta que no usa el fundido del resto; las demás se
+              registran solas por su archivo. */}
           <Stack.Screen
             name="premium"
             options={{

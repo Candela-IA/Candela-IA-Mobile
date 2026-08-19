@@ -30,6 +30,7 @@ import {
   radio,
   tipografia,
   TonoAcento,
+  TONOS,
 } from '../../core/theme';
 import { BotonDegradado } from '../../core/ui/BotonDegradado';
 import { CabeceraPantalla } from '../../core/ui/CabeceraPantalla';
@@ -112,6 +113,12 @@ export function PantallaGeneracion({
     queryKey: ['catalogo'],
     queryFn: obtenerCatalogo,
     staleTime: 5 * 60_000,
+    // Menos reintentos y sin espera creciente, a diferencia del resto de la
+    // app: sin catálogo esta pantalla no puede hacer NADA, así que más vale
+    // avisar en unos segundos que insistir medio minuto contra un servidor
+    // que no responde mientras el usuario mira una ruedita.
+    retry: 2,
+    retryDelay: 1_000,
   });
 
   const definicion = catalogo.data?.find((f) => f.id === funcion);
@@ -225,6 +232,31 @@ export function PantallaGeneracion({
               <Text style={estilos.textoError}>
                 No pudimos cargar los modos de respuesta. Revisa tu conexión.
               </Text>
+              {/* Sin este botón habría que salir de la pantalla y volver a
+                  entrar para reintentar, que es justo lo que nadie adivina
+                  cuando algo falla. */}
+              <Pressable
+                onPress={() => void catalogo.refetch()}
+                accessibilityRole="button"
+                disabled={catalogo.isFetching}
+                style={({ pressed }) => [
+                  estilos.botonReintentar,
+                  pressed && estilos.reintentarPresionado,
+                ]}
+              >
+                {catalogo.isFetching ? (
+                  <ActivityIndicator size="small" color={colors.marca.rose} />
+                ) : (
+                  <>
+                    <Ionicons
+                      name="refresh"
+                      size={14}
+                      color={colors.marca.rose}
+                    />
+                    <Text style={estilos.textoReintentar}>Reintentar</Text>
+                  </>
+                )}
+              </Pressable>
             </TarjetaGlass>
           ) : null}
 
@@ -546,6 +578,26 @@ const estilos = StyleSheet.create({
   cargando: { paddingVertical: espacio.xxl, alignItems: 'center' },
   error: { marginBottom: espacio.base },
   textoError: { ...tipografia.cuerpo, color: colors.texto.claro },
+  botonReintentar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: espacio.sm,
+    alignSelf: 'flex-start',
+    marginTop: espacio.md,
+    minHeight: 34,
+    paddingHorizontal: espacio.base,
+    paddingVertical: espacio.sm,
+    borderRadius: radio.pildora,
+    borderWidth: 1,
+    borderColor: `rgba(${TONOS.rose.rgb},0.45)`,
+  },
+  reintentarPresionado: { opacity: 0.6 },
+  textoReintentar: {
+    ...tipografia.pequeno,
+    fontWeight: '600',
+    color: colors.marca.rose,
+  },
 
   bloque: { marginBottom: espacio.xl },
 

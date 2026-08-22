@@ -98,7 +98,7 @@ Celular y laptop en la misma red WiFi.
 | ORM | Prisma + MySQL 8 | Migraciones limpias, tipos automáticos |
 | App | React Native + Expo | Un código para Android e iOS; compila desde Windows sin Mac |
 | Navegación | expo-router | Rutas por archivos |
-| IA | **GPT-5.6 Luna** (`gpt-5.6-luna`) | ~$0.0009/generación, el más barato tras comparar con Claude y Gemini |
+| IA | **GPT-5.6 Luna** (`gpt-5.6-luna`) | ~$0.0006/generación (medido), el más barato tras comparar con Claude y Gemini |
 | Pagos | RevenueCat → Google Play Billing / Apple IAP | Obligatorio para suscripciones digitales |
 
 **Arquitectura del backend:** DDD por módulos. `domain/` no importa NestJS ni

@@ -5,6 +5,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 import { DomainExceptionFilter } from './shared/infrastructure/http/domain-exception.filter';
 import { PrismaModule } from './shared/infrastructure/prisma/prisma.module';
+import { SaludController } from './shared/infrastructure/http/salud.controller';
 import { DevicesModule } from './modules/devices/devices.module';
 import { GenerationModule } from './modules/generation/generation.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
@@ -29,6 +30,7 @@ import { SubscriptionsModule } from './modules/subscriptions/subscriptions.modul
     GenerationModule,
     SubscriptionsModule,
   ],
+  controllers: [SaludController],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     // Traduce los errores de dominio a códigos HTTP en toda la aplicación.

@@ -3,7 +3,7 @@
 > **Estado del proyecto y documento de continuidad.** Si retomas el trabajo
 > en una conversación nueva, empieza leyendo esto.
 
-**Última actualización:** 18 de agosto de 2026
+**Última actualización:** 21 de agosto de 2026
 
 ---
 
@@ -119,6 +119,10 @@ Prisma — son reglas de negocio puras y testeables solas.
 - 24 pruebas del dominio en verde
 - Banco de pruebas de prompts (`npm run probar:prompts`): dispara un lote
   contra la API y lo imprime junto, con su costo y su latencia
+- `GET /salud` para el health check de la plataforma: comprueba la base de
+  datos, no solo que el proceso viva
+- Listo para desplegar: apagado limpio, proxy de confianza para que el
+  limitador vea la IP real, y Swagger fuera de producción
 - **Webhook de RevenueCat** (`POST /webhooks/revenuecat`): traduce los eventos
   de la tienda a estados de suscripción, con idempotencia, descarte de
   eventos fuera de orden y guard de tiempo constante. 14 pruebas de dominio
@@ -153,7 +157,7 @@ Prisma — son reglas de negocio puras y testeables solas.
 
 | Prioridad | Qué | Nota |
 |---|---|---|
-| 🔴 | **Validar calidad de prompts con IA real** | ~$1. Ver sección 7 |
+| 🔴 | **Desplegar el backend en Railway** | Sin esto la app solo funciona con tu laptop encendida, y el webhook de RevenueCat no puede recibir nada |
 | 🟡 | Renombrar el repo a `Candela-IA` | Se llama `-Mobile` pero tiene backend + mobile |
 | 🟡 | Conectar el cobro (RevenueCat) | La pantalla ya está; falta el pago. Necesita build nativo — no corre en Expo Go |
 | 🟡 | URL de la política de privacidad | Los términos ya están dentro de la app; falta este documento, que las tiendas exigen aparte |
@@ -164,28 +168,39 @@ Prisma — son reglas de negocio puras y testeables solas.
 
 ---
 
-## 7. ⚠️ Lo más importante pendiente
+## 7. ✅ Los prompts están validados
 
-**Validar la calidad de los prompts con la IA real.** Todavía no se ha hecho.
+**Hecho el 21 de agosto de 2026.** Era la duda más cara del proyecto: todo se
+construyó con `AI_PROVIDER="mock"` y nadie había visto una respuesta real
+del modelo. Ya no.
 
-Todo se construyó con `AI_PROVIDER="mock"`, que devuelve frases escritas a
-mano. Nadie ha visto una respuesta real del modelo.
+Se dispararon 31 generaciones reales con `npm run probar:prompts` sobre las
+cuatro funciones, incluidas capturas de chat y de historias.
 
-```bash
-# 1. Sacar API key en platform.openai.com y cargar $5
-# 2. En backend/.env:
-AI_PROVIDER="openai"
-OPENAI_API_KEY="sk-proj-..."
-# 3. Reiniciar el backend y disparar el lote:
-npm run probar:prompts
-npm run probar:prompts -- --capturas ./capturas   # incluye chat y stories
-# 4. Leer cada resultado y preguntarse: ¿lo mandaría de verdad?
-```
+| | |
+|---|---|
+| Generaciones | 31 |
+| Costo total | **$0.0182** |
+| Por generación | **$0.00059** |
+| Latencia media | 3.3 s |
 
-**Por qué antes que el paywall:** la calidad del mensaje **es** el producto;
-lo demás es el envase. Si los mensajes no convencen, hay que ajustar
-`backend/src/modules/generation/domain/prompt-builder.ts` — y sale mucho más
-barato hacerlo ahora que después de construir paywall, suscripciones y tiendas.
+**Salió un tercio más barato de lo estimado** ($0.0009 era la previsión). El
+prompt de sistema es idéntico entre peticiones del mismo tono, así que
+OpenAI lo cachea y cobra el 10% por esa parte — de 1250 tokens de entrada,
+unos 980 vienen de caché.
+
+Qué se comprobó en las respuestas:
+
+- **El modelo lee la imagen de verdad.** Las respuestas a una historia de un
+  brownie hablaban del brownie, no de genéricos.
+- **Suena a persona.** Frases cortas, minúscula inicial, jerga peruana
+  ("nomás") — la instrucción de persona aterriza.
+- **Invitan a responder.** Proponen algo concreto en vez de cerrar con una
+  frase que solo admita "jaja sí".
+
+Si algún día hay que ajustar el tono, se toca
+`backend/src/modules/generation/domain/prompt-builder.ts` y se vuelve a
+correr el lote por dos centavos.
 
 ---
 

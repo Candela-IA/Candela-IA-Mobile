@@ -136,6 +136,12 @@ Prisma — son reglas de negocio puras y testeables solas.
 - Selección de captura con compresión (3 MB → 200 KB)
 - Vistas previas contextuales: mock de Instagram, mock de chat, respuesta
 - Checklist de carga, copiar al portapapeles
+- **Las capturas se borran** en cuanto cumplen su función: al cambiarlas, al
+  quitarlas y al salir de la pantalla. El backend nunca las guarda ni las
+  registra — solo función, tono, tokens, costo y latencia
+- **Red de seguridad ante errores**: una excepción muestra una pantalla con
+  salida en vez de dejar la app en blanco
+- 11 pruebas de los números del paywall
 - **Paywall `/premium`** completo: dos planes, ahorro calculado, pie fijo,
   enlaces legales. Se abre solo al agotar créditos (402) y desde Ajustes.
   El cobro está sin conectar y **no concede premium a nadie** (a propósito)
@@ -164,7 +170,9 @@ Prisma — son reglas de negocio puras y testeables solas.
 | 🟡 | Poner `REVENUECAT_WEBHOOK_SECRET` y configurar la URL en el panel | El webhook ya está escrito; falta la cuenta del cliente |
 | 🟢 | "Tu opinión" | Debe abrir la ficha de la tienda; no existe hasta publicar |
 | 🟢 | Historial | Se quitó de la barra; decidir dónde va |
-| 🟢 | Íconos de la app en 1024×1024 | `assets/icon.png` sigue con el de Expo |
+| 🟢 | Reporte de fallos (Sentry) | El `ErrorBoundary` ya está; falta la cuenta y diez líneas |
+| 🟢 | Comprimir las imágenes | 3.2 MB en tres archivos que se ven pequeños. squoosh.app |
+| 🟢 | Revisar el ícono adaptativo de Android | Android recorta al 66% central; puede cortar la llama |
 
 ---
 

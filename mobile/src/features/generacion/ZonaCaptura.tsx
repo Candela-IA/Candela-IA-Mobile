@@ -18,6 +18,7 @@ import {
   TONOS,
 } from '../../core/theme';
 import { IconoDegradado } from '../../core/ui/IconoDegradado';
+import { borrarCaptura } from './borrarCaptura';
 import { TextoDegradado } from '../../core/ui/TextoDegradado';
 
 export interface CapturaSeleccionada {
@@ -99,6 +100,10 @@ export function ZonaCaptura({
         throw new Error('No pude leer la imagen.');
       }
 
+      // La anterior ya no sirve para nada: fuera antes de anunciar la
+      // nueva, para que nunca haya dos copias vivas a la vez.
+      borrarCaptura(captura?.uri);
+
       onCambio({
         uri: comprimida.uri,
         base64: comprimida.base64,
@@ -123,7 +128,10 @@ export function ZonaCaptura({
           contentFit="cover"
         />
         <Pressable
-          onPress={() => onCambio(null)}
+          onPress={() => {
+            borrarCaptura(captura.uri);
+            onCambio(null);
+          }}
           accessibilityRole="button"
           accessibilityLabel="Quitar captura"
           hitSlop={10}

@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -49,6 +49,7 @@ import {
   RESPUESTA_EJEMPLO,
   VistaPreviaRespuesta,
 } from './VistaPreviaRespuesta';
+import { borrarCaptura } from './borrarCaptura';
 import { CapturaSeleccionada, ZonaCaptura } from './ZonaCaptura';
 
 interface Props {
@@ -118,6 +119,20 @@ export function PantallaGeneracion({
   useEffect(() => {
     void iniciar();
   }, [iniciar]);
+
+  /**
+   * Al salir de la pantalla, la copia comprimida de la captura se borra.
+   *
+   * Se lee de una ref y no del estado a propósito: el efecto de limpieza
+   * captura el valor que había cuando se montó, y para entonces todavía no
+   * hay ninguna captura. La ref siempre tiene la última.
+   */
+  const capturaViva = useRef<CapturaSeleccionada | null>(null);
+  capturaViva.current = captura;
+
+  useEffect(() => {
+    return () => borrarCaptura(capturaViva.current?.uri);
+  }, []);
 
   const catalogo = useQuery({
     queryKey: ['catalogo'],

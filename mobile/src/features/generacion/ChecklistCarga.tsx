@@ -47,7 +47,14 @@ const PASOS_SIN_IMAGEN: Paso[] = [
   { texto: 'Escribiendo', enMs: Infinity },
 ];
 
-export function ChecklistCarga({ conImagen }: { conImagen: boolean }) {
+export function ChecklistCarga({
+  conImagen,
+  desnudo = false,
+}: {
+  conImagen: boolean;
+  /** Sin tarjeta ni título: solo los pasos. */
+  desnudo?: boolean;
+}) {
   const pasos = conImagen ? PASOS_CON_IMAGEN : PASOS_SIN_IMAGEN;
   const [completados, setCompletados] = useState(0);
 
@@ -61,13 +68,8 @@ export function ChecklistCarga({ conImagen }: { conImagen: boolean }) {
     return () => temporizadores.forEach(clearTimeout);
   }, [pasos]);
 
-  return (
-    <TarjetaGlass tono="purpura" estilo={estilos.tarjeta}>
-      <TextoDegradado estilo={estilos.titulo}>
-        Candela IA está trabajando
-      </TextoDegradado>
-
-      <View style={estilos.lista}>
+  const lista = (
+    <View style={estilos.lista}>
         {pasos.map((paso, i) => {
           const listo = i < completados;
           const activo = i === completados;
@@ -119,7 +121,20 @@ export function ChecklistCarga({ conImagen }: { conImagen: boolean }) {
             </View>
           );
         })}
-      </View>
+    </View>
+  );
+
+  // Desnudo cuando la pantalla ya pone su propio título: repetirlo dentro de
+  // una tarjeta dejaba dos encabezados diciendo lo mismo, y la tarjeta
+  // sumaba un alto que en pantallas cortas cortaba el último paso.
+  if (desnudo) return lista;
+
+  return (
+    <TarjetaGlass tono="purpura" estilo={estilos.tarjeta}>
+      <TextoDegradado estilo={estilos.titulo}>
+        Candela IA está trabajando
+      </TextoDegradado>
+      {lista}
     </TarjetaGlass>
   );
 }

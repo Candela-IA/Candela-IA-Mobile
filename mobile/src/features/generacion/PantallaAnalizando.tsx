@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -24,7 +24,7 @@ import { ChecklistCarga } from './ChecklistCarga';
  * el escaneo se ve recorriéndola de verdad.
  */
 const ALTO_APAISADO = 220;
-const ALTO_VERTICAL = 380;
+const ALTO_VERTICAL = 320;
 const ALTO_LINEA = 32;
 
 /**
@@ -54,7 +54,13 @@ export function PantallaAnalizando({
     <FondoPantalla>
       <CabeceraPantalla titulo="Analizando…" onAtras={onCancelar} />
 
-      <View style={estilos.cuerpo}>
+      {/* Con scroll aunque casi siempre quepa: en pantallas cortas —o con
+          la letra del sistema agrandada— la captura, los puntos, el título
+          y los cuatro pasos no entran, y sin esto el último se corta. */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={estilos.cuerpo}
+      >
         {imagenUri ? (
           <View style={[estilos.marcoImagen, { height: alto }]}>
             <Image
@@ -73,8 +79,8 @@ export function PantallaAnalizando({
           Candela IA está analizando
         </TextoDegradado>
 
-        <ChecklistCarga conImagen />
-      </View>
+        <ChecklistCarga conImagen desnudo />
+      </ScrollView>
     </FondoPantalla>
   );
 }
@@ -169,11 +175,12 @@ function Punto({ indice }: { indice: number }) {
 
 const estilos = StyleSheet.create({
   cuerpo: {
-    flex: 1,
+    // Centrado cuando sobra sitio, desplazable cuando no.
+    flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: espacio.xl,
-    paddingBottom: espacio.xxl,
+    paddingVertical: espacio.lg,
     gap: espacio.lg,
   },
 

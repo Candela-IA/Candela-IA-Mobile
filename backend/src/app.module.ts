@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
+import { validarEntorno } from './config/entorno';
 import { DomainExceptionFilter } from './shared/infrastructure/http/domain-exception.filter';
 import { PrismaModule } from './shared/infrastructure/prisma/prisma.module';
 import { SaludController } from './shared/infrastructure/http/salud.controller';
@@ -12,7 +13,16 @@ import { SubscriptionsModule } from './modules/subscriptions/subscriptions.modul
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, cache: true }),
+    /**
+     * `validate` corre antes que ningún módulo: si falta algo esencial, el
+     * proceso muere aquí con un mensaje claro en vez de arrancar a medias y
+     * fallar más tarde disfrazado de otra cosa. Ver `config/entorno.ts`.
+     */
+    ConfigModule.forRoot({
+      isGlobal: true,
+      cache: true,
+      validate: validarEntorno,
+    }),
 
     /**
      * Límite base por IP: protege contra fuerza bruta y scraping.

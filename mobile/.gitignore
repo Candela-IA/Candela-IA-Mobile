@@ -31,6 +31,9 @@ yarn-error.*
 *.pem
 
 # local env files
+# El .env.example si va al repositorio: documenta la variable sin fijar
+# a que backend habla la maquina de cada quien.
+.env
 .env*.local
 
 # typescript

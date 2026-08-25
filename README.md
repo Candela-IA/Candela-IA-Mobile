@@ -3,7 +3,7 @@
 > **Estado del proyecto y documento de continuidad.** Si retomas el trabajo
 > en una conversación nueva, empieza leyendo esto.
 
-**Última actualización:** 21 de agosto de 2026
+**Última actualización:** 24 de agosto de 2026
 
 ---
 
@@ -60,8 +60,8 @@ subdirectorio como root.
 > la URL vieja, así que no rompe nada.
 
 **Lo que NUNCA se sube** (ya cubierto por los `.gitignore`): `node_modules/`,
-`dist/` y `backend/.env`. Del entorno solo viaja `.env.example`, con
-placeholders.
+`dist/`, `backend/.env` y `mobile/.env`. De los dos entornos solo viajan
+los `.env.example`, con placeholders y sin una sola clave.
 
 ---
 
@@ -121,13 +121,16 @@ Prisma — son reglas de negocio puras y testeables solas.
 - Catálogo de 4 funciones y 25 tonos servido por API
 - `POST /generar` con proveedor intercambiable
 - Errores de dominio traducidos a HTTP (402 → paywall)
-- 24 pruebas del dominio en verde
+- 39 pruebas en verde: 24 del dominio y 15 de la validación del entorno
 - Banco de pruebas de prompts (`npm run probar:prompts`): dispara un lote
   contra la API y lo imprime junto, con su costo y su latencia
 - `GET /salud` para el health check de la plataforma: comprueba la base de
   datos, no solo que el proceso viva
 - Listo para desplegar: apagado limpio, proxy de confianza para que el
-  limitador vea la IP real, y Swagger fuera de producción
+  limitador vea la IP real, Swagger fuera de producción, `railway.toml` con
+  el arranque y el health check, y una **comprobación del entorno al
+  arrancar** que mata el proceso si falta algo esencial o si alguien intenta
+  levantar producción con el proveedor falso
 - **Webhook de RevenueCat** (`POST /webhooks/revenuecat`): traduce los eventos
   de la tienda a estados de suscripción, con idempotencia, descarte de
   eventos fuera de orden y guard de tiempo constante. 14 pruebas de dominio
@@ -170,7 +173,7 @@ Prisma — son reglas de negocio puras y testeables solas.
 
 | Prioridad | Qué | Nota |
 |---|---|---|
-| 🔴 | **Desplegar el backend en Railway** | Sin esto la app solo funciona con tu laptop encendida, y el webhook de RevenueCat no puede recibir nada |
+| 🔴 | **Desplegar el backend en Railway** | Paso a paso en [`backend/DESPLIEGUE.md`](backend/DESPLIEGUE.md). El repositorio ya está listo; faltan los pasos del panel, que solo puede dar quien tenga la cuenta. Sin esto la app solo funciona con tu laptop encendida, y el webhook de RevenueCat no puede recibir nada |
 | 🟡 | Renombrar el repo a `Candela-IA` | Se llama `-Mobile` pero tiene backend + mobile |
 | 🟡 | Conectar el cobro (RevenueCat) | La pantalla ya está; falta el pago. Necesita build nativo — no corre en Expo Go |
 | 🟡 | URL de la política de privacidad | Los términos ya están dentro de la app; falta este documento, que las tiendas exigen aparte |

@@ -1,0 +1,42 @@
+# CONFIGURACIÓN DEL DESPLIEGUE
+#
+# Railway lee este archivo desde el directorio raíz del servicio, que en este
+# repositorio es `backend/`. Lo que está aquí manda sobre lo que se haya
+# tocado a mano en el panel, así que el despliegue queda descrito en el
+# repositorio y se puede recrear el servicio desde cero sin recordar nada.
+#
+# Lo único que NO vive aquí son las variables de entorno: son secretos y se
+# escriben en la pestaña Variables. La lista está en DESPLIEGUE.md.
+
+[build]
+# `npm run build` es `prisma generate && nest build`. El `generate` no es
+# opcional: el cliente de Prisma se genera a partir del schema y sin él el
+# contenedor arranca y muere al primer acceso a la base de datos.
+buildCommand = "npm run build"
+
+[deploy]
+# `start:deploy` es `prisma migrate deploy && node dist/main`: aplica las
+# migraciones pendientes y solo entonces arranca. Si una migración falla, el
+# proceso no llega a escuchar, el health check no pasa y Railway mantiene
+# viva la versión anterior — que es exactamente lo que queremos.
+startCommand = "npm run start:deploy"
+
+# Railway consulta esta ruta hasta que responda 200 antes de mandarle
+# tráfico. `/salud` comprueba MySQL, no solo que el proceso viva.
+healthcheckPath = "/api/v1/salud"
+
+# El primer arranque incluye migraciones y conexión a la base; 120 s da
+# margen de sobra sin dejar colgado un despliegue que de verdad esté roto.
+healthcheckTimeout = 120
+
+# Si el proceso se cae, reintentar. Pero con tope: reiniciar en bucle un
+# contenedor que no puede arrancar solo gasta horas de servicio y esconde
+# el error entre miles de líneas de log iguales.
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+# Una sola instancia. Es lo correcto hoy y además evita que dos réplicas
+# corran `migrate deploy` a la vez al desplegar. Si algún día hace falta
+# escalar, las migraciones se mueven al Pre-Deploy Command del panel, que
+# corre una sola vez por despliegue.
+numReplicas = 1

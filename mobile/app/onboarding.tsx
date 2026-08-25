@@ -121,9 +121,10 @@ export default function Onboarding() {
               lineas={paso.titulo}
               enLinea={paso.tituloEnLinea}
               centrado={paso.centrado}
+              tamano={paso.tamanoTitulo}
             />
 
-            {paso.descripcion && !paso.emoji ? (
+            {paso.descripcion && !paso.emoji && !paso.logoCentral ? (
               <Text
                 style={[
                   estilos.descripcionArriba,
@@ -150,6 +151,7 @@ export default function Onboarding() {
                           tono={item.tono}
                           tamano={44}
                           radio={14}
+                          solido={false}
                         />
                         <View style={estilos.textosItem}>
                           <Text style={estilos.tituloItem}>{item.titulo}</Text>
@@ -176,6 +178,7 @@ export default function Onboarding() {
                           tono={item.tono}
                           tamano={56}
                           radio={18}
+                          solido={false}
                         />
                         <View style={estilos.textosItem}>
                           <Text style={estilos.tituloItem}>{item.titulo}</Text>
@@ -190,7 +193,7 @@ export default function Onboarding() {
               </View>
             ) : null}
 
-            {paso.descripcion && paso.emoji ? (
+            {paso.descripcion && (paso.emoji || paso.logoCentral) ? (
               <Text style={estilos.descripcionAbajo}>{paso.descripcion}</Text>
             ) : null}
 
@@ -246,11 +249,16 @@ function Titulo({
   lineas,
   enLinea = false,
   centrado = false,
+  tamano,
 }: {
   lineas: { texto: string; destacar?: boolean }[];
   enLinea?: boolean;
   centrado?: boolean;
+  tamano?: number;
 }) {
+  const medida = tamano
+    ? { fontSize: tamano, lineHeight: Math.round(tamano * 1.22) }
+    : undefined;
   // Un solo párrafo con lo destacado en rosa dentro de la frase. El
   // degradado no sirve aquí: se pinta enmascarando el texto y eso solo
   // funciona en bloque, no en mitad de una línea.
@@ -260,6 +268,7 @@ function Titulo({
         style={[
           estilos.textoTitulo,
           estilos.tituloCompacto,
+          medida,
           centrado && estilos.centrado,
         ]}
       >
@@ -280,11 +289,14 @@ function Titulo({
     <View style={[estilos.titulo, centrado && estilos.centrado]}>
       {lineas.map((linea) =>
         linea.destacar ? (
-          <TextoDegradado key={linea.texto} estilo={estilos.textoTitulo}>
+          <TextoDegradado
+            key={linea.texto}
+            estilo={{ ...estilos.textoTitulo, ...medida }}
+          >
             {linea.texto}
           </TextoDegradado>
         ) : (
-          <Text key={linea.texto} style={estilos.textoTitulo}>
+          <Text key={linea.texto} style={[estilos.textoTitulo, medida]}>
             {linea.texto}
           </Text>
         ),

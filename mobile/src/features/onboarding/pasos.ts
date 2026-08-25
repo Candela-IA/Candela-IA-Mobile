@@ -28,6 +28,8 @@ export interface Paso {
   tituloEnLinea?: boolean;
   /** Centra título y descripción. */
   centrado?: boolean;
+  /** Tamaño del título. El diseño usa uno distinto en cada pantalla. */
+  tamanoTitulo?: number;
   /** Logo grande con "Candela IA" debajo, como cierre de la bienvenida. */
   marcaCentral?: boolean;
   /**
@@ -69,6 +71,8 @@ export const PASOS: readonly Paso[] = [
       { texto: 'convierte cada conversación' },
       { texto: 'en una oportunidad.', destacar: true },
     ],
+    centrado: true,
+    tamanoTitulo: 24,
     logoCentral: true,
     descripcion:
       'Detecta el momento, entiende la intención y encuentra qué decir para mantener la chispa.',

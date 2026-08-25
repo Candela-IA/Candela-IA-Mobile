@@ -16,6 +16,7 @@ import {
   TONOS,
 } from '../../core/theme';
 import { BotonDegradado } from '../../core/ui/BotonDegradado';
+import { BotonFantasma } from '../../core/ui/BotonFantasma';
 import { CabeceraPantalla } from '../../core/ui/CabeceraPantalla';
 import { FondoPantalla } from '../../core/ui/FondoPantalla';
 import { TextoDegradado } from '../../core/ui/TextoDegradado';
@@ -129,14 +130,14 @@ export function PantallaResultado({
           }
         />
 
-        <BotonDegradado
+        <BotonFantasma
           titulo={copiado ? '¡Copiado!' : 'Copiar y usar'}
           onPress={onCopiar}
           iconoIzquierda={
             <Ionicons
               name={copiado ? 'checkmark' : 'copy'}
               size={17}
-              color={colors.texto.blanco}
+              color={colors.marca.rosa}
             />
           }
         />

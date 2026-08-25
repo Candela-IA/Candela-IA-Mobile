@@ -11,6 +11,15 @@ interface Props {
   /** 48 en las tarjetas, 28 en las etiquetas de sección. */
   tamano?: number;
   radio?: number;
+  /**
+   * `true` (por defecto) pinta el degradado saturado del tono, como en el
+   * Home, el paywall y Ajustes.
+   *
+   * `false` da la variante de la bienvenida: un tinte translúcido del color
+   * que muere en negro, con el borde encendido. Ahí los iconos acompañan a
+   * un texto largo, y en sólido pesarían más que lo que hay que leer.
+   */
+  solido?: boolean;
 }
 
 /**
@@ -53,6 +62,7 @@ export function IconoDegradado({
   tono,
   tamano = 48,
   radio = 16,
+  solido = true,
 }: Props) {
   const t = TONOS[tono];
   // Ajustes → Personalización → "Brillo neón".
@@ -85,7 +95,11 @@ export function IconoDegradado({
         ]}
       >
         <LinearGradient
-          colors={[t.from, t.to]}
+          colors={
+            solido
+              ? [t.from, t.to]
+              : [`rgba(${t.rgb},0.20)`, colors.oscuro.grafito]
+          }
           // 145° del diseño.
           start={{ x: 0.1, y: 0 }}
           end={{ x: 0.9, y: 1 }}
@@ -94,7 +108,15 @@ export function IconoDegradado({
         {/* Borde interior claro: el `inset 0 0 0 1px rgba(255,255,255,0.10)`
             del prototipo, que en React Native se hace con una capa encima. */}
         <View
-          style={[estilos.brilloInterior, { borderRadius: radio }]}
+          style={[
+            estilos.brilloInterior,
+            {
+              borderRadius: radio,
+              borderColor: solido
+                ? 'rgba(255,255,255,0.10)'
+                : `rgba(${t.rgb},0.45)`,
+            },
+          ]}
           pointerEvents="none"
         />
         <Ionicons

@@ -259,6 +259,7 @@ correr el lote por dos centavos.
 | `Cannot find module 'dist/main'` | Se borró `dist` pero quedó el `.tsbuildinfo` (ya corregido) |
 | "El widget Muy buena" | **No existe tal widget.** En el prototipo, "Básica"/"Muy buena" es la etiqueta de calidad que compara el tono gratis con el premium — un argumento de venta, no una calificación del usuario. La columna `rating` de `generations` quedó de esa confusión y hoy nadie la escribe |
 | `fetch failed` a mitad de un lote de pruebas | `npm run dev` es `nest start --watch` y se reinició; durante esos segundos el puerto rechaza todo. Para lotes largos, arrancar con `npm run start` |
+| `Prisma has no exported member DeviceGetPayload` justo después de un `npm ci` | El cliente de Prisma **se genera**, no se descarga: sus tipos salen del `schema.prisma`, y `npm ci` no siempre dispara esa generación. Parecen errores del código y no lo son → `npx prisma generate`. Por eso `npm run build` lo corre antes de compilar, y por eso el despliegue no depende de que ocurra solo |
 
 **Regla de oro:** si la terminal (`npx tsc --noEmit`) dice que está bien y el
 editor dice que no, **gana la terminal**.

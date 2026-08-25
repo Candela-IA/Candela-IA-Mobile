@@ -291,6 +291,7 @@ export function PantallaGeneracion({
     return (
       <PantallaAnalizando
         imagenUri={captura?.uri}
+        vertical={capturaVertical}
         onCancelar={() => router.back()}
       />
     );
@@ -301,6 +302,7 @@ export function PantallaGeneracion({
       <PantallaResultado
         mensaje={resultado}
         imagenUri={captura?.uri}
+        vertical={capturaVertical}
         tonoElegido={tonoElegido}
         acento={acento}
         generando={generando}

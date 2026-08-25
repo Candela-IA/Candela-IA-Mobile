@@ -33,6 +33,7 @@ const LOGO = require('../../../assets/logo-candela.png');
 export function PantallaResultado({
   mensaje,
   imagenUri,
+  vertical = false,
   tonoElegido,
   acento,
   generando,
@@ -43,6 +44,8 @@ export function PantallaResultado({
 }: {
   mensaje: string;
   imagenUri?: string;
+  /** Las historias son 9:16 y necesitan un marco más alto. */
+  vertical?: boolean;
   tonoElegido: TonoApi | null;
   acento: TonoAcento;
   generando: boolean;
@@ -83,7 +86,7 @@ export function PantallaResultado({
         </View>
 
         {imagenUri ? (
-          <View style={estilos.marcoImagen}>
+          <View style={[estilos.marcoImagen, { height: vertical ? 380 : 220 }]}>
             <Image
               source={{ uri: imagenUri }}
               style={StyleSheet.absoluteFill}
@@ -250,7 +253,6 @@ const estilos = StyleSheet.create({
   puntoApagado: { backgroundColor: 'rgba(255,255,255,0.15)' },
 
   marcoImagen: {
-    height: 220,
     borderRadius: radio.lg,
     overflow: 'hidden',
     backgroundColor: 'rgba(0,0,0,0.5)',

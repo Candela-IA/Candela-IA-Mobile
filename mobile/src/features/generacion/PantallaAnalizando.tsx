@@ -16,7 +16,15 @@ import { FondoPantalla } from '../../core/ui/FondoPantalla';
 import { TextoDegradado } from '../../core/ui/TextoDegradado';
 import { ChecklistCarga } from './ChecklistCarga';
 
-const ALTO_IMAGEN = 220;
+/**
+ * Alto del marco según la forma de la captura.
+ *
+ * Una historia de Instagram es 9:16: en una caja apaisada saldría diminuta
+ * entre dos franjas negras. Con el marco alto ocupa lo que le corresponde y
+ * el escaneo se ve recorriéndola de verdad.
+ */
+const ALTO_APAISADO = 220;
+const ALTO_VERTICAL = 380;
 const ALTO_LINEA = 32;
 
 /**
@@ -32,25 +40,30 @@ const ALTO_LINEA = 32;
  */
 export function PantallaAnalizando({
   imagenUri,
+  vertical = false,
   onCancelar,
 }: {
   imagenUri?: string;
+  /** Las historias son 9:16 y necesitan un marco más alto. */
+  vertical?: boolean;
   onCancelar: () => void;
 }) {
+  const alto = vertical ? ALTO_VERTICAL : ALTO_APAISADO;
+
   return (
     <FondoPantalla>
       <CabeceraPantalla titulo="Analizando…" onAtras={onCancelar} />
 
       <View style={estilos.cuerpo}>
         {imagenUri ? (
-          <View style={estilos.marcoImagen}>
+          <View style={[estilos.marcoImagen, { height: alto }]}>
             <Image
               source={{ uri: imagenUri }}
               style={StyleSheet.absoluteFill}
               contentFit="contain"
             />
-            <Rejilla />
-            <LineaDeEscaneo />
+            <Rejilla alto={alto} />
+            <LineaDeEscaneo alto={alto} />
           </View>
         ) : null}
 
@@ -72,8 +85,8 @@ export function PantallaAnalizando({
  * React Native no tiene `repeating-linear-gradient`, así que las líneas se
  * dibujan una a una. Son vistas de 1px: baratas y sin imágenes de por medio.
  */
-function Rejilla() {
-  const lineas = Math.ceil(ALTO_IMAGEN / 22);
+function Rejilla({ alto }: { alto: number }) {
+  const lineas = Math.ceil(alto / 22);
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
@@ -85,7 +98,7 @@ function Rejilla() {
 }
 
 /** La banda de luz que recorre la captura de arriba abajo. */
-function LineaDeEscaneo() {
+function LineaDeEscaneo({ alto }: { alto: number }) {
   const progreso = useSharedValue(0);
 
   useEffect(() => {
@@ -100,7 +113,7 @@ function LineaDeEscaneo() {
 
   const estilo = useAnimatedStyle(() => ({
     transform: [
-      { translateY: -ALTO_LINEA + progreso.value * (ALTO_IMAGEN + ALTO_LINEA) },
+      { translateY: -ALTO_LINEA + progreso.value * (alto + ALTO_LINEA) },
     ],
   }));
 
@@ -167,7 +180,6 @@ const estilos = StyleSheet.create({
   marcoImagen: {
     width: '100%',
     maxWidth: 300,
-    height: ALTO_IMAGEN,
     borderRadius: radio.lg,
     overflow: 'hidden',
     backgroundColor: 'rgba(0,0,0,0.5)',

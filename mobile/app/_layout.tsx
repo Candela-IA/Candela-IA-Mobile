@@ -8,6 +8,7 @@ import { usarArranque } from '../src/core/di/arranque';
 import { usarPreferencias } from '../src/core/di/preferencias';
 import { useSesion } from '../src/core/di/sesion';
 import { colors } from '../src/core/theme';
+import { PantallaError } from '../src/core/ui/PantallaError';
 
 /**
  * Raíz de la aplicación.
@@ -30,6 +31,33 @@ import { colors } from '../src/core/theme';
 export const unstable_settings = {
   initialRouteName: '(tabs)',
 };
+
+/**
+ * Red de seguridad ante errores no capturados.
+ *
+ * Expo Router llama a lo que exporte un layout con este nombre cuando algo
+ * revienta por debajo. Al exportarlo desde la raíz, cubre TODAS las
+ * pantallas.
+ *
+ * Sin esto, una excepción deja la app en blanco o la cierra, y reabrirla
+ * suele llevar al mismo sitio roto. Con esto el usuario tiene una salida y
+ * nosotros un log en vez de un desinstalado silencioso.
+ *
+ * TODO(produccion): aquí es donde va el reporte a un servicio de errores
+ * (Sentry, Bugsnag). Hoy solo queda en consola, que en un teléfono ajeno no
+ * lo lee nadie.
+ */
+export function ErrorBoundary({
+  error,
+  retry,
+}: {
+  error: Error;
+  retry: () => Promise<void>;
+}) {
+  console.error('[app] error no capturado', error);
+
+  return <PantallaError error={error} reintentar={() => void retry()} />;
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {

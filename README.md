@@ -86,11 +86,12 @@ npx expo start
 → Escanear el QR **desde dentro de Expo Go** (en Android no sirve la cámara).
 Celular y laptop en la misma red WiFi.
 
-**Si algo se comporta raro:** 
-> ⚠️ **El backend está en  con una clave real.** Cada
-> generación cuesta ~/usr/bin/bash.0006 y se descuenta del saldo prepago de OpenAI.
-> Es poco —el lote completo de pruebas son 2 centavos— pero ya no es gratis.
-> Para trabajar en la interfaz sin gastar, pon .
+**Si algo se comporta raro:** `npx expo start --clear`
+
+> ⚠️ **El backend está en `AI_PROVIDER="openai"` con una clave real.** Cada
+> generación cuesta ~$0.0006 y se descuenta del saldo prepago de OpenAI. Es
+> poco —el lote completo de pruebas son dos centavos— pero ya no es gratis.
+> Para trabajar en la interfaz sin gastar, pon `AI_PROVIDER="mock"`.
 
 ---
 

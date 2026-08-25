@@ -115,10 +115,23 @@ export default function Onboarding() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={estilos.scroll}
           >
-            <Titulo lineas={paso.titulo} />
+            {paso.marcaCentral ? <MarcaCentral /> : null}
+
+            <Titulo
+              lineas={paso.titulo}
+              enLinea={paso.tituloEnLinea}
+              centrado={paso.centrado}
+            />
 
             {paso.descripcion && !paso.emoji ? (
-              <Text style={estilos.descripcionArriba}>{paso.descripcion}</Text>
+              <Text
+                style={[
+                  estilos.descripcionArriba,
+                  paso.centrado && estilos.centrado,
+                ]}
+              >
+                {paso.descripcion}
+              </Text>
             ) : null}
 
             {paso.emoji ? <TarjetaEmoji emoji={paso.emoji} /> : null}
@@ -127,22 +140,53 @@ export default function Onboarding() {
             {esUltimo ? <TarjetaRegalo /> : null}
 
             {paso.lista ? (
-              <View style={estilos.lista}>
-                {paso.lista.map((item) => (
-                  <TarjetaGlass
-                    key={item.titulo}
-                    tono={item.tono}
-                    estilo={estilos.itemLista}
-                  >
-                    <View style={estilos.filaItem}>
-                      <IconoDegradado nombre={item.icono} tono={item.tono} />
-                      <View style={estilos.textosItem}>
-                        <Text style={estilos.tituloItem}>{item.titulo}</Text>
-                        <Text style={estilos.descItem}>{item.descripcion}</Text>
+              <View style={paso.listaPlana ? undefined : estilos.lista}>
+                {paso.lista.map((item, posicion, todos) =>
+                  paso.listaPlana ? (
+                    <View key={item.titulo}>
+                      <View style={[estilos.filaItem, estilos.filaPlana]}>
+                        <IconoDegradado
+                          nombre={item.icono}
+                          tono={item.tono}
+                          tamano={44}
+                          radio={14}
+                        />
+                        <View style={estilos.textosItem}>
+                          <Text style={estilos.tituloItem}>{item.titulo}</Text>
+                          <Text style={estilos.descItem}>
+                            {item.descripcion}
+                          </Text>
+                        </View>
                       </View>
+                      {posicion < todos.length - 1 ? (
+                        <View style={estilos.hilo} />
+                      ) : null}
                     </View>
-                  </TarjetaGlass>
-                ))}
+                  ) : (
+                    <TarjetaGlass
+                      key={item.titulo}
+                      tono={item.tono}
+                      estilo={estilos.itemLista}
+                    >
+                      <View style={estilos.filaItem}>
+                        {/* 56 en las tarjetas del "cómo funciona": son el
+                            contenido principal de esa pantalla. */}
+                        <IconoDegradado
+                          nombre={item.icono}
+                          tono={item.tono}
+                          tamano={56}
+                          radio={18}
+                        />
+                        <View style={estilos.textosItem}>
+                          <Text style={estilos.tituloItem}>{item.titulo}</Text>
+                          <Text style={estilos.descItem}>
+                            {item.descripcion}
+                          </Text>
+                        </View>
+                      </View>
+                    </TarjetaGlass>
+                  ),
+                )}
               </View>
             ) : null}
 
@@ -198,9 +242,42 @@ export default function Onboarding() {
 
 // ── Piezas ────────────────────────────────────────────────────────────────
 
-function Titulo({ lineas }: { lineas: { texto: string; destacar?: boolean }[] }) {
+function Titulo({
+  lineas,
+  enLinea = false,
+  centrado = false,
+}: {
+  lineas: { texto: string; destacar?: boolean }[];
+  enLinea?: boolean;
+  centrado?: boolean;
+}) {
+  // Un solo párrafo con lo destacado en rosa dentro de la frase. El
+  // degradado no sirve aquí: se pinta enmascarando el texto y eso solo
+  // funciona en bloque, no en mitad de una línea.
+  if (enLinea) {
+    return (
+      <Text
+        style={[
+          estilos.textoTitulo,
+          estilos.tituloCompacto,
+          centrado && estilos.centrado,
+        ]}
+      >
+        {lineas.map((linea) =>
+          linea.destacar ? (
+            <Text key={linea.texto} style={estilos.destacadoRosa}>
+              {linea.texto}
+            </Text>
+          ) : (
+            linea.texto
+          ),
+        )}
+      </Text>
+    );
+  }
+
   return (
-    <View style={estilos.titulo}>
+    <View style={[estilos.titulo, centrado && estilos.centrado]}>
       {lineas.map((linea) =>
         linea.destacar ? (
           <TextoDegradado key={linea.texto} estilo={estilos.textoTitulo}>
@@ -271,6 +348,22 @@ function TarjetaEmoji({ emoji }: { emoji: string }) {
   );
 }
 
+/**
+ * Cierre de la bienvenida: el logo con el nombre debajo.
+ *
+ * Más pequeño que `LogoCentral` a propósito: aquí abajo vienen la tarjeta
+ * de los intentos gratis y cuatro beneficios, y un logo enorme los
+ * empujaría fuera de la pantalla.
+ */
+function MarcaCentral() {
+  return (
+    <View style={estilos.marcaCentral}>
+      <Image source={LOGO} style={estilos.logoMarca} contentFit="cover" />
+      <TextoDegradado estilo={estilos.nombreMarca}>Candela IA</TextoDegradado>
+    </View>
+  );
+}
+
 function LogoCentral() {
   return (
     <View style={estilos.centro}>
@@ -281,11 +374,23 @@ function LogoCentral() {
   );
 }
 
+/**
+ * La tarjeta de los 5 intentos gratis.
+ *
+ * El regalo va como icono suelto con resplandor, no dentro del cuadrado
+ * degradado que usan los beneficios: es la pieza que tiene que destacar de
+ * la pantalla, y compartir forma con las demás la volvería una más.
+ */
 function TarjetaRegalo() {
   return (
     <TarjetaGlass tono="rosa" activa estilo={estilos.regalo}>
       <View style={estilos.filaItem}>
-        <IconoDegradado nombre="gift" tono="rosa" />
+        <Ionicons
+          name="gift"
+          size={44}
+          color={colors.marca.rosa}
+          style={resplandor(colors.marca.rosa, 0.9)}
+        />
         <View style={estilos.textosItem}>
           <Text style={estilos.tituloItem}>{REGALO.titulo}</Text>
           <Text style={estilos.descItem}>{REGALO.descripcion}</Text>
@@ -324,6 +429,16 @@ const estilos = StyleSheet.create({
   scroll: { paddingBottom: espacio.lg },
 
   titulo: { marginBottom: espacio.base },
+  tituloCompacto: { fontSize: 26, lineHeight: 32, marginBottom: espacio.base },
+  centrado: { textAlign: 'center', alignItems: 'center' },
+  destacadoRosa: { color: colors.marca.rosa },
+
+  marcaCentral: { alignItems: 'center', gap: espacio.sm, marginBottom: espacio.md },
+  logoMarca: { width: 74, height: 74, borderRadius: radio.xl },
+  nombreMarca: { ...tipografia.titulo, fontSize: 30 },
+
+  filaPlana: { paddingVertical: espacio.md },
+  hilo: { height: 1, backgroundColor: 'rgba(255,255,255,0.06)' },
   textoTitulo: { ...tipografia.titulo, color: colors.texto.blanco },
 
   descripcionArriba: {

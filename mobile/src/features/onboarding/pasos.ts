@@ -20,6 +20,24 @@ export interface ItemLista {
 export interface Paso {
   /** Líneas del título. La marcada con `destacar` va en degradado. */
   titulo: { texto: string; destacar?: boolean }[];
+  /**
+   * El título fluye en un solo párrafo en vez de una línea por entrada, y
+   * lo destacado se pinta en rosa dentro de la frase. Es lo que pide la
+   * última pantalla: "Enciende el interés" en una sola línea.
+   */
+  tituloEnLinea?: boolean;
+  /** Centra título y descripción. */
+  centrado?: boolean;
+  /** Logo grande con "Candela IA" debajo, como cierre de la bienvenida. */
+  marcaCentral?: boolean;
+  /**
+   * La lista va como filas separadas por hilos en vez de tarjetas.
+   *
+   * En la última pantalla el protagonista es la tarjeta de los 5 intentos
+   * gratis; si los beneficios también fueran tarjetas, competirían con ella
+   * y ninguno destacaría.
+   */
+  listaPlana?: boolean;
   descripcion?: string;
   /** Texto pequeño bajo la descripción (pantalla 2). */
   notaAlPie?: string;
@@ -121,11 +139,11 @@ export const PASOS: readonly Paso[] = [
     permiteOmitir: true,
   },
   {
-    titulo: [
-      { texto: 'Enciende mejores' },
-      { texto: 'conexiones.', destacar: true },
-    ],
-    logoCentral: true,
+    titulo: [{ texto: 'Enciende el ' }, { texto: 'interés', destacar: true }],
+    tituloEnLinea: true,
+    centrado: true,
+    marcaCentral: true,
+    listaPlana: true,
     descripcion:
       'Desbloquea el poder de la IA y lleva tus conversaciones al siguiente nivel.',
     lista: [

@@ -82,6 +82,18 @@ export function usarGeneracion({ funcion, onSinCreditos }: Opciones) {
     setTimeout(() => setCopiado(false), 2000);
   }, [resultado]);
 
+  /**
+   * Descarta el resultado y devuelve la pantalla a su formulario.
+   *
+   * Las funciones con captura pasan por tres fases y la fase se deduce del
+   * estado: si hay resultado, se muestra el resultado. Sin esto, la flecha
+   * de "atrás" desde el resultado no tendría forma de retroceder.
+   */
+  const limpiar = useCallback(() => {
+    setResultado(null);
+    setCopiado(false);
+  }, []);
+
   const irAlPaywall = useCallback(() => {
     router.push('/premium');
   }, [router]);
@@ -93,6 +105,7 @@ export function usarGeneracion({ funcion, onSinCreditos }: Opciones) {
     generar: mutacion.mutate,
     copiar,
     copiado,
+    limpiar,
     irAlPaywall,
   };
 }

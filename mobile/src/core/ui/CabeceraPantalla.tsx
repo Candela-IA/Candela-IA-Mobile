@@ -12,6 +12,12 @@ interface Props {
   icono?: ReactNode;
   /** Contenido a la derecha: el contador de créditos, por ejemplo. */
   derecha?: ReactNode;
+  /**
+   * Qué hace la flecha. Por defecto sale de la pantalla, pero las fases de
+   * una misma pantalla —analizando, resultado— necesitan volver al paso
+   * anterior en vez de abandonarla.
+   */
+  onAtras?: () => void;
 }
 
 /**
@@ -21,14 +27,19 @@ interface Props {
  * Medidas del prototipo (`ScreenHeader`): botón de 36 con radio 16, fondo
  * blanco al 5%, borde #242436 y resplandor rosa; flecha de 16 en rosa.
  */
-export function CabeceraPantalla({ titulo, icono, derecha }: Props) {
+export function CabeceraPantalla({
+  titulo,
+  icono,
+  derecha,
+  onAtras,
+}: Props) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
   return (
     <View style={[estilos.contenedor, { paddingTop: insets.top + espacio.sm }]}>
       <Pressable
-        onPress={() => router.back()}
+        onPress={onAtras ?? (() => router.back())}
         accessibilityRole="button"
         accessibilityLabel="Volver"
         hitSlop={8}

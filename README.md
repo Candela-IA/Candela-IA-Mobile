@@ -142,6 +142,8 @@ Prisma — son reglas de negocio puras y testeables solas.
 - **Red de seguridad ante errores**: una excepción muestra una pantalla con
   salida en vez de dejar la app en blanco
 - 11 pruebas de los números del paywall
+- **Analizar chat y Stories en tres pantallas**: formulario → análisis con
+  la captura escaneándose → resultado con el mensaje y las dos acciones
 - **Paywall `/premium`** completo: dos planes, ahorro calculado, pie fijo,
   enlaces legales. Se abre solo al agotar créditos (402) y desde Ajustes.
   El cobro está sin conectar y **no concede premium a nadie** (a propósito)

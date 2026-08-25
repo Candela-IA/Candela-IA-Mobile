@@ -42,6 +42,8 @@ import { IconoDegradado } from '../../core/ui/IconoDegradado';
 import { TarjetaGlass } from '../../core/ui/TarjetaGlass';
 import { ChecklistCarga } from './ChecklistCarga';
 import { ContadorCaracteres } from './ContadorCaracteres';
+import { PantallaAnalizando } from './PantallaAnalizando';
+import { PantallaResultado } from './PantallaResultado';
 import { usarGeneracion } from './usarGeneracion';
 import { ROMPEHIELOS_EJEMPLO, VistaPreviaChat } from './VistaPreviaChat';
 import { NOTA_EJEMPLO, VistaPreviaNota } from './VistaPreviaNota';
@@ -190,6 +192,7 @@ export function PantallaGeneracion({
     generar: pedirGeneracion,
     copiar,
     copiado,
+    limpiar,
   } = usarGeneracion({
     funcion,
     // Sin créditos o tono premium sin suscripción → paywall, no un error.
@@ -269,6 +272,45 @@ export function PantallaGeneracion({
       ) : null}
     </View>
   ) : null;
+
+  /**
+   * Las funciones con captura pasan por tres pantallas completas —formulario,
+   * análisis, resultado— en vez de cambiar un bloque dentro del formulario.
+   *
+   * Es lo que pide el diseño, y tiene sentido: ahí la espera dura varios
+   * segundos y el resultado es lo único que el usuario quiere mirar. En
+   * Rompehielos y Crear notas no hay captura, la respuesta llega en dos
+   * segundos y la vista previa se releva en su sitio.
+   *
+   * La fase se deduce del estado en vez de guardarse aparte: así no puede
+   * quedar desincronizada de lo que está pasando de verdad.
+   */
+  const porFases = Boolean(definicion?.requiereImagen);
+
+  if (porFases && generando) {
+    return (
+      <PantallaAnalizando
+        imagenUri={captura?.uri}
+        onCancelar={() => router.back()}
+      />
+    );
+  }
+
+  if (porFases && resultado) {
+    return (
+      <PantallaResultado
+        mensaje={resultado}
+        imagenUri={captura?.uri}
+        tonoElegido={tonoElegido}
+        acento={acento}
+        generando={generando}
+        copiado={copiado}
+        onRegenerar={generar}
+        onCopiar={() => void copiar()}
+        onAtras={limpiar}
+      />
+    );
+  }
 
   return (
     <FondoPantalla>

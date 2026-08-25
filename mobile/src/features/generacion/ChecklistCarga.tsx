@@ -69,7 +69,7 @@ export function ChecklistCarga({
   }, [pasos]);
 
   const lista = (
-    <View style={estilos.lista}>
+    <View style={[estilos.lista, desnudo && estilos.listaDesnuda]}>
         {pasos.map((paso, i) => {
           const listo = i < completados;
           const activo = i === completados;
@@ -147,6 +147,15 @@ const estilos = StyleSheet.create({
     marginBottom: espacio.lg,
   },
   lista: { gap: espacio.md },
+  /**
+   * Fuera de la tarjeta hay que dar ancho a mano.
+   *
+   * El texto de cada paso va con `flex: 1` para poder partirse en dos
+   * líneas. Dentro de la tarjeta hereda su ancho, pero suelto en un
+   * contenedor centrado —que encoge hasta el contenido— ese `flex: 1` se
+   * resuelve a cero y el texto desaparece dejando solo las casillas.
+   */
+  listaDesnuda: { alignSelf: 'stretch', maxWidth: 300, width: '100%' },
   fila: {
     flexDirection: 'row',
     alignItems: 'center',

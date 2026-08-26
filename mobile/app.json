@@ -38,13 +38,18 @@
         {
           "android": {
             "enableProguardInReleaseBuilds": true,
-            "enableShrinkResources": true
+            "enableShrinkResources": true,
+            "enableMinifyInReleaseBuilds": true
           }
         }
       ]
     ],
     "extra": {
-      "router": {}
-    }
+      "router": {},
+      "eas": {
+        "projectId": "60bfb56c-3d43-40d3-9079-10d5fd4d4ee2"
+      }
+    },
+    "owner": "candela-ia"
   }
 }

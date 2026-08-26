@@ -35,17 +35,17 @@ interface Props {
  * lo que hace un desenfoque de verdad.
  */
 const CAPAS_RESPLANDOR = [
-  { crece: 0.22, opacidad: 0.05 },
-  { crece: 0.15, opacidad: 0.06 },
-  { crece: 0.09, opacidad: 0.07 },
-  { crece: 0.04, opacidad: 0.08 },
+  { crece: 0.26, opacidad: 0.09 },
+  { crece: 0.18, opacidad: 0.11 },
+  { crece: 0.11, opacidad: 0.13 },
+  { crece: 0.05, opacidad: 0.15 },
 ];
 
 /**
  * El halo no puede crecer más que el margen de las tarjetas que lo
  * contienen: `TarjetaGlass` recorta su contenido, y un resplandor que llega
- * al borde se corta en seco y se ve como una raya. Con 0.22 sobre un icono
- * de 44 son ~10px, holgado dentro de los 16 de margen.
+ * al borde se corta en seco y se ve como una raya. Con 0.26 sobre un icono
+ * de 44 son ~11px, todavía holgado dentro de los 16 de margen.
  */
 
 /**
@@ -86,8 +86,8 @@ export function IconoDegradado({
                 // para Android, donde `elevation` solo pinta gris.
                 ios: {
                   shadowColor: t.hex,
-                  shadowOpacity: 0.62,
-                  shadowRadius: 10,
+                  shadowOpacity: 0.85,
+                  shadowRadius: 14,
                   shadowOffset: { width: 0, height: 6 },
                 },
               })

@@ -59,7 +59,10 @@ const RANGO_OPACIDAD = 0.55;
  */
 const CAPAS_AURA = Array.from({ length: 14 }, (_, i) => ({
   escala: 1 - i * 0.062,
-  opacidad: 0.012,
+  // Subida desde 0.012, que acumulaba ~0.17 en el centro y no se distinguía
+  // del fondo: apagar las animaciones no cambiaba nada a la vista. Con 0.022
+  // el centro llega a ~0.31 y las burbujas se leen como burbujas.
+  opacidad: 0.022,
 }));
 
 export function FondoPantalla({ children, animaciones, particulas }: Props) {

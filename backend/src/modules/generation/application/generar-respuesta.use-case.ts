@@ -16,7 +16,15 @@ import {
   AiProvider,
   ImagenEntrada,
 } from '../domain/ai-provider.port';
-import { Funcion, obtenerFuncion, obtenerTono } from '../domain/catalogo';
+import { Dispositivo } from '../../devices/domain/dispositivo.aggregate';
+import {
+  Funcion,
+  Nivel,
+  obtenerFuncion,
+  obtenerTono,
+  Tono,
+} from '../domain/catalogo';
+import { elegirRompehielos } from '../domain/rompehielos';
 
 export interface ComandoGenerar {
   readonly deviceId: string;
@@ -25,6 +33,13 @@ export interface ComandoGenerar {
   readonly imagen?: ImagenEntrada;
   readonly contexto?: string;
   readonly esRegeneracion: boolean;
+  /**
+   * El mensaje que el usuario ya tiene en pantalla, si pidió otro.
+   *
+   * Solo se usa para no devolver el mismo rompehielos dos veces seguidas.
+   * No se guarda en ningún sitio.
+   */
+  readonly mensajeAnterior?: string;
 }
 
 export interface RespuestaGenerada {
@@ -79,6 +94,12 @@ export class GenerarRespuestaUseCase {
     if (!dispositivo) throw new DispositivoNoEncontradoError();
 
     dispositivo.verificarAccesoATono(tono, ahora);
+
+    // 3.b Rompehielos en su tono gratis sale del banco escrito a mano: ni
+    // gasta crédito ni llama a la IA. Ver `domain/rompehielos.ts`.
+    if (esRompehielosGratis(funcion.id, tono)) {
+      return this.servirDelBanco(comando, tono, dispositivo, ahora);
+    }
 
     // 4. Cobrar. Lanza SinCreditosError o LimiteDiarioAlcanzadoError.
     const cobrado = await this.dispositivos.consumirCredito(
@@ -138,4 +159,53 @@ export class GenerarRespuestaUseCase {
       throw e;
     }
   }
+
+  /**
+   * Rompehielos gratis: una frase del banco, sin crédito y sin IA.
+   *
+   * Se registra igual en `generations`, con coste y tokens en cero, porque
+   * saber cuánto se usa la función gratuita es justo lo que dice si el
+   * gancho funciona. El saldo se devuelve intacto: es lo que la app pinta en
+   * el contador, y tiene que seguir marcando los 5 de siempre.
+   */
+  private async servirDelBanco(
+    comando: ComandoGenerar,
+    tono: Tono,
+    dispositivo: Dispositivo,
+    ahora: Date,
+  ): Promise<RespuestaGenerada> {
+    const mensaje = elegirRompehielos(comando.mensajeAnterior);
+
+    const generacion = await this.prisma.generation.create({
+      data: {
+        deviceId: comando.deviceId,
+        feature: comando.funcion,
+        tone: comando.tonoId,
+        isRegeneration: comando.esRegeneracion,
+        tokensIn: 0,
+        tokensOut: 0,
+        costUsd: 0,
+        latencyMs: 0,
+      },
+      select: { id: true },
+    });
+
+    this.logger.log(`Rompehielos/${tono.id} · del banco · $0`);
+
+    return {
+      generacionId: generacion.id,
+      mensaje,
+      saldo: dispositivo.saldoVisible(ahora),
+    };
+  }
+}
+
+/**
+ * Rompehielos no tiene captura ni contexto: el modelo recibiría siempre la
+ * misma petición y devolvería variaciones de lo mismo. Pagar por eso no
+ * tiene sentido, así que el tono gratis se sirve del banco. Los premium sí
+ * pasan por la IA — ahí está lo que se compra.
+ */
+function esRompehielosGratis(funcion: Funcion, tono: Tono): boolean {
+  return funcion === Funcion.ROMPEHIELOS && tono.nivel === Nivel.GRATIS;
 }

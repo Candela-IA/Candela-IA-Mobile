@@ -45,6 +45,11 @@ export function usarGeneracion({ funcion, onSinCreditos }: Opciones) {
           : undefined,
         contexto: datos.contexto || undefined,
         esRegeneracion: datos.esRegeneracion,
+        // Solo al pedir otra. El backend lo usa para no devolver el mismo
+        // rompehielos del banco dos veces seguidas.
+        mensajeAnterior: datos.esRegeneracion
+          ? (resultado ?? undefined)
+          : undefined,
       });
     },
 

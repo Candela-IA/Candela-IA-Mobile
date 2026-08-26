@@ -27,10 +27,10 @@ interface Props {
 
 /** Marcos del halo, de fuera hacia dentro. Ver `IconoDegradado`. */
 const CAPAS_RESPLANDOR = [
-  { crece: 16, opacidad: 0.04 },
-  { crece: 11, opacidad: 0.05 },
-  { crece: 6, opacidad: 0.06 },
-  { crece: 3, opacidad: 0.07 },
+  { crece: 18, opacidad: 0.07 },
+  { crece: 12, opacidad: 0.09 },
+  { crece: 7, opacidad: 0.11 },
+  { crece: 3, opacidad: 0.13 },
 ];
 
 /**
@@ -70,11 +70,11 @@ export function TarjetaGlass({
           ? Platform.select({
               ios: {
                 shadowColor: t.hex,
-                shadowOpacity: intensidad + (activa ? 0.25 : 0),
-                shadowRadius: 18,
+                shadowOpacity: intensidad + (activa ? 0.35 : 0.12),
+                shadowRadius: 24,
                 shadowOffset: { width: 0, height: 8 },
               },
-              android: { elevation: activa ? 6 : 2 },
+              android: { elevation: activa ? 10 : 4 },
             })
           : null,
         estilo,

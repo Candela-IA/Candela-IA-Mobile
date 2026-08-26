@@ -90,6 +90,8 @@ export function generar(
     imagen?: { base64: string; mimeType: string };
     contexto?: string;
     esRegeneracion?: boolean;
+    /** Para no repetir el mismo rompehielos al pedir otro. */
+    mensajeAnterior?: string;
   },
 ): Promise<RespuestaGeneradaApi> {
   return peticion<RespuestaGeneradaApi>('/generar', {

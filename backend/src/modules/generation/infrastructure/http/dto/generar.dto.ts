@@ -78,12 +78,24 @@ export class GenerarDto {
     example: false,
     default: false,
     description:
-      'true cuando viene de "Generar otra respuesta". Solo sirve para ' +
-      'métricas — consume un crédito igual que la primera.',
+      'true cuando viene de "Generar otra respuesta". Le pide a la IA que ' +
+      'cambie el ángulo, y queda anotado en las métricas. Consume un ' +
+      'crédito igual que la primera.',
   })
   @IsOptional()
   @IsBoolean()
   esRegeneracion?: boolean;
+
+  @ApiPropertyOptional({
+    example: 'pregunta seria y sin miedo: ¿piña en la pizza, sí o no?',
+    description:
+      'El mensaje que el usuario ya tiene en pantalla. Solo sirve para no ' +
+      'repetir el mismo rompehielos dos veces seguidas. No se almacena.',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  mensajeAnterior?: string;
 }
 
 export class RespuestaGeneradaDto {

@@ -68,6 +68,7 @@ export class GenerarController {
       imagen: dto.imagen,
       contexto: dto.contexto,
       esRegeneracion: dto.esRegeneracion ?? false,
+      mensajeAnterior: dto.mensajeAnterior,
     });
   }
 }

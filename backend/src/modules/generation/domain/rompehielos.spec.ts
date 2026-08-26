@@ -54,6 +54,33 @@ describe('banco de rompehielos', () => {
     }
   });
 
+  it('todos empiezan con mayúscula', () => {
+    // El usuario copia esto y lo manda tal cual: la falta acabaría siendo
+    // suya delante de la persona que le gusta.
+    const malos = ROMPEHIELOS.filter((f) => {
+      const primera = f[0]!;
+      // Los que abren con "¿" o "¡" se miden por la letra siguiente.
+      const letra = primera === '¿' || primera === '¡' ? f[1]! : primera;
+      return letra !== letra.toUpperCase();
+    });
+
+    expect(malos).toEqual([]);
+  });
+
+  it('todos cierran con puntuación', () => {
+    const malos = ROMPEHIELOS.filter((f) => !/[.?!]$/.test(f));
+
+    expect(malos).toEqual([]);
+  });
+
+  it('las preguntas llevan el signo de apertura', () => {
+    const malos = ROMPEHIELOS.filter(
+      (f) => f.endsWith('?') && !f.includes('¿'),
+    );
+
+    expect(malos).toEqual([]);
+  });
+
   it('ninguno inventa datos de la otra persona', () => {
     // Un rompehielos no sabe el nombre de nadie. Si aparece un hueco de
     // plantilla, alguien lo dejó a medias.

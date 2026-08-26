@@ -22,12 +22,13 @@ import { borrarCaptura } from './borrarCaptura';
 import { TextoDegradado } from '../../core/ui/TextoDegradado';
 
 /**
- * Tope de alto de la vista previa.
+ * Alto de la vista previa de la captura.
  *
- * Una captura de chat es mucho más alta que ancha; sin tope llenaría la
- * pantalla y dejaría los tonos y el botón por debajo del pliegue.
+ * Algo más que los 180 de la primera versión —para que el chat siga siendo
+ * reconocible— pero lejos de lo que ocupaba dándole la forma de la imagen,
+ * que dejaba el resto de la pantalla sin sitio.
  */
-const ALTO_MAXIMO_CAPTURA = 420;
+const ALTO_CAPTURA = 240;
 
 export interface CapturaSeleccionada {
   /** Para mostrarla en pantalla. */
@@ -35,16 +36,6 @@ export interface CapturaSeleccionada {
   /** Para mandarla al backend. */
   base64: string;
   mimeType: string;
-  /**
-   * Medidas de la imagen ya comprimida.
-   *
-   * Sirven para que la vista previa adopte la forma de la captura. Sin
-   * ellas hay que fijar un alto a ojo, y entonces una captura de chat
-   * —alta y estrecha— aparece recortada: el usuario sube su conversación y
-   * ve una franja.
-   */
-  ancho: number;
-  alto: number;
 }
 
 interface Props {
@@ -126,8 +117,6 @@ export function ZonaCaptura({
         uri: comprimida.uri,
         base64: comprimida.base64,
         mimeType: 'image/jpeg',
-        ancho: comprimida.width,
-        alto: comprimida.height,
       });
     } catch {
       Alert.alert(
@@ -141,18 +130,7 @@ export function ZonaCaptura({
 
   if (captura) {
     return (
-      <View
-        style={[
-          estilos.marco,
-          vertical && estilos.marcoVertical,
-          // El marco toma la forma de la captura, hasta un tope de alto: una
-          // conversación larga llenaría la pantalla entera y dejaría los
-          // tonos y el botón fuera de vista.
-          captura.ancho > 0 && captura.alto > 0
-            ? { height: undefined, aspectRatio: captura.ancho / captura.alto }
-            : null,
-        ]}
-      >
+      <View style={[estilos.marco, vertical && estilos.marcoVertical]}>
         <Image
           source={{ uri: captura.uri }}
           style={StyleSheet.absoluteFill}
@@ -296,21 +274,27 @@ const estilos = StyleSheet.create({
     backgroundColor: colors.oscuro.carbon,
   },
   marco: {
-    // Alto de reserva mientras no se conocen las medidas de la captura; en
-    // cuanto se conocen, manda el `aspectRatio`.
-    height: 180,
-    // Tope para que una conversación muy larga no empuje los tonos y el
-    // botón fuera de la pantalla.
-    maxHeight: ALTO_MAXIMO_CAPTURA,
+    /**
+     * Alto fijo, y la captura dentro con `contain`.
+     *
+     * La primera versión daba al marco la forma de la imagen, y una captura
+     * de chat —altísima— se comía la pantalla y empujaba los tonos y el
+     * botón fuera de vista. Prefieren verla pequeña y entera antes que
+     * grande y recortada, así que el marco manda y la imagen se ajusta.
+     */
+    height: ALTO_CAPTURA,
+    // Ancho completo: es lo que permite que `contain` la deje centrada.
+    alignSelf: 'stretch',
     borderRadius: radio.xxl,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: colors.borde,
-    // Con `contain`, lo que sobra del marco se ve; que sea el fondo de la
-    // app y no un hueco transparente.
+    // Con `contain` sobra marco a los lados; que se vea el color de tarjeta
+    // y no un hueco transparente.
     backgroundColor: colors.tarjeta,
   },
-  marcoVertical: { height: 260 },
+  // Las historias de IG son mas altas; algo mas de sitio para que se lea.
+  marcoVertical: { height: 300 },
   quitar: {
     position: 'absolute',
     top: espacio.md,

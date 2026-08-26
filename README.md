@@ -3,7 +3,7 @@
 > **Estado del proyecto y documento de continuidad.** Si retomas el trabajo
 > en una conversación nueva, empieza leyendo esto.
 
-**Última actualización:** 24 de agosto de 2026
+**Última actualización:** 25 de agosto del 2026
 
 ---
 

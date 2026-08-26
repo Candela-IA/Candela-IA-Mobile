@@ -77,8 +77,11 @@ function leerPng(ruta) {
 function escribirPng(ruta, w, h, rgba) {
   const raw = Buffer.alloc(h * (w * 4 + 1));
   for (let y = 0; y < h; y++) {
-    raw[y * (w * 4 + 1)] = 0; // filtro None
-    rgba.copy(raw, y * (w * 4 + 1) + 1, y * w * 4, (y + 1) * w * 4);
+    const linea = rgba.slice(y * w * 4, (y + 1) * w * 4);
+    const prev = y > 0 ? rgba.slice((y - 1) * w * 4, y * w * 4) : null;
+    const { f, sal } = mejorFiltro(linea, prev, 4);
+    raw[y * (w * 4 + 1)] = f;
+    sal.copy(raw, y * (w * 4 + 1) + 1);
   }
   const chunk = (tipo, datos) => {
     const len = Buffer.alloc(4); len.writeUInt32BE(datos.length);
@@ -95,6 +98,44 @@ function escribirPng(ruta, w, h, rgba) {
     chunk('IDAT', zlib.deflateSync(raw, { level: 9 })),
     chunk('IEND', Buffer.alloc(0)),
   ]));
+}
+
+/**
+ * Elige, linea a linea, el filtro PNG que mejor comprime.
+ *
+ * Escribirlo todo con filtro None es lo simple y lo peor: en imagenes con
+ * degradados deja al deflate sin nada que repetir, y el archivo puede acabar
+ * pesando mas que el original. Esta es la heuristica estandar de libpng:
+ * quedarse con el filtro de menor suma de diferencias absolutas. Cuesta cinco
+ * pasadas por linea y suele recortar el archivo a menos de la mitad.
+ */
+function mejorFiltro(linea, prev, bpp) {
+  const n = linea.length;
+  let mejor = null;
+  for (let f = 0; f < 5; f++) {
+    const sal = Buffer.alloc(n);
+    let suma = 0;
+    for (let i = 0; i < n; i++) {
+      const a = i >= bpp ? linea[i - bpp] : 0;
+      const b = prev ? prev[i] : 0;
+      const c = prev && i >= bpp ? prev[i - bpp] : 0;
+      let v;
+      if (f === 0) v = linea[i];
+      else if (f === 1) v = linea[i] - a;
+      else if (f === 2) v = linea[i] - b;
+      else if (f === 3) v = linea[i] - ((a + b) >> 1);
+      else {
+        const p = a + b - c;
+        const pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c);
+        v = linea[i] - ((pa <= pb && pa <= pc) ? a : (pb <= pc ? b : c));
+      }
+      const byte = v & 0xFF;
+      sal[i] = byte;
+      suma += byte < 128 ? byte : 256 - byte;
+    }
+    if (!mejor || suma < mejor.suma) mejor = { f, sal, suma };
+  }
+  return mejor;
 }
 
 module.exports = { leerPng, escribirPng };

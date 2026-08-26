@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -31,9 +30,13 @@ import { TarjetaGlass } from '../src/core/ui/TarjetaGlass';
 import { TextoDegradado } from '../src/core/ui/TextoDegradado';
 
 const LOGO = require('../assets/logo-candela.png');
+const HIELO = require('../assets/hielo-onboarding.png');
 
 /** Lado del bloque de hielo de la primera pantalla, según el diseño. */
 const LADO_HIELO = 184;
+
+/** Ancho/alto de `hielo-onboarding.png` (326x297), para no deformarlo. */
+const PROPORCION_HIELO = 326 / 297;
 
 /** Capas del halo helado, de fuera hacia dentro. */
 const CAPAS_HIELO = [
@@ -308,10 +311,15 @@ function Titulo({
 /**
  * El bloque de hielo de la primera pantalla.
  *
- * No es una tarjeta cualquiera con un emoji dentro: en el diseño es hielo
- * —borde blanco azulado, tinte cian, escarcha en el canto superior y un
- * halo helado—, y eso es lo que hace que la pantalla ilustre "tu chat se
- * enfría" en vez de solo decirlo.
+ * Antes era un cuadrado dibujado a mano —degradado, escarcha y un 🥶 dentro—
+ * porque no había ilustración. Ahora la hay, y una imagen del cubo con el
+ * emoji atrapado dentro cuenta "tu chat se enfría" mucho mejor que un emoji
+ * sobre un rectángulo.
+ *
+ * Lo que sí se conserva es el halo helado: la imagen recortada quedaría
+ * flotando sola sobre el fondo, y esas capas son las que la asientan en la
+ * pantalla. El emoji sigue llegando como etiqueta de accesibilidad, que es
+ * lo que leerá quien use lector de pantalla.
  */
 function TarjetaEmoji({ emoji }: { emoji: string }) {
   const cian = TONOS.cian.rgb;
@@ -334,28 +342,12 @@ function TarjetaEmoji({ emoji }: { emoji: string }) {
         />
       ))}
 
-      <View style={estilos.bloqueHielo}>
-        <LinearGradient
-          colors={[
-            'rgba(255,255,255,0.22)',
-            `rgba(${cian},0.12)`,
-            'rgba(17,17,24,0.9)',
-          ]}
-          locations={[0, 0.45, 1]}
-          start={{ x: 0.15, y: 0 }}
-          end={{ x: 0.85, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-
-        {/* Escarcha: el brillo que cae desde el canto superior. */}
-        <LinearGradient
-          colors={['rgba(255,255,255,0.22)', 'transparent']}
-          style={estilos.escarcha}
-          pointerEvents="none"
-        />
-
-        <Text style={estilos.emoji}>{emoji}</Text>
-      </View>
+      <Image
+        source={HIELO}
+        style={estilos.bloqueHielo}
+        contentFit="contain"
+        accessibilityLabel={emoji}
+      />
     </View>
   );
 }
@@ -473,25 +465,10 @@ const estilos = StyleSheet.create({
 
   centro: { alignItems: 'center', marginVertical: espacio.xxl },
   bloqueHielo: {
-    width: LADO_HIELO,
+    // El cubo no es cuadrado del todo (326x297), y estirarlo se nota.
+    width: LADO_HIELO * PROPORCION_HIELO,
     height: LADO_HIELO,
-    borderRadius: 40,
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-    // Blanco azulado, no gris: es lo que lo hace leer como hielo y no como
-    // una tarjeta más.
-    borderWidth: 1,
-    borderColor: 'rgba(190,240,255,0.5)',
   },
-  escarcha: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    height: 72,
-  },
-  emoji: { fontSize: 104, lineHeight: 124 },
   marcoLogo: { borderRadius: radio.xxl + 8 },
   logoGrande: { width: 168, height: 168, borderRadius: radio.xxl + 8 },
 

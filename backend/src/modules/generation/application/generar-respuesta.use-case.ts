@@ -93,6 +93,7 @@ export class GenerarRespuestaUseCase {
         tono,
         imagen: comando.imagen,
         contextoUsuario: comando.contexto,
+        esRegeneracion: comando.esRegeneracion,
       });
 
       // 6. Métricas. Nunca la imagen ni el texto de la conversación:

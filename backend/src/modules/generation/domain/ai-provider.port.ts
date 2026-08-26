@@ -26,6 +26,15 @@ export interface PeticionGeneracion {
   readonly imagen?: ImagenEntrada;
   /** Nota opcional que escribe el usuario ("es mi ex", "la conocí ayer"). */
   readonly contextoUsuario?: string;
+  /**
+   * El usuario ya vio una respuesta y pidió otra.
+   *
+   * Sin esto, regenerar manda al modelo una petición idéntica y lo único que
+   * cambia el resultado es el azar del muestreo. El usuario gasta un crédito
+   * en cada intento, así que merece otro ángulo y no una variación de lo
+   * mismo.
+   */
+  readonly esRegeneracion?: boolean;
 }
 
 export interface UsoTokens {

@@ -193,6 +193,10 @@ Prisma — son reglas de negocio puras y testeables solas.
 - **Primer arranque**: el onboarding se muestra solo la primera vez y se
   recuerda en el teléfono. Antes no lo veía nadie — solo se llegaba desde
   Ajustes
+- **Icono adaptativo de Android** resuelto: `adaptive-icon-candela.png` se
+  genera desde el logo con `scripts/generar-icono-adaptativo.js`, con la llama
+  centrada al 66% y fondo transparente. El logo original es RGB sin alfa y
+  llenaba el lienzo, así que Android le cortaba la punta y las estrellitas
 - **Personalización** con sus tres interruptores (animaciones, partículas,
   brillo neón). Se guardan en el teléfono y los respetan `FondoPantalla`,
   `TarjetaGlass` e `IconoDegradado`, así que el cambio se ve en toda la app
@@ -213,7 +217,6 @@ Prisma — son reglas de negocio puras y testeables solas.
 | 🟢 | Historial | Se quitó de la barra; decidir dónde va |
 | 🟢 | Reporte de fallos (Sentry) | El `ErrorBoundary` ya está; falta la cuenta y diez líneas |
 | 🟢 | Comprimir las imágenes | 3.2 MB en tres archivos que se ven pequeños. squoosh.app |
-| 🟢 | Revisar el ícono adaptativo de Android | Android recorta al 66% central; puede cortar la llama |
 
 ---
 

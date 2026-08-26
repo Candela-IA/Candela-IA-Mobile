@@ -20,7 +20,7 @@
     "android": {
       "package": "com.candelaia.app",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo-candela.png",
+        "foregroundImage": "./assets/adaptive-icon-candela.png",
         "backgroundColor": "#09090B"
       },
       "edgeToEdgeEnabled": true,
@@ -31,7 +31,8 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-font"
     ]
   }
 }

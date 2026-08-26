@@ -44,11 +44,7 @@
       ]
     ],
     "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "d5835e18-be21-418f-b111-1f8e99a2226e"
-      }
-    },
-    "owner": "sebastianpariachi.l"
+      "router": {}
+    }
   }
 }

@@ -139,7 +139,7 @@ Prisma — son reglas de negocio puras y testeables solas.
 - `GET /salud` para el health check de la plataforma: comprueba la base de
   datos, no solo que el proceso viva
 - Listo para desplegar: apagado limpio, proxy de confianza para que el
-  limitador vea la IP real, Swagger fuera de producción, `railway.toml` con
+  limitador vea la IP real, Swagger detrás de una variable, `railway.toml` con
   el arranque y el health check, y una **comprobación del entorno al
   arrancar** que mata el proceso si falta algo esencial o si alguien intenta
   levantar producción con el proveedor falso
@@ -159,6 +159,8 @@ Prisma — son reglas de negocio puras y testeables solas.
   probar gratis: 200 en 3,7 s, mensaje con voz de persona (no las frases
   enlatadas del modo falso) y el crédito descontado de 5 a 4 en la misma
   respuesta. La clave de producción sirve y el circuito entero funciona
+- **Swagger publicado** en `/api/docs`, para que el cliente pueda verificar
+  la API por su cuenta. Ver la decisión en la sección 8
 - **Webhook de RevenueCat** (`POST /webhooks/revenuecat`): traduce los eventos
   de la tienda a estados de suscripción, con idempotencia, descarte de
   eventos fuera de orden y guard de tiempo constante. 14 pruebas de dominio
@@ -269,6 +271,17 @@ correr el lote por dos centavos.
   app. La experiencia es la misma que se espera —sube una hoja de Google con
   las tarjetas que el usuario ya tiene guardadas—, solo cambia el mecanismo.
   En iOS, Apple IAP. RevenueCat envuelve los dos.
+- **Swagger está publicado en producción, a propósito.** `SWAGGER="true"` en
+  Railway. La razón es que el cliente paga el desarrollo y quiere poder
+  verificar la API sin depender de que alguien se la enseñe. El coste de esa
+  decisión es real y conviene tenerlo presente: con la API documentada,
+  `POST /dispositivos/registrar` es una invitación a inventar `deviceKey` y
+  quemar saldo de OpenAI a 5 generaciones por dispositivo. Lo que hace la
+  decisión asumible es que **la cuenta de OpenAI es prepago**: el daño máximo
+  es agotar el saldo y que la app deje de generar hasta recargar, no una
+  factura sorpresa. Por eso, mientras esto siga público, **no se activa la
+  recarga automática** en OpenAI — eso quitaría el techo. Si algún día se
+  activa, hay que apagar Swagger el mismo día
 - **Las preferencias de Personalización se guardan en `expo-secure-store`**,
   no en AsyncStorage: evita añadir una dependencia nativa nueva y tres
   booleanos caben de sobra en el límite de 2 KB por clave.

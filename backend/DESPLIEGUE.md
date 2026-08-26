@@ -135,7 +135,7 @@ Detalle por detalle:
 | `OPENAI_MODEL` | `gpt-5.6-luna` |
 | `JWT_SECRET` | Uno nuevo y aleatorio, **distinto al de tu `.env` local**. Genéralo con el comando de abajo y pégalo |
 | `JWT_EXPIRES_IN` | `30d` |
-| `SWAGGER` | `false`. Publicar la documentación completa de la API es regalarle el mapa a quien quiera atacarla |
+| `SWAGGER` | **`true` en este despliegue, a propósito**, para que el cliente pueda verificar la API en `/api/docs`. El valor seguro por defecto es `false`: publicar la documentación completa facilita descubrir `POST /dispositivos/registrar` y quemar saldo de OpenAI inventando `deviceKey`. Se asume porque la cuenta es prepago y el daño está acotado al saldo. Ver la sección 8 del README |
 
 Para el secreto:
 
@@ -253,7 +253,7 @@ quien acierte el formato del JSON es peor que un webhook que no funciona.
 |---|---|
 | El primer despliegue falla antes de instalar nada, y los logs listan `.vscode/ backend/ mobile/ README.md` | Falta el **Root Directory = `backend`**. Railway está intentando construir la raíz del repositorio, donde no hay `package.json` |
 | El despliegue falla pero el desglose marca **Build ✓** y **Healthcheck ✗** | No es el build: el proceso arrancó y se murió por falta de variables. En *View logs → Deploy* estará nuestro `No puedo arrancar: el entorno está incompleto` diciendo cuáles |
-| `/api/docs` responde y no debería | Falta `NODE_ENV=production`. La condición del arranque es "si **no** es producción **o** SWAGGER=true", así que sin esa variable Swagger se publica aunque hayas puesto `SWAGGER=false` |
+| `/api/docs` responde con `SWAGGER=false` | Falta `NODE_ENV=production`. La condición del arranque es "si **no** es producción **o** SWAGGER=true", así que sin esa variable Swagger se publica aunque hayas puesto `SWAGGER=false`. (En este despliegue `/api/docs` responde porque `SWAGGER=true` está puesto a propósito — eso no es el fallo) |
 | El botón *Generate Domain* está apagado | El `8080` del campo es un texto de sugerencia, no un valor. Hay que teclearlo |
 | `No puedo arrancar: el entorno está incompleto` | Es nuestro propio aviso, y dice exactamente qué variable falta. Se arregla en Variables y se vuelve a desplegar |
 | `prisma: not found` al arrancar | El CLI de Prisma tiene que estar en `dependencies`, no en `devDependencies`: el constructor poda las de desarrollo antes de arrancar. Ya está así, no lo muevas |

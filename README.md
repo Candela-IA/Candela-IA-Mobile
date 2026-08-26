@@ -153,7 +153,12 @@ Prisma — son reglas de negocio puras y testeables solas.
   saldo 5/5 —o sea que la migración creó las tablas y se escriben—, y los
   endpoints que cuestan dinero (`/generar`) o reparten suscripciones
   (`/webhooks/revenuecat`) devuelven 401 sin credenciales. `/api/docs` da
-  404, que es lo que debe dar en producción
+  404, que es lo que debe dar en producción.
+
+  Y **una generación real contra OpenAI**, que es lo único que no se puede
+  probar gratis: 200 en 3,7 s, mensaje con voz de persona (no las frases
+  enlatadas del modo falso) y el crédito descontado de 5 a 4 en la misma
+  respuesta. La clave de producción sirve y el circuito entero funciona
 - **Webhook de RevenueCat** (`POST /webhooks/revenuecat`): traduce los eventos
   de la tienda a estados de suscripción, con idempotencia, descarte de
   eventos fuera de orden y guard de tiempo constante. 14 pruebas de dominio

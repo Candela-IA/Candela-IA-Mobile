@@ -32,9 +32,30 @@ Proyecto "Candela IA"
 
 ## 1. Crear el proyecto y conectar el repositorio
 
+> ⚠️ **Quién conecta el repositorio no da igual.** Railway solo lista los
+> repositorios que ve la cuenta de GitHub conectada, y
+> `Candela-IA/Candela-IA-Mobile` es privado. Si el cliente entra con su
+> GitHub, le sale *"No repositories found"* — no es un fallo, es que ese
+> repositorio no existe para su cuenta.
+>
+> Hay dos formas de resolverlo, y la diferencia es de negocio, no técnica:
+>
+> - **Que te inviten al proyecto de Railway** (*Settings → Members*). El
+>   proyecto y la tarjeta siguen siendo del cliente; el repositorio lo
+>   conectas tú con tu GitHub. Es lo que mantiene el reparto acordado sin
+>   entregar el código todavía.
+> - **Darle acceso al repositorio en GitHub.** Funciona, pero es entregar el
+>   código fuente: decídelo a propósito, no por desbloquear un formulario.
+>
+> Lo que no conviene nunca es que el cliente suba un fork o una copia a su
+> cuenta: quedan dos historiales y tus push dejan de llegar al servicio.
+
 1. **New Project → Deploy from GitHub repo**.
 2. La primera vez, Railway pide instalar su app de GitHub. Dale acceso solo
    a `Candela-IA/Candela-IA-Mobile` — no hace falta abrirle la cuenta entera.
+   Si al abrir *Configure GitHub App* no aparece la organización
+   `Candela-IA`, el problema no es de Railway: esa cuenta de GitHub no tiene
+   acceso al repositorio.
 3. Elige el repositorio. Railway crea un servicio y lanza un primer
    despliegue **que va a fallar**: todavía no sabe que el backend vive en una
    subcarpeta. Es normal, sigue.

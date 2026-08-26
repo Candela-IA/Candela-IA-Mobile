@@ -50,6 +50,17 @@ interface Props {
 const ANCHO_BRILLO = 48;
 const DURACION_BRILLO = 3600;
 
+/**
+ * Tope al tamaño de letra del sistema dentro del botón.
+ *
+ * Android deja subir la letra bastante más que esto. Respetarlo sin límite
+ * parte el título en dos líneas; ignorarlo del todo
+ * (allowFontScaling={false}) deja fuera a quien de verdad lo necesita. 1.3
+ * es el punto donde el botón sigue creciendo con la preferencia del sistema
+ * sin romperse.
+ */
+const MAX_ESCALA_FUENTE = 1.3;
+
 export function BotonDegradado({
   titulo,
   onPress,
@@ -164,9 +175,25 @@ function Texto({
 
   return (
     <View style={estilos.textos}>
-      <Text style={[estilos.titulo, { color }]}>{titulo}</Text>
+      <Text
+        // Una sola línea, siempre. El botón principal con el texto partido en
+        // dos parece un error de la app, y para provocarlo basta un teléfono
+        // estrecho o el tamaño de letra del sistema subido.
+        numberOfLines={1}
+        // Antes de recortar con puntos suspensivos, que encoja un poco.
+        adjustsFontSizeToFit
+        minimumFontScale={0.85}
+        // Se respeta que alguien tenga la letra grande, pero con tope: sin
+        // él, el ajuste máximo de accesibilidad de Android desborda el botón.
+        maxFontSizeMultiplier={MAX_ESCALA_FUENTE}
+        style={[estilos.titulo, { color }]}
+      >
+        {titulo}
+      </Text>
       {subtitulo ? (
         <Text
+          numberOfLines={1}
+          maxFontSizeMultiplier={MAX_ESCALA_FUENTE}
           style={[
             estilos.subtitulo,
             { color: atenuado ? colors.texto.tenue : 'rgba(255,255,255,0.75)' },
@@ -211,6 +238,9 @@ const estilos = StyleSheet.create({
   },
   textos: {
     alignItems: 'center',
+    // Sin esto el bloque de texto no cede espacio en la fila y el titulo se
+    // parte antes de aprovechar el ancho que el boton si tiene.
+    flexShrink: 1,
   },
   titulo: {
     ...tipografia.boton,

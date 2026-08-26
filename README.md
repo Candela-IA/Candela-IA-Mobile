@@ -204,6 +204,7 @@ Prisma — son reglas de negocio puras y testeables solas.
 | Prioridad | Qué | Nota |
 |---|---|---|
 | 🟡 | Renombrar el repo a `Candela-IA` | Se llama `-Mobile` pero tiene backend + mobile |
+| 🟡 | **Generar el APK** | Paso a paso en [`mobile/BUILD.md`](mobile/BUILD.md). `eas.json` ya está, con la URL de Railway metida en el perfil. Falta la cuenta de Expo y arreglar lo que encontró `expo-doctor` |
 | 🟡 | Conectar el cobro (RevenueCat) | La pantalla ya está; falta el pago. Necesita build nativo — no corre en Expo Go |
 | 🟡 | URL de la política de privacidad | Los términos ya están dentro de la app; falta este documento, que las tiendas exigen aparte |
 | 🟡 | Configurar el webhook en el panel de RevenueCat | El secreto ya está generado en Railway. Falta copiarlo al panel junto con la URL `/api/v1/webhooks/revenuecat`, y para eso hace falta la cuenta del cliente |
@@ -294,6 +295,7 @@ correr el lote por dos centavos.
 |---|---|
 | `Cannot find module 'X'` tras editar `package.json` | Falta `npm install` |
 | Error de módulo nativo / codegen | Dependencia nativa **no declarada**; instalarla con `npx expo install <paquete>` |
+| La app va en Expo Go pero el build nativo se cierra al arrancar, o no cargan los iconos | Expo Go trae sus propios módulos nativos y tapa los que faltan; un APK solo lleva los declarados. `npx expo-doctor` lo dice antes de gastar veinte minutos de cola |
 | Cambios que "no se aplican" | El celular se desconectó de Metro (`No apps connected`) |
 | Rutas nuevas que no aparecen, o cambios en `_layout.tsx` que no surten efecto | Metro cachea el mapa de rutas, y ahí entran `unstable_settings` y los hijos declarados del `Stack`. Recargar no basta → `npx expo start --clear` |
 | Errores rojos en VS Code que `tsc` no ve | Servidor de TypeScript desactualizado → *Developer: Reload Window* |

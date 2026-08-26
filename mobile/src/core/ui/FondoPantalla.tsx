@@ -29,7 +29,20 @@ interface Props {
   particulas?: boolean;
 }
 
-const CANTIDAD_PARTICULAS = 14;
+/**
+ * Los destellos del fondo.
+ *
+ * Estaban en 14 partículas de 2-4 px con opacidad entre 0.12 y 0.57: tan
+ * sutiles que el interruptor de Ajustes → Personalización parecía roto,
+ * porque encenderlas y apagarlas se veía igual. Un ajuste que no se nota es
+ * peor que no tenerlo — el usuario concluye que la app no le hace caso.
+ *
+ * Con estos valores se ven, sin llegar a competir con el contenido: siguen
+ * detrás de todo y nunca por encima del texto.
+ */
+const CANTIDAD_PARTICULAS = 26;
+const OPACIDAD_MINIMA = 0.28;
+const RANGO_OPACIDAD = 0.55;
 
 /**
  * Capas del aura, simulando el `filter: blur(120px)` del prototipo web.
@@ -183,9 +196,12 @@ function Particula({
   // partículas saltarían de sitio en cada re-render.
   const x = ((indice * 137) % 100) / 100;
   const y = ((indice * 251) % 100) / 100;
-  const tamano = 2 + (indice % 3);
+  const tamano = 2 + (indice % 4);
   const color = COLORES_PARTICULA[indice % COLORES_PARTICULA.length]!;
   const duracion = 4000 + (indice % 5) * 900;
+  // Que no suban todas lo mismo: el recorrido desigual es lo que hace que
+  // parezcan flotar en vez de desplazarse en bloque.
+  const recorrido = 30 + (indice % 4) * 14;
 
   useEffect(() => {
     progreso.value = withRepeat(
@@ -196,8 +212,8 @@ function Particula({
   }, [progreso, duracion]);
 
   const estilo = useAnimatedStyle(() => ({
-    opacity: 0.12 + progreso.value * 0.45,
-    transform: [{ translateY: -progreso.value * 22 }],
+    opacity: OPACIDAD_MINIMA + progreso.value * RANGO_OPACIDAD,
+    transform: [{ translateY: -progreso.value * recorrido }],
   }));
 
   return (
@@ -212,6 +228,14 @@ function Particula({
           height: tamano,
           borderRadius: tamano,
           backgroundColor: color,
+          // El halo es lo que las convierte en destellos y no en puntos
+          // planos. En Android `shadowColor` no pinta, así que ahí el
+          // relieve lo da `elevation`.
+          shadowColor: color,
+          shadowOpacity: 0.9,
+          shadowRadius: tamano * 2.5,
+          shadowOffset: { width: 0, height: 0 },
+          elevation: 6,
         },
       ]}
     />

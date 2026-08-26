@@ -21,12 +21,30 @@ import { IconoDegradado } from '../../core/ui/IconoDegradado';
 import { borrarCaptura } from './borrarCaptura';
 import { TextoDegradado } from '../../core/ui/TextoDegradado';
 
+/**
+ * Tope de alto de la vista previa.
+ *
+ * Una captura de chat es mucho más alta que ancha; sin tope llenaría la
+ * pantalla y dejaría los tonos y el botón por debajo del pliegue.
+ */
+const ALTO_MAXIMO_CAPTURA = 420;
+
 export interface CapturaSeleccionada {
   /** Para mostrarla en pantalla. */
   uri: string;
   /** Para mandarla al backend. */
   base64: string;
   mimeType: string;
+  /**
+   * Medidas de la imagen ya comprimida.
+   *
+   * Sirven para que la vista previa adopte la forma de la captura. Sin
+   * ellas hay que fijar un alto a ojo, y entonces una captura de chat
+   * —alta y estrecha— aparece recortada: el usuario sube su conversación y
+   * ve una franja.
+   */
+  ancho: number;
+  alto: number;
 }
 
 interface Props {
@@ -108,6 +126,8 @@ export function ZonaCaptura({
         uri: comprimida.uri,
         base64: comprimida.base64,
         mimeType: 'image/jpeg',
+        ancho: comprimida.width,
+        alto: comprimida.height,
       });
     } catch {
       Alert.alert(
@@ -121,11 +141,25 @@ export function ZonaCaptura({
 
   if (captura) {
     return (
-      <View style={[estilos.marco, vertical && estilos.marcoVertical]}>
+      <View
+        style={[
+          estilos.marco,
+          vertical && estilos.marcoVertical,
+          // El marco toma la forma de la captura, hasta un tope de alto: una
+          // conversación larga llenaría la pantalla entera y dejaría los
+          // tonos y el botón fuera de vista.
+          captura.ancho > 0 && captura.alto > 0
+            ? { height: undefined, aspectRatio: captura.ancho / captura.alto }
+            : null,
+        ]}
+      >
         <Image
           source={{ uri: captura.uri }}
           style={StyleSheet.absoluteFill}
-          contentFit="cover"
+          // `contain` y no `cover`: el usuario tiene que ver su captura
+          // entera. Recortarla le hace dudar de qué le está mandando a la IA
+          // —que sí la recibe completa—.
+          contentFit="contain"
         />
         <Pressable
           onPress={() => {
@@ -262,11 +296,19 @@ const estilos = StyleSheet.create({
     backgroundColor: colors.oscuro.carbon,
   },
   marco: {
+    // Alto de reserva mientras no se conocen las medidas de la captura; en
+    // cuanto se conocen, manda el `aspectRatio`.
     height: 180,
+    // Tope para que una conversación muy larga no empuje los tonos y el
+    // botón fuera de la pantalla.
+    maxHeight: ALTO_MAXIMO_CAPTURA,
     borderRadius: radio.xxl,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: colors.borde,
+    // Con `contain`, lo que sobra del marco se ve; que sea el fondo de la
+    // app y no un hueco transparente.
+    backgroundColor: colors.tarjeta,
   },
   marcoVertical: { height: 260 },
   quitar: {

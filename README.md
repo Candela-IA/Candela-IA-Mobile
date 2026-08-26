@@ -88,6 +88,18 @@ Celular y laptop en la misma red WiFi.
 
 **Si algo se comporta raro:** `npx expo start --clear`
 
+**Para que la app hable con el backend desplegado** en vez de con tu laptop,
+crea `mobile/.env` (copia de `.env.example`) con:
+
+```
+EXPO_PUBLIC_API_URL=https://candela-ia-mobile-production.up.railway.app/api/v1
+```
+
+Arranca con `npx expo start --clear`: el `.env` se lee al construir el bundle,
+así que sin limpiar la caché el cambio no se aplica. Comenta la línea para
+volver a tu laptop. Sin `.env`, la app se conecta sola a la IP de red que
+Expo ya conoce, que es lo cómodo para el día a día.
+
 > ⚠️ **El backend está en `AI_PROVIDER="openai"` con una clave real.** Cada
 > generación cuesta ~$0.0006 y se descuenta del saldo prepago de OpenAI. Es
 > poco —el lote completo de pruebas son dos centavos— pero ya no es gratis.
@@ -131,6 +143,17 @@ Prisma — son reglas de negocio puras y testeables solas.
   el arranque y el health check, y una **comprobación del entorno al
   arrancar** que mata el proceso si falta algo esencial o si alguien intenta
   levantar producción con el proveedor falso
+- **🚀 Desplegado en Railway** (25 de agosto de 2026), en la cuenta del
+  cliente, con MySQL gestionado en el mismo proyecto:
+
+  **https://candela-ia-mobile-production.up.railway.app/api/v1**
+
+  Verificado de punta a punta: `/salud` responde 200 con `baseDatos: "ok"`,
+  el catálogo sirve las 4 funciones, registrar un dispositivo devuelve JWT y
+  saldo 5/5 —o sea que la migración creó las tablas y se escriben—, y los
+  endpoints que cuestan dinero (`/generar`) o reparten suscripciones
+  (`/webhooks/revenuecat`) devuelven 401 sin credenciales. `/api/docs` da
+  404, que es lo que debe dar en producción
 - **Webhook de RevenueCat** (`POST /webhooks/revenuecat`): traduce los eventos
   de la tienda a estados de suscripción, con idempotencia, descarte de
   eventos fuera de orden y guard de tiempo constante. 14 pruebas de dominio
@@ -173,11 +196,11 @@ Prisma — son reglas de negocio puras y testeables solas.
 
 | Prioridad | Qué | Nota |
 |---|---|---|
-| 🔴 | **Desplegar el backend en Railway** | Paso a paso en [`backend/DESPLIEGUE.md`](backend/DESPLIEGUE.md). El repositorio ya está listo; faltan los pasos del panel, que solo puede dar quien tenga la cuenta. Sin esto la app solo funciona con tu laptop encendida, y el webhook de RevenueCat no puede recibir nada |
 | 🟡 | Renombrar el repo a `Candela-IA` | Se llama `-Mobile` pero tiene backend + mobile |
 | 🟡 | Conectar el cobro (RevenueCat) | La pantalla ya está; falta el pago. Necesita build nativo — no corre en Expo Go |
 | 🟡 | URL de la política de privacidad | Los términos ya están dentro de la app; falta este documento, que las tiendas exigen aparte |
-| 🟡 | Poner `REVENUECAT_WEBHOOK_SECRET` y configurar la URL en el panel | El webhook ya está escrito; falta la cuenta del cliente |
+| 🟡 | Configurar el webhook en el panel de RevenueCat | El secreto ya está generado en Railway. Falta copiarlo al panel junto con la URL `/api/v1/webhooks/revenuecat`, y para eso hace falta la cuenta del cliente |
+| 🟡 | Revisar los precios de GPT-5.6 Luna | OpenAI anunció una bajada del 80%. Los precios están escritos a mano en `openai.provider.ts`; si están desfasados, la columna `costUsd` lleva anotando de más |
 | 🟢 | "Tu opinión" | Debe abrir la ficha de la tienda; no existe hasta publicar |
 | 🟢 | Historial | Se quitó de la barra; decidir dónde va |
 | 🟢 | Reporte de fallos (Sentry) | El `ErrorBoundary` ya está; falta la cuenta y diez líneas |

@@ -5,7 +5,16 @@
 > queda son los pasos del panel, que hay que hacer a mano una vez.
 
 **Nunca pegues claves ni contraseñas en el chat.** Todos los secretos se
-escriben directamente en el panel de Railway.
+escriben directamente en el panel de Railway. Tampoco las dejes visibles en
+una captura de pantalla: si pasa, la clave se considera comprometida y se
+rota (crear una nueva, actualizar la variable, revocar la vieja).
+
+> ✅ **Hecho el 25 de agosto de 2026.** El servicio vive en la cuenta del
+> cliente, con MySQL en el mismo proyecto:
+> **https://candela-ia-mobile-production.up.railway.app/api/v1**
+>
+> Esta guía queda para recrearlo desde cero, para el día que haya que montar
+> un entorno de pruebas, y para cuando toque configurar RevenueCat (paso 7).
 
 ---
 
@@ -85,8 +94,24 @@ eso se encarga `prisma migrate deploy` en cada arranque.
 
 ## 3. Las variables del backend
 
-En el servicio del backend → pestaña **Variables**. La forma rápida es
-*Raw Editor* y pegar todo junto:
+En el servicio del backend → pestaña **Variables**.
+
+> ⚠️ Railway te recibe con una lista de **"Suggested Variables"** — *"We found
+> these variables in your source code"*. Ha leído el `.env.example` y te
+> propone **sus placeholders como valores**: `AI_PROVIDER=mock`,
+> `OPENAI_API_KEY=sk-...` y un `DATABASE_URL` apuntando a `localhost`. No las
+> aceptes tal cual; corrige los valores antes de pulsar *Add*.
+>
+> De esa lista, dos hay que **borrar** con la ✕: `npm_package_version` (la
+> inyecta npm sola) y `API_URL` (es del móvil, el backend no la usa). Y dos
+> vienen bien: los `${{ secret(...) }}` de `JWT_SECRET` y
+> `REVENUECAT_WEBHOOK_SECRET` hacen que Railway genere valores aleatorios que
+> nunca pasan por tu portapapeles — déjalos.
+>
+> **`NODE_ENV` no aparece entre las sugeridas.** Añádela a mano con
+> *New Variable*, o el backend no se considerará en producción.
+
+La forma rápida es *Raw Editor* y pegar todo junto:
 
 ```
 DATABASE_URL=${{ MySQL.MYSQL_URL }}
@@ -226,7 +251,10 @@ quien acierte el formato del JSON es peor que un webhook que no funciona.
 
 | Síntoma | Causa |
 |---|---|
-| El primer despliegue falla antes de instalar nada | Falta el **Root Directory = `backend`**. Railway está intentando construir la raíz del repositorio, donde no hay `package.json` |
+| El primer despliegue falla antes de instalar nada, y los logs listan `.vscode/ backend/ mobile/ README.md` | Falta el **Root Directory = `backend`**. Railway está intentando construir la raíz del repositorio, donde no hay `package.json` |
+| El despliegue falla pero el desglose marca **Build ✓** y **Healthcheck ✗** | No es el build: el proceso arrancó y se murió por falta de variables. En *View logs → Deploy* estará nuestro `No puedo arrancar: el entorno está incompleto` diciendo cuáles |
+| `/api/docs` responde y no debería | Falta `NODE_ENV=production`. La condición del arranque es "si **no** es producción **o** SWAGGER=true", así que sin esa variable Swagger se publica aunque hayas puesto `SWAGGER=false` |
+| El botón *Generate Domain* está apagado | El `8080` del campo es un texto de sugerencia, no un valor. Hay que teclearlo |
 | `No puedo arrancar: el entorno está incompleto` | Es nuestro propio aviso, y dice exactamente qué variable falta. Se arregla en Variables y se vuelve a desplegar |
 | `prisma: not found` al arrancar | El CLI de Prisma tiene que estar en `dependencies`, no en `devDependencies`: el constructor poda las de desarrollo antes de arrancar. Ya está así, no lo muevas |
 | No se puede alcanzar la base de datos | La referencia `${{ MySQL.MYSQL_URL }}` está mal escrita, o el servicio de MySQL se llama distinto. El nombre entre llaves es el del servicio en el panel |

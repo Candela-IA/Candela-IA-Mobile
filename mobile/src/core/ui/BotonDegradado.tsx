@@ -22,6 +22,7 @@ import {
   degradados,
   direccionMarca,
   espacio,
+  MAX_ESCALA_FUENTE,
   radio,
   tipografia,
 } from '../theme';
@@ -49,17 +50,6 @@ interface Props {
 /** Ancho de la banda de luz que barre el botón, y cada cuánto lo cruza. */
 const ANCHO_BRILLO = 48;
 const DURACION_BRILLO = 3600;
-
-/**
- * Tope al tamaño de letra del sistema dentro del botón.
- *
- * Android deja subir la letra bastante más que esto. Respetarlo sin límite
- * parte el título en dos líneas; ignorarlo del todo
- * (allowFontScaling={false}) deja fuera a quien de verdad lo necesita. 1.3
- * es el punto donde el botón sigue creciendo con la preferencia del sistema
- * sin romperse.
- */
-const MAX_ESCALA_FUENTE = 1.3;
 
 export function BotonDegradado({
   titulo,

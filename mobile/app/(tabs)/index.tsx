@@ -17,7 +17,13 @@ import {
   FuncionHome,
   HERO,
 } from '../../src/features/home/funciones';
-import { colors, espacio, tipografia, TONOS } from '../../src/core/theme';
+import {
+  colors,
+  espacio,
+  MAX_ESCALA_FUENTE,
+  tipografia,
+  TONOS,
+} from '../../src/core/theme';
 import { FlechaCircular } from '../../src/core/ui/FlechaCircular';
 import { FondoPantalla } from '../../src/core/ui/FondoPantalla';
 import { IconoDegradado } from '../../src/core/ui/IconoDegradado';
@@ -269,8 +275,25 @@ function TarjetaFuncion({
           radio={14}
         />
 
-        <Text style={estilos.tituloTarjeta}>{funcion.titulo}</Text>
-        <Text style={estilos.descTarjeta}>{funcion.descripcion}</Text>
+        {/* Título y descripción reservan SIEMPRE dos líneas, ocupen una o
+            dos. Es lo que hace que las cuatro tarjetas midan igual y que la
+            flecha caiga a la misma altura en todas: "Analizar Stories" pide
+            dos líneas de título y "Crear notas" una, y sin reserva esa
+            diferencia descuadraba la fila entera. */}
+        <Text
+          style={estilos.tituloTarjeta}
+          numberOfLines={2}
+          maxFontSizeMultiplier={MAX_ESCALA_FUENTE}
+        >
+          {funcion.titulo}
+        </Text>
+        <Text
+          style={estilos.descTarjeta}
+          numberOfLines={2}
+          maxFontSizeMultiplier={MAX_ESCALA_FUENTE}
+        >
+          {funcion.descripcion}
+        </Text>
 
         <View style={estilos.pieTarjeta}>
           <FlechaCircular tono={funcion.tono} />
@@ -386,7 +409,10 @@ const estilos = StyleSheet.create({
   // minHeight en vez de height fija: los títulos de dos líneas necesitan
   // más espacio. `flex: 1` hace que la tarjeta llene el alto que la fila
   // le asignó, así ambas terminan parejas.
-  tarjeta: { minHeight: 188, flex: 1 },
+  // Alto igual para las cuatro: 16 de padding + 44 de icono + titulo (42) +
+  // descripcion (34) + margenes + la flecha. Con los textos reservando dos
+  // lineas, las dos filas miden lo mismo en vez de estirarse por separado.
+  tarjeta: { minHeight: 216, flex: 1 },
   presionada: { opacity: 0.9, transform: [{ scale: 0.97 }] },
   grupoBrillo: {
     position: 'absolute',
@@ -403,12 +429,16 @@ const estilos = StyleSheet.create({
     lineHeight: 21,
     fontWeight: '700',
     color: colors.texto.blanco,
+    // Dos líneas reservadas: 21 × 2.
+    minHeight: 42,
   },
   descTarjeta: {
     marginTop: 6,
     fontSize: 13,
     lineHeight: 17,
     color: 'rgba(255,255,255,0.5)',
+    // Dos líneas reservadas: 17 × 2.
+    minHeight: 34,
   },
   pieTarjeta: {
     marginTop: 'auto',

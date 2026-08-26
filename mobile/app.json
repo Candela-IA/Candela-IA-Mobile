@@ -32,7 +32,16 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableProguardInReleaseBuilds": true,
+            "enableShrinkResources": true
+          }
+        }
+      ]
     ],
     "extra": {
       "router": {},

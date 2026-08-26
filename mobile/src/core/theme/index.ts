@@ -105,3 +105,14 @@ export const duracion = {
   /** Latido de las partículas y auras del fondo. */
   ambiente: 3000,
 } as const;
+
+/**
+ * Tope al tamaño de letra del sistema.
+ *
+ * Android deja subir la letra bastante más que esto. Respetarlo sin límite
+ * parte los textos de botones y tarjetas en líneas de más; ignorarlo del todo
+ * (`allowFontScaling={false}`) deja fuera a quien de verdad lo necesita. 1.3
+ * es el punto donde la interfaz sigue creciendo con la preferencia del
+ * sistema sin romperse.
+ */
+export const MAX_ESCALA_FUENTE = 1.3;

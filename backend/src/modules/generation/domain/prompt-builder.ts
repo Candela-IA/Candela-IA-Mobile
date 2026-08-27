@@ -8,7 +8,7 @@
  * de producto, y quieres poder comparar y volver atrás.
  */
 
-import { DefinicionFuncion, Funcion, Nivel, Tono } from './catalogo';
+import { DefinicionFuncion, Funcion, Tono } from './catalogo';
 
 // ─────────────────────────────────────────────────────────────────────────
 // PERSONA
@@ -42,7 +42,13 @@ const REGLAS = `REGLAS DE CALIDAD, en orden de importancia:
 
 3. QUE SUENE HUMANO. Si se nota escrito por IA, fallaste. Nada de estructuras perfectas de redacción ni de "¡Qué interesante lo que mencionas!". Escribir bien no es escribir tieso: "Jajaja, no puede ser. ¿Y qué hiciste?" está bien escrito y suena a persona.
 
-4. LARGO DE MENSAJE REAL. Una o dos líneas. Si no cabe cómodo en la burbuja de un chat, es demasiado largo.
+4. EL LARGO LO MANDA LA CONVERSACIÓN, NO TÚ. Mira cuánto escribe la otra persona y quédate en esa medida.
+
+   - Si sus mensajes son de cuatro o cinco palabras, el tuyo también. Una frase. A veces tres palabras bastan y son lo mejor que puedes mandar.
+   - Si escriben párrafos, puedes extenderte.
+   - En la duda, corto. Un mensaje corto y afilado gana casi siempre a uno correcto y largo: se lee entero, no parece un discurso preparado y deja sitio a que respondan.
+
+   Lucirse NO es escribir más. Lucirse es que cada palabra pese. Dos frases completas contestando a un "mejor déjalo" de tres palabras no suenan brillantes, suenan a alguien que se está esforzando demasiado.
 
 5. ESPECÍFICO, NO GENÉRICO. "Hola, ¿cómo estás preciosa?" sirve para cualquier persona del mundo, y por eso no sirve para ninguna. Engánchate de algo concreto: lo que dijo, lo que se ve en la foto, el chiste que ya tienen entre los dos.
 
@@ -126,6 +132,18 @@ const EJEMPLOS = `EJEMPLOS. Estudia por qué unos fallan y otros no:
    Falla: la idea es buena, pero le faltan la mayúscula, la tilde de "qué" y
    el signo de apertura. El usuario manda esto tal cual y queda mal ÉL.
 
+❌ Ella escribe "Sabes qué, mejor déjalo" y tú respondes:
+   "Ya abrí los ojos y, efectivamente, eras tú. Para no seguir perdiendo el
+   tiempo, te invito a tomar algo esta semana."
+   Falla por LARGO, no por contenido: la idea tiene gracia, pero contestar
+   con dos oraciones completas a una frase de cuatro palabras rompe el ritmo
+   de la conversación y se nota preparado.
+
+✅ El mismo caso, a la medida del chat:
+   "Ojos abiertos. Te veo el jueves."
+   Funciona: recoge su frase, la devuelve con seguridad y propone algo. Seis
+   palabras.
+
 ✅ "Jajaja, no puede ser. ¿Y qué hiciste?"
    Funciona: mismo tono suelto que el anterior, pero escrito bien. Corto y
    pide continuación.
@@ -140,32 +158,30 @@ const EJEMPLOS = `EJEMPLOS. Estudia por qué unos fallan y otros no:
    Funciona: específico, cálido, y no pide nada a cambio.`;
 
 // ─────────────────────────────────────────────────────────────────────────
-// NIVEL DEL TONO
+// CONSIGNA
 //
-// El gratis y el de pago no se diferencian bajando la calidad del gratis:
-// eso se nota, quema al usuario y no vende nada. Un básico decepcionante no
-// convence a nadie de pagar, convence de desinstalar.
+// Hubo una versión con dos consignas, una para los tonos gratis y otra más
+// exigente para los de pago. El cliente pidió quitarla: quiere que TODAS las
+// respuestas se luzcan.
 //
-// Se sube el suelo y se sube más el techo.
+// Y encaja con el modelo de negocio, que nunca fue vender calidad sino
+// cantidad: son 5 generaciones gratis y luego suscripción. Lo que se compra
+// es seguir usándola, más los tonos exclusivos del catálogo. Reservar las
+// buenas respuestas para quien ya paga solo consigue que quien no paga se
+// vaya antes de llegar a plantearse pagar.
 // ─────────────────────────────────────────────────────────────────────────
 
-const NIVEL_GRATIS = `ESTE ES EL PRIMER MENSAJE QUE VA A LEER ALGUIEN QUE TODAVÍA NO PAGA.
+const CONSIGNA = `ESTE MENSAJE TIENE QUE LUCIRSE. SIEMPRE, SIN IMPORTAR EL TONO.
 
-De lo que escribas aquí depende que siga usando la app. Tiene que ser bueno de verdad: ingenioso, con chispa, de esos que dan ganas de mandar tal cual. Nada de mensajes tibios ni de "cumple pero no emociona".
+No basta con que esté bien: tiene que ser claramente mejor que lo que se le habría ocurrido al usuario solo. Es lo único que hace que vuelva a abrir la app.
 
-Que al leerlo piense "esto está mejor que lo que se me habría ocurrido a mí".`;
-
-const NIVEL_PREMIUM = `ESTE TONO ES DE PAGO. TIENE QUE NOTARSE.
-
-El usuario está pagando por este mensaje, así que no basta con que esté bien: tiene que ser claramente mejor que uno cualquiera.
-
-Qué lo hace mejor:
+Qué lo hace bueno:
 - Se engancha de un detalle MUY concreto, no del tema general
-- Tiene una segunda lectura, un guiño o un giro que no se ve venir
+- Tiene un guiño, una segunda lectura o un giro que no se ve venir
 - Está calibrado: cada palabra aporta, no sobra ninguna
 - Se nota escrito para ESA persona y esa conversación, y para nadie más
 
-Si el mensaje que ibas a escribir también valdría para otra conversación, no es premium. Empieza otra vez.`;
+Si el mensaje que ibas a escribir también valdría para otra conversación distinta, no vale. Empieza otra vez.`;
 
 // ─────────────────────────────────────────────────────────────────────────
 // CONSTRUCCIÓN
@@ -191,7 +207,7 @@ export function construirSystemPrompt(
     `TONO SOLICITADO — ${tono.etiqueta}:`,
     tono.instruccion,
     '',
-    tono.nivel === Nivel.PREMIUM ? NIVEL_PREMIUM : NIVEL_GRATIS,
+    CONSIGNA,
     '',
     REGLAS,
     '',
@@ -288,10 +304,18 @@ export const ESQUEMA_RESPUESTA = {
     registro: {
       type: 'string',
       description:
-        'Cómo escribe la otra persona: ¿usa tildes? ¿emojis? ¿mensajes ' +
-        'largos o cortos? ¿mayúscula inicial? ¿qué jerga? Si no hay ' +
-        'conversación que mirar (Rompehielos, Crear notas), escribe ' +
-        '"sin referencia".',
+        'Cómo escribe la otra persona: ¿usa tildes? ¿emojis? ¿mayúscula ' +
+        'inicial? ¿qué jerga? Si no hay conversación que mirar ' +
+        '(Rompehielos, Crear notas), escribe "sin referencia".',
+    },
+    largo: {
+      type: 'string',
+      enum: ['corto', 'medio', 'largo'],
+      description:
+        'Cuántas palabras escribe la otra persona por mensaje, de media. ' +
+        '"corto" hasta 8 palabras, "medio" hasta 20, "largo" por encima. ' +
+        'El mensaje que escribas después TIENE que caber en esa medida. ' +
+        'Sin conversación de referencia, usa "corto".',
     },
     lectura: {
       type: 'string',
@@ -303,6 +327,6 @@ export const ESQUEMA_RESPUESTA = {
       description: 'El mensaje listo para copiar y enviar. Sin comillas.',
     },
   },
-  required: ['registro', 'lectura', 'mensaje'],
+  required: ['registro', 'largo', 'lectura', 'mensaje'],
   additionalProperties: false,
 } as const;

@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { usarPreferencias } from '../di/preferencias';
-import { colors, degradados } from '../theme';
+import { ANCHO_MAXIMO_CONTENIDO, colors, degradados } from '../theme';
 
 /**
  * Fondo de todas las pantallas: auras de color latiendo y partículas.
@@ -252,6 +252,12 @@ const estilos = StyleSheet.create({
   },
   contenido: {
     flex: 1,
+    // En tablets el contenido se queda al ancho de un teléfono y se centra,
+    // en vez de estirarse de lado a lado. El fondo de detrás sí ocupa la
+    // pantalla entera, así que no se ven franjas muertas a los lados.
+    width: '100%',
+    maxWidth: ANCHO_MAXIMO_CONTENIDO,
+    alignSelf: 'center',
   },
   grupoAura: {
     position: 'absolute',

@@ -53,15 +53,24 @@ export async function contactarSoporte() {
 
   const url = `mailto:${CORREO_SOPORTE}?subject=${asunto}&body=${cuerpo}`;
 
-  // Un teléfono sin ninguna app de correo configurada no puede abrirlo, y
-  // `openURL` lanzaría una excepción sin explicar nada.
-  if (!(await Linking.canOpenURL(url))) {
+  // Se abre directamente, sin preguntar antes con `canOpenURL`.
+  //
+  // Desde Android 11 una app no puede consultar qué otras apps hay
+  // instaladas si no declara `<queries>` en el manifiesto. `canOpenURL`
+  // devuelve `false` aunque el teléfono tenga Gmail perfectamente
+  // configurado, así que la comprobación previa hacía lo contrario de lo que
+  // pretendía: enseñaba "Sin app de correo" a gente que sí la tiene, y el
+  // botón parecía roto.
+  //
+  // `openURL` sí funciona: lanza el intent y deja que Android resuelva quién
+  // lo atiende. Si de verdad no hay nadie, lanza excepción, y ahí sí toca el
+  // aviso con el correo a mano.
+  try {
+    await Linking.openURL(url);
+  } catch {
     Alert.alert(
       'Sin app de correo',
       `Escríbenos a ${CORREO_SOPORTE} desde donde prefieras.`,
     );
-    return;
   }
-
-  await Linking.openURL(url);
 }

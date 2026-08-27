@@ -136,3 +136,17 @@ export const MAX_ESCALA_FUENTE = 1.3;
 export function altoSegunFuente(alto: number, fontScale: number): number {
   return Math.round(alto * Math.min(fontScale, MAX_ESCALA_FUENTE));
 }
+
+/**
+ * Ancho máximo del contenido.
+ *
+ * En una tablet, estirar la interfaz de lado a lado la deja rara: las
+ * tarjetas quedan anchísimas y bajas, las líneas de texto se hacen
+ * incómodas de leer y sobra medio pantallazo vacío por abajo. El diseño está
+ * pensado para el ancho de un teléfono, así que en pantallas más anchas se
+ * mantiene esa medida y se centra.
+ *
+ * El fondo —degradado, auras y partículas— sigue ocupando la pantalla
+ * entera; lo que se acota es el contenido.
+ */
+export const ANCHO_MAXIMO_CONTENIDO = 640;

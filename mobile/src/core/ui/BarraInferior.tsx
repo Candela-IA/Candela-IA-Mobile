@@ -3,7 +3,12 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, espacio, tipografia } from '../theme';
+import {
+  ANCHO_MAXIMO_CONTENIDO,
+  colors,
+  espacio,
+  tipografia,
+} from '../theme';
 
 /**
  * Barra de navegación flotante: Inicio y Ajustes.
@@ -85,6 +90,12 @@ const estilos = StyleSheet.create({
   contenedor: {
     paddingHorizontal: espacio.lg,
     paddingTop: espacio.sm,
+    // Mismo ancho maximo que el contenido de FondoPantalla: en tablet, la
+    // barra estirada de lado a lado dejaba Inicio y Ajustes en extremos
+    // opuestos de la pantalla, lejos del pulgar y del resto del contenido.
+    width: '100%',
+    maxWidth: ANCHO_MAXIMO_CONTENIDO,
+    alignSelf: 'center',
   },
   barra: {
     height: 64,

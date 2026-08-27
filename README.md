@@ -3,7 +3,7 @@
 > **Estado del proyecto y documento de continuidad.** Si retomas el trabajo
 > en una conversación nueva, empieza leyendo esto.
 
-**Última actualización:** 25 de agosto del 2026
+**Última actualización:** 26 de agosto de 2026
 
 ---
 
@@ -31,7 +31,7 @@ Plan anual **$39.99** / semanal **$4.99**, con 3 días de prueba.
 |---|---|---|---|
 | Analizar chat | Sí | Sí | 6 tonos gratis + 3 premium |
 | Analizar Stories | Sí (vertical) | No | 4 gratis + 2 premium |
-| Rompehielos | No | No | Solo "Básico" gratis; 4 premium |
+| Rompehielos | No | No | "Básico" es **gratis de verdad**: sale de un banco de 50 frases, no gasta crédito y no llama a la IA. Los otros 4 tonos, premium |
 | Crear notas | No | No | Máx. 60 caracteres (límite de Instagram) |
 
 ---
@@ -133,7 +133,8 @@ Prisma — son reglas de negocio puras y testeables solas.
 - Catálogo de 4 funciones y 25 tonos servido por API
 - `POST /generar` con proveedor intercambiable
 - Errores de dominio traducidos a HTTP (402 → paywall)
-- 39 pruebas en verde: 24 del dominio y 15 de la validación del entorno
+- 52 pruebas en verde: 24 del dominio, 15 del entorno y 13 del banco de
+  rompehielos
 - Banco de pruebas de prompts (`npm run probar:prompts`): dispara un lote
   contra la API y lo imprime junto, con su costo y su latencia
 - `GET /salud` para el health check de la plataforma: comprueba la base de
@@ -164,6 +165,14 @@ Prisma — son reglas de negocio puras y testeables solas.
 - **Webhook de RevenueCat** (`POST /webhooks/revenuecat`): traduce los eventos
   de la tienda a estados de suscripción, con idempotencia, descarte de
   eventos fuera de orden y guard de tiempo constante. 14 pruebas de dominio
+- **Rompehielos gratis no cuesta nada**: el tono Básico devuelve una de 50
+  frases escritas a mano (`domain/rompehielos.ts`) en vez de llamar a la IA.
+  Un rompehielos no tiene captura ni contexto que analizar, así que el modelo
+  recibía siempre la misma petición. Ahora cuesta $0, responde al instante y
+  **no gasta ninguno de los 5 créditos**, ni siquiera con el saldo agotado.
+  Los cuatro tonos premium de esa función sí pasan por la IA
+- **Regenerar pide otro ángulo**: `esRegeneracion` viaja hasta el modelo, en
+  el mensaje de usuario y no en el de sistema, para no romper la caché
 
 ### App ✅ funcional
 
@@ -197,6 +206,15 @@ Prisma — son reglas de negocio puras y testeables solas.
   genera desde el logo con `scripts/generar-icono-adaptativo.js`, con la llama
   centrada al 66% y fondo transparente. El logo original es RGB sin alfa y
   llenaba el lienzo, así que Android le cortaba la punta y las estrellitas
+- **📱 APK nativo funcionando**, construido con EAS desde el proyecto
+  `@candela-ia/candela-ia` (ver [`mobile/BUILD.md`](mobile/BUILD.md)).
+  Probado en tres teléfonos distintos contra el backend de Railway
+- Correcciones salidas de esas pruebas: la vista previa de la captura se ve
+  **entera y centrada** (antes `cover` la recortaba), las cuatro tarjetas del
+  inicio **miden lo mismo** aunque un título ocupe dos líneas, el botón
+  principal **no parte su texto** y respeta la letra grande del sistema hasta
+  1.3×, y los tres efectos de Personalización **se notan al apagarlos** — no
+  estaban rotos, eran invisibles
 - **Personalización** con sus tres interruptores (animaciones, partículas,
   brillo neón). Se guardan en el teléfono y los respetan `FondoPantalla`,
   `TarjetaGlass` e `IconoDegradado`, así que el cambio se ve en toda la app
@@ -207,16 +225,17 @@ Prisma — son reglas de negocio puras y testeables solas.
 
 | Prioridad | Qué | Nota |
 |---|---|---|
+| 🔴 | **Arreglar el auto-despliegue de Railway** | Railway dejó de detectar los push: en *Settings → Source* sale `GitHub Repo not found`. Estuvo un día entero sirviendo código viejo mientras se acumulaban commits, y eso no se nota desde fuera — el health check sigue verde. Se arregla en el lápiz del Source Repo → *Configure GitHub App*, dándole acceso al repositorio |
 | 🟡 | Renombrar el repo a `Candela-IA` | Se llama `-Mobile` pero tiene backend + mobile |
-| 🟡 | **Generar el APK** | Paso a paso en [`mobile/BUILD.md`](mobile/BUILD.md). `eas.json` ya está, con la URL de Railway metida en el perfil. Falta la cuenta de Expo y arreglar lo que encontró `expo-doctor` |
-| 🟡 | Conectar el cobro (RevenueCat) | La pantalla ya está; falta el pago. Necesita build nativo — no corre en Expo Go |
+| 🟡 | Conectar el cobro (RevenueCat) | La pantalla ya está; falta el pago. Ya hay build nativo, que era lo que lo bloqueaba |
 | 🟡 | URL de la política de privacidad | Los términos ya están dentro de la app; falta este documento, que las tiendas exigen aparte |
 | 🟡 | Configurar el webhook en el panel de RevenueCat | El secreto ya está generado en Railway. Falta copiarlo al panel junto con la URL `/api/v1/webhooks/revenuecat`, y para eso hace falta la cuenta del cliente |
 | 🟡 | Revisar los precios de GPT-5.6 Luna | OpenAI anunció una bajada del 80%. Los precios están escritos a mano en `openai.provider.ts`; si están desfasados, la columna `costUsd` lleva anotando de más |
+| 🟡 | Medir el prompt nuevo con el banco de pruebas | Los ejemplos y los niveles gratis/premium están escritos pero no comparados. `npm run probar:prompts` con las capturas de `backend/capturas/` cuesta dos centavos |
 | 🟢 | "Tu opinión" | Debe abrir la ficha de la tienda; no existe hasta publicar |
 | 🟢 | Historial | Se quitó de la barra; decidir dónde va |
 | 🟢 | Reporte de fallos (Sentry) | El `ErrorBoundary` ya está; falta la cuenta y diez líneas |
-| 🟢 | Comprimir las imágenes | 3.2 MB en tres archivos que se ven pequeños. squoosh.app |
+| 🟢 | `avatar-nota.webp` pesa 780 KB | Los PNG ya se optimizaron con `scripts/optimizar-imagenes.js`, que no sabe de WebP. Este va a mano por squoosh.app |
 
 ---
 
@@ -247,6 +266,13 @@ Qué se comprobó en las respuestas:
   brownie hablaban del brownie, no de genéricos.
 - **Suena a persona.** Frases cortas, minúscula inicial, jerga peruana
   ("nomás") — la instrucción de persona aterriza.
+
+  > ⚠️ Esa minúscula inicial **ya no vale**. El 26 de agosto el cliente pidió
+  > ortografía impecable, y la regla 1 pasó a exigir mayúsculas, tildes y
+  > signos de apertura siempre. El motivo pesa: el usuario copia el mensaje y
+  > lo manda tal cual, así que una falta acaba siendo suya delante de la
+  > persona que le gusta. El registro se sigue copiando en todo lo demás,
+  > y el cambio está **sin medir** con el banco de pruebas.
 - **Invitan a responder.** Proponen algo concreto en vez de cerrar con una
   frase que solo admita "jaja sí".
 
@@ -305,6 +331,7 @@ correr el lote por dos centavos.
 | `Cannot find module 'dist/main'` | Se borró `dist` pero quedó el `.tsbuildinfo` (ya corregido) |
 | "El widget Muy buena" | **No existe tal widget.** En el prototipo, "Básica"/"Muy buena" es la etiqueta de calidad que compara el tono gratis con el premium — un argumento de venta, no una calificación del usuario. La columna `rating` de `generations` quedó de esa confusión y hoy nadie la escribe |
 | `fetch failed` a mitad de un lote de pruebas | `npm run dev` es `nest start --watch` y se reinició; durante esos segundos el puerto rechaza todo. Para lotes largos, arrancar con `npm run start` |
+| El backend sirve código viejo aunque los push estén en GitHub | Railway dejó de detectar los commits (`GitHub Repo not found` en Settings → Source). El health check sigue verde, así que no se nota: hay que mirar `activoDesdeSegundos` en `/salud`. Un día entero de commits acumulados costó esto |
 | `Prisma has no exported member DeviceGetPayload` justo después de un `npm ci` | El cliente de Prisma **se genera**, no se descarga: sus tipos salen del `schema.prisma`, y `npm ci` no siempre dispara esa generación. Parecen errores del código y no lo son → `npx prisma generate`. Por eso `npm run build` lo corre antes de compilar, y por eso el despliegue no depende de que ocurra solo |
 
 **Regla de oro:** si la terminal (`npx tsc --noEmit`) dice que está bien y el

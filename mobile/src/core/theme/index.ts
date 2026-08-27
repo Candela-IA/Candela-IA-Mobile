@@ -116,3 +116,23 @@ export const duracion = {
  * sistema sin romperse.
  */
 export const MAX_ESCALA_FUENTE = 1.3;
+
+/**
+ * Convierte un alto pensado para letra normal en uno que aguanta la letra
+ * grande del sistema.
+ *
+ * Un `minHeight` en píxeles no crece cuando el usuario sube el tamaño de
+ * letra en los ajustes de Android, pero el texto que va dentro sí. El
+ * resultado es texto cortado o desbordado — y es exactamente lo que pasaba
+ * en el hero y en las tarjetas del inicio.
+ *
+ * Se acota con `MAX_ESCALA_FUENTE` porque los propios textos llevan ese mismo
+ * tope: reservar más espacio del que el texto puede llegar a ocupar dejaría
+ * huecos vacíos.
+ *
+ * `fontScale` sale de `useWindowDimensions()`, que es reactivo: si el usuario
+ * cambia el ajuste con la app abierta, la interfaz se recoloca sola.
+ */
+export function altoSegunFuente(alto: number, fontScale: number): number {
+  return Math.round(alto * Math.min(fontScale, MAX_ESCALA_FUENTE));
+}

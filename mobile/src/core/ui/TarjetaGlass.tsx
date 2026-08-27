@@ -1,6 +1,13 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { ReactNode } from 'react';
-import { Platform, Pressable, StyleSheet, View, ViewStyle } from 'react-native';
+import {
+  Platform,
+  Pressable,
+  StyleProp,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from 'react-native';
 
 import { usarPreferencias } from '../di/preferencias';
 import { colors, TonoAcento, TONOS } from '../theme';
@@ -13,7 +20,12 @@ interface Props {
   intensidad?: number;
   activa?: boolean;
   onPress?: () => void;
-  estilo?: ViewStyle;
+  /**
+   * `StyleProp` y no `ViewStyle` a secas: quien la usa necesita combinar el
+   * estilo base con uno calculado en tiempo de render — por ejemplo un alto
+   * que depende del tamaño de letra del sistema.
+   */
+  estilo?: StyleProp<ViewStyle>;
   padding?: number;
   /**
    * Añade el halo de color alrededor de la tarjeta.

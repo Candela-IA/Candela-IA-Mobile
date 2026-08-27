@@ -18,6 +18,7 @@ import {
   HERO,
 } from '../../src/features/home/funciones';
 import {
+  altoSegunFuente,
   colors,
   espacio,
   MAX_ESCALA_FUENTE,
@@ -38,6 +39,21 @@ const HERO_ART = require('../../assets/hero-home.png');
  * dentro. Doce capas para que el círculo exterior no deje canto visible.
  */
 const CAPAS_BRILLO = Array.from({ length: 12 }, (_, i) => 112 - i * 8);
+
+/** Alto del hero con la letra en tamaño normal. Crece si el sistema la sube. */
+const ALTO_HERO = 240;
+
+/** Alto de las tarjetas del grid con la letra en tamaño normal. */
+const ALTO_TARJETA = 216;
+
+/**
+ * Espacio reservado para el título y la descripción de cada tarjeta: dos
+ * líneas siempre, ocupen una o dos. Es lo que iguala las cuatro tarjetas.
+ * Los tres altos pasan por `altoSegunFuente`, porque si el texto crece con
+ * los ajustes del sistema y la reserva no, el texto se sale.
+ */
+const ALTO_TITULO_TARJETA = 42;
+const ALTO_DESC_TARJETA = 34;
 
 export default function Home() {
   const insets = useSafeAreaInsets();
@@ -118,7 +134,7 @@ const CAPAS_HERO = [
 ];
 
 function Hero() {
-  const { width } = useWindowDimensions();
+  const { width, fontScale } = useWindowDimensions();
   const { anchoArte, tamanoTitulo, interlineado } = medidasHero(width);
 
   return (
@@ -139,7 +155,12 @@ function Hero() {
         />
       ))}
 
-      <View style={estilos.hero}>
+      <View
+        style={[
+          estilos.hero,
+          { minHeight: altoSegunFuente(ALTO_HERO, fontScale) },
+        ]}
+      >
       <LinearGradient
         colors={[
           colors.oscuro.violetaSuave,
@@ -178,6 +199,10 @@ function Hero() {
         {HERO.titulo.map((linea) => (
           <Text
             key={linea}
+            // El título es lo más grande de la pantalla y lo primero que se
+            // desborda cuando el sistema sube la letra. Con el tope, crece
+            // pero sigue cabiendo.
+            maxFontSizeMultiplier={MAX_ESCALA_FUENTE}
             style={[
               estilos.tituloHero,
               { fontSize: tamanoTitulo, lineHeight: interlineado },
@@ -195,7 +220,12 @@ function Hero() {
         >
           {HERO.destacado}
         </TextoDegradado>
-        <Text style={estilos.descripcionHero}>{HERO.descripcion}</Text>
+        <Text
+          style={estilos.descripcionHero}
+          maxFontSizeMultiplier={MAX_ESCALA_FUENTE}
+        >
+          {HERO.descripcion}
+        </Text>
       </View>
       </View>
     </View>
@@ -205,7 +235,7 @@ function Hero() {
 // ── Grid de funciones ─────────────────────────────────────────────────────
 
 function Grid() {
-  const { width } = useWindowDimensions();
+  const { width, fontScale } = useWindowDimensions();
   // 20 de margen a cada lado + 16 entre columnas.
   const anchoTarjeta = (width - espacio.lg * 2 - espacio.base) / 2;
 
@@ -216,6 +246,7 @@ function Grid() {
           key={funcion.id}
           funcion={funcion}
           ancho={anchoTarjeta}
+          fontScale={fontScale}
         />
       ))}
     </View>
@@ -225,9 +256,11 @@ function Grid() {
 function TarjetaFuncion({
   funcion,
   ancho,
+  fontScale,
 }: {
   funcion: FuncionHome;
   ancho: number;
+  fontScale: number;
 }) {
   const router = useRouter();
   const t = TONOS[funcion.tono];
@@ -242,7 +275,14 @@ function TarjetaFuncion({
       // compañera de fila.
       style={({ pressed }) => [{ width: ancho }, pressed && estilos.presionada]}
     >
-      <TarjetaGlass tono={funcion.tono} estilo={estilos.tarjeta} padding={16}>
+      <TarjetaGlass
+        tono={funcion.tono}
+        estilo={[
+          estilos.tarjeta,
+          { minHeight: altoSegunFuente(ALTO_TARJETA, fontScale) },
+        ]}
+        padding={16}
+      >
         {/* Resplandor de la esquina superior derecha.
             En el prototipo es un radial-gradient con blur; aquí se simula
             con círculos concéntricos de opacidad mínima.
@@ -281,14 +321,20 @@ function TarjetaFuncion({
             dos líneas de título y "Crear notas" una, y sin reserva esa
             diferencia descuadraba la fila entera. */}
         <Text
-          style={estilos.tituloTarjeta}
+          style={[
+            estilos.tituloTarjeta,
+            { minHeight: altoSegunFuente(ALTO_TITULO_TARJETA, fontScale) },
+          ]}
           numberOfLines={2}
           maxFontSizeMultiplier={MAX_ESCALA_FUENTE}
         >
           {funcion.titulo}
         </Text>
         <Text
-          style={estilos.descTarjeta}
+          style={[
+            estilos.descTarjeta,
+            { minHeight: altoSegunFuente(ALTO_DESC_TARJETA, fontScale) },
+          ]}
           numberOfLines={2}
           maxFontSizeMultiplier={MAX_ESCALA_FUENTE}
         >
@@ -353,7 +399,10 @@ const estilos = StyleSheet.create({
   // halo llega justo al borde sin pasarse.
   marcoHero: { marginHorizontal: espacio.lg },
   hero: {
-    height: 240,
+    // `minHeight` y no `height`: con la letra del sistema en grande, el
+    // título necesita más alto del que el diseño reservó. Con alto fijo, el
+    // texto se salía del recuadro y se cortaba por arriba. El alto concreto
+    // lo calcula `Hero()` según el `fontScale` del momento.
     borderRadius: 30,
     overflow: 'hidden',
     // El filo que se ve en el diseño. Sin él, la tarjeta se funde con el
@@ -406,13 +455,11 @@ const estilos = StyleSheet.create({
     // Estira las tarjetas de cada fila al alto de la más alta.
     alignItems: 'stretch',
   },
-  // minHeight en vez de height fija: los títulos de dos líneas necesitan
-  // más espacio. `flex: 1` hace que la tarjeta llene el alto que la fila
-  // le asignó, así ambas terminan parejas.
-  // Alto igual para las cuatro: 16 de padding + 44 de icono + titulo (42) +
-  // descripcion (34) + margenes + la flecha. Con los textos reservando dos
-  // lineas, las dos filas miden lo mismo en vez de estirarse por separado.
-  tarjeta: { minHeight: 216, flex: 1 },
+  // El alto lo pone `TarjetaFuncion` con `altoSegunFuente`, porque depende
+  // del tamaño de letra del sistema y eso no se sabe hasta el render.
+  // `flex: 1` hace que la tarjeta llene el alto que la fila le asignó, así
+  // las dos de cada fila terminan parejas.
+  tarjeta: { flex: 1 },
   presionada: { opacity: 0.9, transform: [{ scale: 0.97 }] },
   grupoBrillo: {
     position: 'absolute',
@@ -429,16 +476,12 @@ const estilos = StyleSheet.create({
     lineHeight: 21,
     fontWeight: '700',
     color: colors.texto.blanco,
-    // Dos líneas reservadas: 21 × 2.
-    minHeight: 42,
   },
   descTarjeta: {
     marginTop: 6,
     fontSize: 13,
     lineHeight: 17,
     color: 'rgba(255,255,255,0.5)',
-    // Dos líneas reservadas: 17 × 2.
-    minHeight: 34,
   },
   pieTarjeta: {
     marginTop: 'auto',

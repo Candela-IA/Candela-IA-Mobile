@@ -21,6 +21,20 @@
  * REQUISITOS: el backend corriendo (`npm run dev`) y, para que esto sirva
  * de algo, AI_PROVIDER="openai" en el .env. Con "mock" solo verás las
  * frases enlatadas de siempre.
+ *
+ * CONTRA EL BACKEND DESPLEGADO, sin levantar nada en local:
+ *
+ *   API_URL=https://…up.railway.app/api/v1 npx ts-node scripts/probar-prompts.ts
+ *
+ * El script lo detecta y se adapta, porque desde fuera no hay acceso a la
+ * base de datos —vive en la red privada de la plataforma—:
+ *
+ *   · Rota de dispositivo cada cinco generaciones, para ir estirando los
+ *     créditos gratis, en vez de darse suscripción por SQL.
+ *   · No imprime costo ni tokens: salen de la tabla `generations`. Están en
+ *     los logs de la plataforma, que anotan el costo de cada generación.
+ *   · Los tonos PREMIUM fallarán con 402 y saldrán en la lista de fallos.
+ *     Para juzgarlos hay que correr el banco en local.
  */
 
 import { readdirSync, readFileSync } from 'node:fs';
@@ -32,6 +46,14 @@ import { config } from 'dotenv';
 config();
 
 const BASE = process.env.API_URL ?? 'http://localhost:3000/api/v1';
+
+/**
+ * Contra un backend que no es el de esta maquina no hay acceso a la base de
+ * datos —vive en la red privada de la plataforma—, asi que no se puede dar
+ * suscripcion ni recargar creditos. El banco se adapta: rota dispositivos
+ * cada cinco generaciones y se salta las metricas que salen de la base.
+ */
+const REMOTO = !BASE.includes('localhost') && !BASE.includes('127.0.0.1');
 
 /**
  * `POST /generar` está limitado a 3 peticiones cada 10 segundos por IP.
@@ -154,7 +176,9 @@ async function main(): Promise<void> {
     return;
   }
 
-  const token = await prepararDispositivo();
+  let token = REMOTO
+    ? await prepararDispositivoRemoto(0)
+    : await prepararDispositivo();
 
   const minutos = Math.ceil((casos.length * (PAUSA_MS + 4000)) / 60000);
   console.log(
@@ -167,6 +191,13 @@ async function main(): Promise<void> {
 
   for (const [indice, preparado] of casos.entries()) {
     const { caso, captura, imagen } = preparado;
+
+    // Contra un backend remoto cada dispositivo solo tiene sus 5 créditos
+    // gratis, así que se va rotando. En local no hace falta: al de pruebas
+    // se le dio suscripción por base de datos.
+    if (REMOTO && indice > 0 && indice % 5 === 0) {
+      token = await prepararDispositivoRemoto(indice / 5);
+    }
 
     process.stdout.write(
       `[${indice + 1}/${casos.length}] ${caso.funcion} · ${caso.tono}… `,
@@ -218,6 +249,38 @@ function avisarSiEsMock(): void {
       '  que esta corrida no sirve para juzgar la calidad de los prompts.\n' +
       '  Pon AI_PROVIDER="openai" en el .env y reinicia el backend.\n',
   );
+}
+
+/**
+ * Registra un dispositivo nuevo para estirar los créditos gratis.
+ *
+ * Contra un backend remoto no hay forma de dar suscripción: la base de datos
+ * vive en la red privada de la plataforma. Así que se rota de dispositivo
+ * cada cinco generaciones, que son los créditos que trae cada uno.
+ *
+ * Lo que NO se puede probar así son los tonos premium: sin suscripción
+ * devuelven 402 y aparecerán como fallos al final. Para validarlos hay que
+ * correr el banco contra el backend local.
+ */
+async function prepararDispositivoRemoto(tanda: number): Promise<string> {
+  const respuesta = await fetch(`${BASE}/dispositivos/registrar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      deviceKey: `${DEVICE_KEY}-remoto-${tanda}`,
+      plataforma: 'ANDROID',
+    }),
+  });
+
+  if (!respuesta.ok) {
+    throw new Error(
+      `No pude registrar el dispositivo de pruebas: ${respuesta.status} ` +
+        (await respuesta.text()),
+    );
+  }
+
+  const { token } = (await respuesta.json()) as { token: string };
+  return token;
 }
 
 /**
@@ -483,6 +546,22 @@ function imprimirResultados(resultados: Resultado[]): void {
 }
 
 async function imprimirResumen(fallos: string[]): Promise<void> {
+  // Las métricas de costo y tokens salen de la tabla `generations`, y contra
+  // un backend remoto no hay forma de leerla desde aquí. Los mensajes, que
+  // son lo que de verdad se viene a juzgar, se imprimen igual.
+  if (REMOTO) {
+    console.log(`\n\n${'═'.repeat(72)}`);
+    console.log('  RESUMEN');
+    console.log('═'.repeat(72));
+    console.log(
+      '  Sin métricas de costo ni tokens: viven en la base de datos del\n' +
+        '  servidor y desde aquí no se llega. Se ven en los logs de la\n' +
+        '  plataforma, que imprimen el costo de cada generación.',
+    );
+    imprimirFallos(fallos);
+    return;
+  }
+
   const prisma = new PrismaClient();
 
   try {
@@ -519,10 +598,7 @@ async function imprimirResumen(fallos: string[]): Promise<void> {
     await prisma.$disconnect();
   }
 
-  if (fallos.length > 0) {
-    console.log(`\n  ${fallos.length} fallaron:`);
-    for (const fallo of fallos) console.log(`    · ${fallo}`);
-  }
+  imprimirFallos(fallos);
 
   console.log(
     '\n  Ahora la parte que ninguna herramienta hace por ti: lee cada uno y\n' +
@@ -569,3 +645,24 @@ main().catch((e) => {
   console.error('\n', e);
   process.exit(1);
 });
+
+/**
+ * Los fallos al final y no según pasan: leídos juntos se ve el patrón.
+ *
+ * Contra un backend remoto es normal que fallen los tonos premium con 402:
+ * el dispositivo de pruebas no tiene suscripción y desde fuera no se le
+ * puede dar. Para juzgarlos hay que correr el banco en local.
+ */
+function imprimirFallos(fallos: string[]): void {
+  if (fallos.length === 0) return;
+
+  console.log(`\n  ${fallos.length} fallaron:`);
+  for (const fallo of fallos) console.log(`    · ${fallo}`);
+
+  if (REMOTO && fallos.some((f) => f.includes('402'))) {
+    console.log(
+      '\n  Los 402 son esperables aquí: son tonos premium y este\n' +
+        '  dispositivo no tiene suscripción. Se prueban en local.',
+    );
+  }
+}

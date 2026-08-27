@@ -8,6 +8,7 @@ import { AppConfig } from '../../src/config/app_config';
 import { usarArranque } from '../../src/core/di/arranque';
 import { useSesion } from '../../src/core/di/sesion';
 import { abrirEnlaceLegal, contactarSoporte } from '../../src/core/legal';
+import { valorarApp } from '../../src/core/valoracion';
 import { colors, espacio, radio, tipografia } from '../../src/core/theme';
 import { FilaAjuste, SeparadorAjuste } from '../../src/core/ui/FilaAjuste';
 import { FondoPantalla } from '../../src/core/ui/FondoPantalla';
@@ -148,7 +149,7 @@ export default function Ajustes() {
             tono="cian"
             titulo="Tu opinión"
             subtitulo="Ayúdanos a mejorar"
-            onPress={() => pendiente('Valorar la app en la tienda')}
+            onPress={() => void valorarApp()}
           />
           <SeparadorAjuste />
           <FilaAjuste

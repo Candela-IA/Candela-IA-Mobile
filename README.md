@@ -232,7 +232,7 @@ Prisma — son reglas de negocio puras y testeables solas.
 | 🟡 | Configurar el webhook en el panel de RevenueCat | El secreto ya está generado en Railway. Falta copiarlo al panel junto con la URL `/api/v1/webhooks/revenuecat`, y para eso hace falta la cuenta del cliente |
 | 🟡 | Revisar los precios de GPT-5.6 Luna | OpenAI anunció una bajada del 80%. Los precios están escritos a mano en `openai.provider.ts`; si están desfasados, la columna `costUsd` lleva anotando de más |
 | 🟡 | Medir el prompt nuevo con el banco de pruebas | Los ejemplos y los niveles gratis/premium están escritos pero no comparados. `npm run probar:prompts` con las capturas de `backend/capturas/` cuesta dos centavos |
-| 🟢 | "Tu opinión" | Debe abrir la ficha de la tienda; no existe hasta publicar |
+| 🟢 | "Tu opinión" | Ya está implementado con `expo-store-review`: diálogo de estrellas dentro de la app, y si no se puede, la ficha de Play. **No se puede probar hasta publicar**: ese diálogo lo pinta Google Play y solo aparece si la app se instaló desde ahí |
 | 🟢 | Historial | Se quitó de la barra; decidir dónde va |
 | 🟢 | Reporte de fallos (Sentry) | El `ErrorBoundary` ya está; falta la cuenta y diez líneas |
 | 🟢 | `avatar-nota.webp` pesa 780 KB | Los PNG ya se optimizaron con `scripts/optimizar-imagenes.js`, que no sabe de WebP. Este va a mano por squoosh.app |

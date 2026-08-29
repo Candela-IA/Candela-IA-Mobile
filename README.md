@@ -227,7 +227,7 @@ Prisma — son reglas de negocio puras y testeables solas.
 |---|---|---|
 | 🔴 | **Arreglar el auto-despliegue de Railway** | Railway dejó de detectar los push: en *Settings → Source* sale `GitHub Repo not found`. Estuvo un día entero sirviendo código viejo mientras se acumulaban commits, y eso no se nota desde fuera — el health check sigue verde. Se arregla en el lápiz del Source Repo → *Configure GitHub App*, dándole acceso al repositorio |
 | 🟡 | Renombrar el repo a `Candela-IA` | Se llama `-Mobile` pero tiene backend + mobile |
-| 🟡 | Conectar el cobro (RevenueCat) | La pantalla ya está; falta el pago. Ya hay build nativo, que era lo que lo bloqueaba |
+| 🟡 | Conectar el cobro (RevenueCat) | Paso a paso, y el reparto de responsabilidades, en [`mobile/PAGOS.md`](mobile/PAGOS.md). El bloqueo ya no es técnico: hace falta que el cliente abra Play Console y verifique su perfil de pagos, que tarda días |
 | 🟡 | URL de la política de privacidad | Los términos ya están dentro de la app; falta este documento, que las tiendas exigen aparte |
 | 🟡 | Configurar el webhook en el panel de RevenueCat | El secreto ya está generado en Railway. Falta copiarlo al panel junto con la URL `/api/v1/webhooks/revenuecat`, y para eso hace falta la cuenta del cliente |
 | 🟡 | Revisar los precios de GPT-5.6 Luna | OpenAI anunció una bajada del 80%. Los precios están escritos a mano en `openai.provider.ts`; si están desfasados, la columna `costUsd` lleva anotando de más |

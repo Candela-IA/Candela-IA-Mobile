@@ -52,7 +52,9 @@
     },
     "owner": "candela-ia",
     "updates": {
-      "url": "https://u.expo.dev/60bfb56c-3d43-40d3-9079-10d5fd4d4ee2"
+      "url": "https://u.expo.dev/60bfb56c-3d43-40d3-9079-10d5fd4d4ee2",
+      "fallbackToCacheTimeout": 0,
+      "checkAutomatically": "ON_LOAD"
     },
     "runtimeVersion": {
       "policy": "fingerprint"

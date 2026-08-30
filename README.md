@@ -196,9 +196,11 @@ Prisma — son reglas de negocio puras y testeables solas.
   El cobro está sin conectar y **no concede premium a nadie** (a propósito)
 - **Ajustes** completo: Premium, Onboarding, Contáctanos (abre el correo),
   legal y Personalización, más la tarjeta de versión
-- **Términos de Uso** dentro de la app, con el texto del prototipo. Los
-  precios de la sección 9 se leen de `planes.ts`, así que no pueden
-  contradecir al paywall
+- **Enlaces legales** a los documentos publicados por el cliente:
+  `candela-ia.vercel.app/terminos-de-uso` y `/politica-de-privacidad`. Viven
+  en la web y no dentro de la app a propósito: así se corrigen sin publicar
+  versión nueva, y la misma URL vale para la ficha de Google Play, que
+  también la exige fuera de la app
 - **Primer arranque**: el onboarding se muestra solo la primera vez y se
   recuerda en el teléfono. Antes no lo veía nadie — solo se llegaba desde
   Ajustes
@@ -228,7 +230,6 @@ Prisma — son reglas de negocio puras y testeables solas.
 | 🔴 | **Arreglar el auto-despliegue de Railway** | Railway dejó de detectar los push: en *Settings → Source* sale `GitHub Repo not found`. Estuvo un día entero sirviendo código viejo mientras se acumulaban commits, y eso no se nota desde fuera — el health check sigue verde. Se arregla en el lápiz del Source Repo → *Configure GitHub App*, dándole acceso al repositorio |
 | 🟡 | Renombrar el repo a `Candela-IA` | Se llama `-Mobile` pero tiene backend + mobile |
 | 🟡 | Conectar el cobro (RevenueCat) | Paso a paso, y el reparto de responsabilidades, en [`mobile/PAGOS.md`](mobile/PAGOS.md). El bloqueo ya no es técnico: hace falta que el cliente abra Play Console y verifique su perfil de pagos, que tarda días |
-| 🟡 | URL de la política de privacidad | Los términos ya están dentro de la app; falta este documento, que las tiendas exigen aparte |
 | 🟡 | Configurar el webhook en el panel de RevenueCat | El secreto ya está generado en Railway. Falta copiarlo al panel junto con la URL `/api/v1/webhooks/revenuecat`, y para eso hace falta la cuenta del cliente |
 | 🟡 | Revisar los precios de GPT-5.6 Luna | OpenAI anunció una bajada del 80%. Los precios están escritos a mano en `openai.provider.ts`; si están desfasados, la columna `costUsd` lleva anotando de más |
 | 🟡 | Medir el prompt nuevo con el banco de pruebas | Los ejemplos y los niveles gratis/premium están escritos pero no comparados. `npm run probar:prompts` con las capturas de `backend/capturas/` cuesta dos centavos |

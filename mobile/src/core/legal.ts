@@ -8,15 +8,17 @@ import { Alert, Linking } from 'react-native';
  *
  * Apple no aprueba una app de suscripción sin términos de uso y política de
  * privacidad enlazados desde la pantalla de compra (guía de revisión 3.1.2),
- * y Google pide lo mismo. Mientras las URL estén vacías, la app avisa en vez
- * de abrir un enlace roto.
+ * y Google pide lo mismo.
  *
- * TODO(cliente): pedir las dos URL publicadas.
+ * Los dos documentos viven en la web del cliente y no dentro de la app, a
+ * propósito: así se corrigen sin publicar una versión nueva en las tiendas,
+ * y la misma URL sirve para la ficha de Google Play, que también la exige
+ * fuera de la app.
  */
 
 export const ENLACES_LEGALES = {
-  terminos: '',
-  privacidad: '',
+  terminos: 'https://candela-ia.vercel.app/terminos-de-uso',
+  privacidad: 'https://candela-ia.vercel.app/politica-de-privacidad',
 } as const;
 
 export type TipoEnlaceLegal = keyof typeof ENLACES_LEGALES;

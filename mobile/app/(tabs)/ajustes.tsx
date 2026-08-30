@@ -167,7 +167,7 @@ export default function Ajustes() {
             tono="rosa"
             titulo="Términos de Uso"
             subtitulo="Condiciones de uso de la app"
-            onPress={() => router.push('/terminos')}
+            onPress={() => abrirEnlaceLegal('terminos')}
           />
           <SeparadorAjuste />
           <FilaAjuste

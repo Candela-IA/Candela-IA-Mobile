@@ -30,6 +30,12 @@
         "EXPO_PUBLIC_API_URL": "https://candela-ia-mobile-production.up.railway.app/api/v1"
       },
       "channel": "production"
+    },
+    "ios-simulador": {
+      "extends": "preview",
+      "ios": {
+        "simulator": true
+      }
     }
   },
   "submit": {

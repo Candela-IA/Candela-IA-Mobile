@@ -15,7 +15,11 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.candelaia.app"
+      "bundleIdentifier": "com.candelaia.app",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Candela necesita leer la captura del chat o de la historia que quieres analizar. La imagen se procesa para generarte la respuesta y se descarta: no se guarda en ningún servidor ni se comparte con nadie.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.candelaia.app",

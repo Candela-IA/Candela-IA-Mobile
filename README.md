@@ -235,6 +235,7 @@ Prisma — son reglas de negocio puras y testeables solas.
 | 🟡 | Medir el prompt nuevo con el banco de pruebas | Los ejemplos y los niveles gratis/premium están escritos pero no comparados. `npm run probar:prompts` con las capturas de `backend/capturas/` cuesta dos centavos |
 | 🟢 | "Tu opinión" | Ya está implementado con `expo-store-review`: diálogo de estrellas dentro de la app, y si no se puede, la ficha de Play. **No se puede probar hasta publicar**: ese diálogo lo pinta Google Play y solo aparece si la app se instaló desde ahí |
 | 🟢 | Historial | Se quitó de la barra; decidir dónde va |
+| 🟢 | Llevarlo a iPhone | El código ya sirve y EAS compila sin Mac. Paso a paso y riesgos de revisión en [`mobile/IOS.md`](mobile/IOS.md). Conviene terminar Android primero: los 99 USD/año de Apple corren desde que se abre la cuenta |
 | 🟢 | Reporte de fallos (Sentry) | El `ErrorBoundary` ya está; falta la cuenta y diez líneas |
 | 🟢 | `avatar-nota.webp` pesa 780 KB | Los PNG ya se optimizaron con `scripts/optimizar-imagenes.js`, que no sabe de WebP. Este va a mano por squoosh.app |
 

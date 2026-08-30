@@ -141,7 +141,51 @@ errores.
 
 ---
 
-## 8. El icono adaptativo, y por qué tiene su propio archivo
+## 8. Cambios sin pasar por la tienda (EAS Update)
+
+No todo cambio necesita un build. Hay **tres velocidades**, y conviene saber
+en cuál cae lo que vas a tocar:
+
+| Qué tocas | Cómo llega | Cuánto tarda |
+|---|---|---|
+| Prompts, tonos, catálogo, textos de la API | Push a `main` → Railway despliega | Minutos, sin tocar la app |
+| Pantallas, colores, textos, lógica JS, imágenes | `eas update` | Minutos, sin pasar por Google |
+| Módulos nativos, icono, nombre, permisos, SDK | `eas build` + subir a la tienda | Horas o días de revisión |
+
+Para la segunda:
+
+```bash
+eas update --branch preview --message "qué cambiaste"
+```
+
+El usuario lo recibe la próxima vez que abre la app. Google lo permite
+mientras no cambies el propósito de la aplicación.
+
+**Cada perfil tiene su canal** (`development`, `preview`, `production`), así
+que un update de pruebas no puede acabar por descuido en los teléfonos de
+producción. Publica al canal que corresponda al build que quieres actualizar.
+
+### `runtimeVersion` en modo `fingerprint`
+
+Es la parte que evita el accidente serio. Un update solo llega a los builds
+cuyo código nativo es compatible, y eso se calcula solo: `fingerprint` hace
+un hash de las dependencias nativas del proyecto.
+
+Si mañana añades una librería nativa —como pasó con `expo-store-review`—, el
+hash cambia y **ese update no se envía a los builds anteriores**, que no la
+llevan dentro. Sin esto, el update llegaría igual y la app se cerraría al
+llamar a un módulo que no existe.
+
+Traducido: si el cambio es solo JavaScript, `eas update` y listo. Si tocaste
+algo nativo, EAS te obliga a hacer build, que es lo correcto.
+
+> ⚠️ El módulo de actualizaciones tiene que ir DENTRO del build. Un APK o AAB
+> construido antes de configurar esto **nunca podrá recibir updates**, por
+> mucho que publiques. De ahí que se montara antes de subir nada a la tienda.
+
+---
+
+## 9. El icono adaptativo, y por qué tiene su propio archivo
 
 Android no recorta el icono: **lo amplía**. El lienzo son 108 dp y la ventana
 visible son los 72 dp centrales, así que el 33% exterior se pierde siempre,

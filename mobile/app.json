@@ -50,6 +50,12 @@
         "projectId": "60bfb56c-3d43-40d3-9079-10d5fd4d4ee2"
       }
     },
-    "owner": "candela-ia"
+    "owner": "candela-ia",
+    "updates": {
+      "url": "https://u.expo.dev/60bfb56c-3d43-40d3-9079-10d5fd4d4ee2"
+    },
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    }
   }
 }

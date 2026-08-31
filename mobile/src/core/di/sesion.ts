@@ -54,6 +54,15 @@ function generarUuid(): string {
 interface EstadoSesion {
   token: string | null;
   saldo: SaldoApi | null;
+  /**
+   * El identificador del teléfono, el mismo que ve el backend.
+   *
+   * Se guarda para poder enseñarlo en Ajustes. Sin login, es la única forma
+   * que tiene alguien de decir quién es al escribir a soporte — y la única
+   * de conceder premium a un dispositivo concreto sin repartir un APK
+   * distinto, que es justo lo que no conviene hacer.
+   */
+  deviceKey: string | null;
   cargando: boolean;
   error: string | null;
 
@@ -76,6 +85,7 @@ interface EstadoSesion {
 export const useSesion = create<EstadoSesion>((set, get) => ({
   token: null,
   saldo: null,
+  deviceKey: null,
   cargando: false,
   error: null,
 
@@ -95,7 +105,12 @@ export const useSesion = create<EstadoSesion>((set, get) => ({
 
       await SecureStore.setItemAsync(CLAVE_TOKEN, sesion.token);
 
-      set({ token: sesion.token, saldo: sesion.saldo, cargando: false });
+      set({
+        token: sesion.token,
+        saldo: sesion.saldo,
+        deviceKey,
+        cargando: false,
+      });
     } catch (e) {
       const mensaje =
         e instanceof Error ? e.message : 'No pudimos conectar con el servidor.';

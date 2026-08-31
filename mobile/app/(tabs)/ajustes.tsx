@@ -1,7 +1,16 @@
+import * as Clipboard from 'expo-clipboard';
 import Constants from 'expo-constants';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppConfig } from '../../src/config/app_config';
@@ -36,6 +45,16 @@ export default function Ajustes() {
   // De app.json, no de expo-application: dentro de Expo Go esa librería
   // devuelve la versión de Expo Go, no la de Candela.
   const version = Constants.expoConfig?.version ?? '1.0.0';
+
+  const deviceKey = useSesion((estado) => estado.deviceKey);
+  const [idCopiado, setIdCopiado] = useState(false);
+
+  const copiarId = async () => {
+    if (!deviceKey) return;
+    await Clipboard.setStringAsync(deviceKey);
+    setIdCopiado(true);
+    setTimeout(() => setIdCopiado(false), 2000);
+  };
 
   const pendiente = (que: string) =>
     Alert.alert('Todavía no está listo', `${que} se conecta más adelante.`);
@@ -188,6 +207,16 @@ export default function Ajustes() {
             <View style={estilos.textosVersion}>
               <Text style={estilos.nombreApp}>Candela IA</Text>
               <Text style={estilos.version}>Versión {version}</Text>
+              {/* El identificador del teléfono, tocable para copiarlo.
+                  Como la app no pide login, es lo único que identifica a
+                  alguien cuando escribe a soporte. */}
+              {deviceKey ? (
+                <Pressable onPress={() => void copiarId()} hitSlop={8}>
+                  <Text style={estilos.idDispositivo} numberOfLines={1}>
+                    {idCopiado ? '✓ ID copiado' : `ID: ${deviceKey}`}
+                  </Text>
+                </Pressable>
+              ) : null}
               <Text style={estilos.copyright}>
                 © {new Date().getFullYear()} Candela IA. Todos los derechos
                 reservados.
@@ -231,6 +260,12 @@ const estilos = StyleSheet.create({
     fontSize: 12,
     color: 'rgba(255,255,255,0.4)',
     marginTop: 2,
+  },
+  idDispositivo: {
+    ...tipografia.pequeno,
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.28)',
+    marginTop: 4,
   },
   copyright: {
     ...tipografia.pequeno,

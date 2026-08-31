@@ -8,7 +8,7 @@
 ## Lo esencial, en treinta segundos
 
 - **No hace falta un Mac.** EAS compila para iPhone desde Windows.
-- **No hay que reprogramar nada.** El mismo código que corre en Android
+- **No hay que reprogramar nada ya.** El código corre ahora en Android
   funciona en iOS; ya está configurado.
 - **No se puede convertir el APK.** Son sistemas incompatibles, y aunque no
   lo fueran, iOS solo ejecuta apps firmadas por Apple.

@@ -32,6 +32,18 @@
  *
  * DÓNDE SACAR EL deviceKey: la persona lo tiene en la app, en
  * Ajustes → la tarjeta de abajo. Tocándolo se copia al portapapeles.
+ *
+ * OJO: no vale el ANDROID_ID que muestra cualquier app de "device info".
+ * Desde Android 8 el sistema da un ANDROID_ID DISTINTO a cada aplicación,
+ * derivado de su firma, así que el que enseña esa utilidad es el suyo y no
+ * el de Candela.
+ *
+ * Si la persona todavía no tiene la versión que muestra el ID:
+ *
+ *   npx ts-node scripts/conceder-premium.ts --listar
+ *
+ * lista los últimos dispositivos por actividad. Se le pide que abra la app
+ * en ese momento y el suyo aparece el primero.
  */
 
 import { PrismaClient } from '@prisma/client';
@@ -47,6 +59,11 @@ async function main(): Promise<void> {
   const deviceKey = args.find((a) => !a.startsWith('--'));
   const quitar = args.includes('--quitar');
   const anios = Number(leerOpcion(args, '--anios') ?? ANIOS_POR_DEFECTO);
+
+  if (args.includes('--listar')) {
+    await listarDispositivos();
+    return;
+  }
 
   if (!deviceKey) {
     console.error(
@@ -118,6 +135,63 @@ async function main(): Promise<void> {
         'persona.\n\n' +
         'Se aplica al instante: la app lee el saldo del servidor en cada\n' +
         'pantalla, así que basta con que vuelva a entrar.\n',
+    );
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+/**
+ * Los últimos dispositivos que se registraron.
+ *
+ * Hace falta porque el identificador no se puede averiguar desde fuera: desde
+ * Android 8 el ANDROID_ID es DISTINTO para cada app —lo deriva de la firma de
+ * cada una—, así que el que muestra cualquier utilidad de "device info" no es
+ * el que ve Candela. El único sitio donde aparece el bueno es dentro de la
+ * propia app, en Ajustes.
+ *
+ * Mientras alguien no tenga esa versión instalada, se identifica por aquí: se
+ * le pide que abra la app en un momento concreto y se mira cuál acaba de
+ * registrarse.
+ */
+async function listarDispositivos(): Promise<void> {
+  const prisma = new PrismaClient();
+
+  try {
+    const devices = await prisma.device.findMany({
+      orderBy: { lastSeenAt: 'desc' },
+      take: 15,
+      select: {
+        deviceKey: true,
+        platform: true,
+        appVersion: true,
+        createdAt: true,
+        lastSeenAt: true,
+        subscription: { select: { status: true, expiresAt: true } },
+        _count: { select: { generations: true } },
+      },
+    });
+
+    if (devices.length === 0) {
+      console.log('\nNo hay ningún dispositivo registrado todavía.\n');
+      return;
+    }
+
+    console.log(`\nÚltimos ${devices.length} dispositivos, por actividad:\n`);
+
+    for (const d of devices) {
+      const premium = d.subscription?.status === 'ACTIVE' ? ' · PREMIUM' : '';
+      console.log(`  ${d.deviceKey}${premium}`);
+      console.log(
+        `    ${d.platform} · v${d.appVersion ?? '?'} · ` +
+          `${d._count.generations} generaciones · ` +
+          `visto ${d.lastSeenAt.toLocaleString()}`,
+      );
+    }
+
+    console.log(
+      '\nPara saber cuál es el de alguien: que abra la app ahora mismo y\n' +
+        'vuelve a correr esto. El suyo será el primero de la lista.\n',
     );
   } finally {
     await prisma.$disconnect();

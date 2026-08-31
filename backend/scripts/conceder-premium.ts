@@ -18,8 +18,12 @@
  * instalada, sin reinstalar nada.
  *
  *   npx ts-node scripts/conceder-premium.ts <deviceKey>
+ *   npx ts-node scripts/conceder-premium.ts <clave1> <clave2> <clave3>
  *   npx ts-node scripts/conceder-premium.ts <deviceKey> --quitar
  *   npx ts-node scripts/conceder-premium.ts <deviceKey> --anios 2
+ *
+ * Admite varios porque cambiar de telefono crea un dispositivo nuevo: una
+ * sola persona que probo desde tres moviles son tres claves distintas.
  *
  * CONTRA LA BASE DE DATOS DE PRODUCCIÓN, que vive en la red privada de
  * Railway y no se alcanza desde fuera con la URL normal: hay que usar la
@@ -56,12 +60,24 @@ const ANIOS_POR_DEFECTO = 10;
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
-  const deviceKey = args.find((a) => !a.startsWith('--'));
-  const quitar = args.includes('--quitar');
   const anios = Number(leerOpcion(args, '--anios') ?? ANIOS_POR_DEFECTO);
+  const quitar = args.includes('--quitar');
+
+  // Admite varios de una vez: alguien que probó desde tres teléfonos
+  // distintos son tres dispositivos para el backend, y darles acceso de uno
+  // en uno es pedir que se olvide alguno.
+  const claves = args.filter(
+    (a, i) => !a.startsWith('--') && args[i - 1] !== '--anios',
+  );
+  const deviceKey = claves[0];
 
   if (args.includes('--listar')) {
     await listarDispositivos();
+    return;
+  }
+
+  if (claves.length > 1) {
+    await procesarVarios(claves, quitar, anios);
     return;
   }
 
@@ -135,6 +151,72 @@ async function main(): Promise<void> {
         'persona.\n\n' +
         'Se aplica al instante: la app lee el saldo del servidor en cada\n' +
         'pantalla, así que basta con que vuelva a entrar.\n',
+    );
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+/**
+ * Varios dispositivos de una tacada.
+ *
+ * Cambiar de teléfono crea un dispositivo nuevo a ojos del backend, así que
+ * una sola persona puede tener cinco. Se informa de cada uno por separado
+ * para que se vea si alguno no existía.
+ */
+async function procesarVarios(
+  claves: string[],
+  quitar: boolean,
+  anios: number,
+): Promise<void> {
+  const prisma = new PrismaClient();
+
+  try {
+    const expira = new Date();
+    expira.setFullYear(expira.getFullYear() + anios);
+
+    for (const clave of claves) {
+      const device = await prisma.device.findUnique({
+        where: { deviceKey: clave },
+        select: { id: true },
+      });
+
+      if (!device) {
+        console.log(`  ✗ ${clave} — no existe, saltado`);
+        continue;
+      }
+
+      if (quitar) {
+        await prisma.subscription.updateMany({
+          where: { deviceId: device.id },
+          data: { status: 'EXPIRED', updatedAt: new Date() },
+        });
+        console.log(`  ✓ ${clave} — premium retirado`);
+        continue;
+      }
+
+      await prisma.subscription.upsert({
+        where: { deviceId: device.id },
+        create: {
+          deviceId: device.id,
+          status: 'ACTIVE',
+          plan: 'ANNUAL',
+          expiresAt: expira,
+        },
+        update: { status: 'ACTIVE', plan: 'ANNUAL', expiresAt: expira },
+      });
+
+      await prisma.creditBalance.updateMany({
+        where: { deviceId: device.id },
+        data: { dailyUsed: 0 },
+      });
+
+      console.log(`  ✓ ${clave} — premium hasta ${expira.toLocaleDateString()}`);
+    }
+
+    console.log(
+      '\nSe aplica al instante: basta con que vuelvan a abrir la app.\n' +
+        'Cada uno mantiene su propio tope diario de 50 generaciones.\n',
     );
   } finally {
     await prisma.$disconnect();

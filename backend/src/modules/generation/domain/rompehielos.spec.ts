@@ -23,8 +23,8 @@ const PROHIBIDAS = [
 ];
 
 describe('banco de rompehielos', () => {
-  it('tiene los 50 que se prometieron', () => {
-    expect(ROMPEHIELOS).toHaveLength(50);
+  it('tiene los 100 que se prometieron', () => {
+    expect(ROMPEHIELOS).toHaveLength(100);
   });
 
   it('no repite ninguno', () => {

@@ -76,7 +76,7 @@ export const ROMPEHIELOS: readonly string[] = [
   'Te escribo sin excusa ni pretexto, que es más honesto. ¿Cómo va todo?',
   'Voy a ser directo: me dio curiosidad conocerte. ¿Empezamos por algo fácil? Cuéntame cómo estuvo tu día.',
   'No tengo una frase ingeniosa preparada, así que te pregunto de frente: ¿qué te gusta hacer?',
-  'Igual esto queda en nada, pero me arriesgo: ¿te tomarías un café en algún momento?',
+  'Igual esto queda en nada, pero me arriesgo. ¿Qué tal si empezamos por lo fácil?',
   'Sin rodeos: me caes bien desde antes de hablarte. A ver si no me equivoco.',
   'Aviso: escribo primero y pienso después. Así que hola, ¿qué cuentas?',
 
@@ -89,6 +89,70 @@ export const ROMPEHIELOS: readonly string[] = [
   'Llegué hasta aquí sin saber qué escribir y ya no puedo dar marcha atrás. Ayúdame tú.',
   'No soy bueno para empezar conversaciones, pero sí para continuarlas. Dame una oportunidad.',
   'Esto es lo más creativo que se me ocurrió en diez minutos. Sé amable.',
+
+  // ── Hipotéticos: obligan a imaginar, y eso engancha ────────────────────
+  'Si mañana te dieran un día libre sin avisar, ¿qué harías con él?',
+  'Te dan un pasaje a donde quieras, pero sales en dos horas. ¿A dónde vas?',
+  'Si pudieras borrarte un recuerdo vergonzoso, ¿tienes uno en mente o son varios?',
+  '¿Qué superpoder inútil te gustaría tener? Y sí, tiene que ser inútil.',
+  'Si tu vida tuviera una canción de fondo ahora mismo, ¿cuál sonaría?',
+  'Te toca elegir la última comida de tu vida y no puedes repetir. ¿Cuál?',
+  'Si te dieran un año sabático pagado, ¿qué aprenderías?',
+  '¿Qué tres cosas te llevarías a una isla? Y no vale decir un barco.',
+
+  // ── Opiniones que piden réplica ────────────────────────────────────────
+  'Opinión impopular: las series están mejor que las películas. Convénceme de lo contrario.',
+  'Creo que la gente que responde audios de cinco minutos merece un juicio. ¿Exagero?',
+  'El desayuno es la mejor comida del día y no acepto discusión. Bueno, sí la acepto.',
+  'Sostengo que nadie ordena bien la ropa. Todos tenemos esa silla. ¿Me equivoco?',
+  'Digo que el verano está sobrevalorado y me miran raro. ¿Tú de qué lado estás?',
+  'Pienso que los lunes tienen mala fama inmerecida. ¿Me apoyas o me denuncias?',
+
+  // ── Observaciones cotidianas, fáciles de continuar ─────────────────────
+  'Llevo todo el día con una canción pegada y necesito pasársela a alguien. ¿Aceptas?',
+  'Acabo de tomar la peor decisión gastronómica del mes. ¿Cuál fue la tuya?',
+  'Estoy en esa fase de abrir la refri sabiendo que no hay nada nuevo. ¿Te suena?',
+  'Hoy descubrí que llevaba la camiseta al revés desde la mañana. Cuéntame algo peor.',
+  'Tengo veinte pestañas abiertas y ninguna es importante. ¿Cuántas llevas tú?',
+  'Mi plan para hoy era ser productivo. Vamos perdiendo 3 a 0.',
+  'Se me acaba de ir el santo al cielo a mitad de una frase. ¿Te pasa seguido?',
+
+  // ── Micro-retos: no se pueden dejar sin responder ──────────────────────
+  'Descríbete en tres palabras. Y no vale "no sé qué poner".',
+  'Recomiéndame algo que te haya gustado esta semana. Lo que sea.',
+  'Dime una cosa que hagas bien y que casi nadie sepa.',
+  'Un lugar de la ciudad que todo el mundo debería conocer. Tienes un intento.',
+  'Cuéntame el peor consejo que te hayan dado con toda la buena intención.',
+  'Dame una razón para probar algo que odio. A ver si me convences.',
+  'Elige: contarme un secreto tuyo o adivinar uno mío.',
+
+  // ── Curiosidad genuina, sin sonar a entrevista ─────────────────────────
+  '¿Qué es eso que podrías explicar durante una hora sin despeinarte?',
+  '¿Qué cosa te parecía importantísima hace cinco años y hoy te da igual?',
+  '¿Eres de guardar las cosas o de tirarlo todo cada tanto?',
+  '¿Qué te hace perder la noción del tiempo?',
+  '¿Cuál es tu forma favorita de perder una tarde?',
+  '¿Qué es lo último que te dio ganas de contarle a alguien?',
+  '¿Hay algo que todo el mundo disfruta y a ti no te dice nada?',
+  '¿Qué cambiarías de tu rutina si nadie te juzgara por hacerlo?',
+
+  // ── Con humor, sin depender de la otra persona ─────────────────────────
+  'Vengo a subir el nivel de tu bandeja de entrada. Pongo lo que puedo.',
+  'Escribí y borré esto cuatro veces. La quinta va sin revisar.',
+  'Mi estrategia era esperar a que me escribieras tú. Fracasó.',
+  'Tengo el récord de conversaciones que empiezo bien y termino raro. Ayúdame a romperlo.',
+  'Aviso que mi sentido del humor es discutible. Tú dirás si sobrevive.',
+  'Vengo con cero contexto y muchas ganas de conversar. ¿Empezamos?',
+  'Si tuviera una frase brillante la usaría. Como no la tengo, va la honestidad.',
+  'Prometo no preguntarte qué haces. Ya está, ese era mi mérito del día.',
+
+  // ── Directos, con calma ────────────────────────────────────────────────
+  'Podría dar mil vueltas, pero mejor pregunto directo: ¿cómo va tu semana?',
+  'Me caía bien tu forma de escribir antes de hablarte. Vamos a ver si acierto.',
+  'No sé si esto va a algún lado, pero me daba pena no intentarlo.',
+  'Te escribo porque me dio curiosidad, sin más agenda que esa.',
+  'Vengo sin plan, sin frase y sin vergüenza. Las tres cosas se arreglan hablando.',
+  'Podría fingir que esto se me ocurrió solo, pero llevo un rato pensándolo.',
 ];
 
 /**

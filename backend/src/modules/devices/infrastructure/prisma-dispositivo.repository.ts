@@ -3,7 +3,10 @@ import { Prisma } from '@prisma/client';
 
 import { PrismaService } from '../../../shared/infrastructure/prisma/prisma.service';
 import { DispositivoNoEncontradoError } from '../../../shared/domain/domain-error';
-import { CreditBalance } from '../../credits/domain/credit-balance';
+import {
+  CreditBalance,
+  DIAS_RENOVACION_GRATIS,
+} from '../../credits/domain/credit-balance';
 import {
   DatosSuscripcion,
   Dispositivo,
@@ -42,6 +45,7 @@ export class PrismaDispositivoRepository implements DispositivoRepository {
         credits: {
           create: {
             freeUsed: 0,
+            freeResetAt: siguienteRenovacion(ahora),
             dailyUsed: 0,
             dailyResetAt: siguienteMedianoche(ahora),
           },
@@ -96,6 +100,7 @@ export class PrismaDispositivoRepository implements DispositivoRepository {
         where: { deviceId: id },
         data: {
           freeUsed: estado.freeUsed,
+          freeResetAt: estado.freeResetAt,
           dailyUsed: estado.dailyUsed,
           dailyResetAt: estado.dailyResetAt,
           lifetimeUsed: estado.lifetimeUsed,
@@ -127,6 +132,7 @@ export class PrismaDispositivoRepository implements DispositivoRepository {
         where: { deviceId: id },
         data: {
           freeUsed: estado.freeUsed,
+          freeResetAt: estado.freeResetAt,
           dailyUsed: estado.dailyUsed,
           lifetimeUsed: estado.lifetimeUsed,
         },
@@ -142,6 +148,11 @@ export class PrismaDispositivoRepository implements DispositivoRepository {
     const creditos = fila.credits
       ? CreditBalance.desdePersistencia({
           freeUsed: fila.credits.freeUsed,
+          // Las filas anteriores a los créditos semanales no traen fecha de
+          // renovación. Se les da una ya vencida, así estrenan sus intentos
+          // la próxima vez que abran la app, en vez de arrastrar para siempre
+          // los que gastaron con la regla vieja.
+          freeResetAt: fila.credits.freeResetAt ?? new Date(0),
           dailyUsed: fila.credits.dailyUsed,
           dailyResetAt: fila.credits.dailyResetAt,
           lifetimeUsed: fila.credits.lifetimeUsed,
@@ -167,5 +178,19 @@ export class PrismaDispositivoRepository implements DispositivoRepository {
 function siguienteMedianoche(ahora: Date): Date {
   const siguiente = new Date(ahora);
   siguiente.setUTCHours(24, 0, 0, 0);
+  return siguiente;
+}
+
+/**
+ * Igual que `siguienteRenovacion` del dominio: siete días desde hoy, a
+ * medianoche.
+ *
+ * Se duplica aquí, como ya se hacía con `siguienteMedianoche`, para que la
+ * fila se pueda crear en el mismo `upsert` sin construir antes el agregado.
+ */
+function siguienteRenovacion(ahora: Date): Date {
+  const siguiente = new Date(ahora);
+  siguiente.setUTCHours(24, 0, 0, 0);
+  siguiente.setUTCDate(siguiente.getUTCDate() + DIAS_RENOVACION_GRATIS - 1);
   return siguiente;
 }

@@ -49,8 +49,13 @@ model CreditBalance {
   deviceId String @unique
   device   Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 
-  /// Cuántos de los 5 intentos gratis ya gastó. No se renueva nunca.
+  /// Cuántos de los intentos gratis de esta semana ya gastó.
   freeUsed Int @default(0)
+
+  /// Cuándo vuelven a cero. Ventana rodante de 7 días, no un día fijo.
+  /// Opcional porque las filas anteriores al cambio no lo tienen: al leerlas
+  /// se les asigna una fecha al vuelo, y así estrenan sus intentos ya.
+  freeResetAt DateTime?
 
   /// Uso del día para suscriptores (tope de uso justo).
   dailyUsed    Int      @default(0)

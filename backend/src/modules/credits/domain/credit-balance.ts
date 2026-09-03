@@ -13,8 +13,23 @@ import {
   SinCreditosError,
 } from '../../../shared/domain/domain-error';
 
-/** Intentos gratis al instalar. Nunca se renuevan. */
-export const CREDITOS_GRATIS = 5;
+/**
+ * Intentos gratis, y cada cuánto vuelven.
+ *
+ * Antes eran 5 y NO se renovaban nunca. Se pasó a 6 cada semana por petición
+ * del cliente, y la práctica le dio la razón: al quedarse sin intentos la
+ * gente no paga, cambia de teléfono y sigue gratis — que es exactamente lo
+ * que hizo él probando la app desde cinco móviles distintos. Un límite que
+ * se esquiva cambiando de aparato no defiende el negocio, solo enseña a
+ * esquivarlo.
+ *
+ * Renovándose cada semana, quien la usa de vez en cuando nunca choca contra
+ * el muro, y quien la usa a diario tiene un motivo real para pagar.
+ */
+export const CREDITOS_GRATIS = 6;
+
+/** Cada cuántos días vuelven los intentos gratis a cero. */
+export const DIAS_RENOVACION_GRATIS = 7;
 
 /**
  * Tope diario para suscriptores. El paywall promete "respuestas ilimitadas",
@@ -26,6 +41,8 @@ export const LIMITE_DIARIO_PREMIUM = 50;
 
 export interface EstadoSaldo {
   readonly freeUsed: number;
+  /** Cuándo vuelven a cero los intentos gratis. */
+  readonly freeResetAt: Date;
   readonly dailyUsed: number;
   readonly dailyResetAt: Date;
   readonly lifetimeUsed: number;
@@ -45,6 +62,7 @@ export interface SaldoVisible {
 export class CreditBalance {
   private constructor(
     private _freeUsed: number,
+    private _freeResetAt: Date,
     private _dailyUsed: number,
     private _dailyResetAt: Date,
     private _lifetimeUsed: number,
@@ -53,6 +71,7 @@ export class CreditBalance {
   static desdePersistencia(estado: EstadoSaldo): CreditBalance {
     return new CreditBalance(
       estado.freeUsed,
+      estado.freeResetAt,
       estado.dailyUsed,
       estado.dailyResetAt,
       estado.lifetimeUsed,
@@ -60,7 +79,13 @@ export class CreditBalance {
   }
 
   static nuevo(ahora: Date): CreditBalance {
-    return new CreditBalance(0, 0, siguienteMedianoche(ahora), 0);
+    return new CreditBalance(
+      0,
+      siguienteRenovacion(ahora),
+      0,
+      siguienteMedianoche(ahora),
+      0,
+    );
   }
 
   // ── Consultas ───────────────────────────────────────────────────────────
@@ -82,30 +107,44 @@ export class CreditBalance {
     return this.debeReiniciarDiario(ahora) ? 0 : this._dailyUsed;
   }
 
-  gratisRestantes(): number {
-    return Math.max(0, CREDITOS_GRATIS - this._freeUsed);
+  get freeResetAt(): Date {
+    return this._freeResetAt;
+  }
+
+  /**
+   * Intentos gratis que quedan, contando ya si venció la semana.
+   *
+   * Se calcula en vez de guardarse reiniciado, porque el saldo se consulta
+   * mucho más de lo que se modifica: así alguien que abre la app después de
+   * un mes ve sus 6 intentos aunque todavía no haya generado nada.
+   */
+  gratisRestantes(ahora: Date): number {
+    const usados = this.debeRenovarGratis(ahora) ? 0 : this._freeUsed;
+    return Math.max(0, CREDITOS_GRATIS - usados);
   }
 
   /**
    * ¿Puede generar ahora mismo?
    *
    * - Premium: sí, mientras no supere el tope diario de uso justo.
-   * - Gratis: sí, mientras le queden intentos de los 5 iniciales.
+   * - Gratis: sí, mientras le queden intentos de los de esta semana.
    */
   puedeGenerar(esPremium: boolean, ahora: Date): boolean {
     if (esPremium) {
       return this.usadosHoy(ahora) < LIMITE_DIARIO_PREMIUM;
     }
-    return this.gratisRestantes() > 0;
+    return this.gratisRestantes(ahora) > 0;
   }
 
   /** Lo que se le devuelve a la app para pintar el contador. */
   aVistaUsuario(esPremium: boolean, ahora: Date): SaldoVisible {
+    const restantes = this.gratisRestantes(ahora);
+
     return {
       esPremium,
-      gratisUsados: this._freeUsed,
+      gratisUsados: CREDITOS_GRATIS - restantes,
       gratisTotales: CREDITOS_GRATIS,
-      gratisRestantes: this.gratisRestantes(),
+      gratisRestantes: restantes,
       usadosHoy: this.usadosHoy(ahora),
       limiteDiario: esPremium ? LIMITE_DIARIO_PREMIUM : null,
       puedeGenerar: this.puedeGenerar(esPremium, ahora),
@@ -127,12 +166,19 @@ export class CreditBalance {
       this._dailyResetAt = siguienteMedianoche(ahora);
     }
 
+    // La semana se renueva aquí y no al consultar: es el único momento en
+    // que el saldo se guarda, así que es donde el reinicio queda persistido.
+    if (this.debeRenovarGratis(ahora)) {
+      this._freeUsed = 0;
+      this._freeResetAt = siguienteRenovacion(ahora);
+    }
+
     if (esPremium) {
       if (this._dailyUsed >= LIMITE_DIARIO_PREMIUM) {
         throw new LimiteDiarioAlcanzadoError(LIMITE_DIARIO_PREMIUM);
       }
     } else {
-      if (this.gratisRestantes() <= 0) {
+      if (this.gratisRestantes(ahora) <= 0) {
         throw new SinCreditosError();
       }
       this._freeUsed += 1;
@@ -157,6 +203,7 @@ export class CreditBalance {
   aPersistencia(): EstadoSaldo {
     return {
       freeUsed: this._freeUsed,
+      freeResetAt: this._freeResetAt,
       dailyUsed: this._dailyUsed,
       dailyResetAt: this._dailyResetAt,
       lifetimeUsed: this._lifetimeUsed,
@@ -168,11 +215,29 @@ export class CreditBalance {
   private debeReiniciarDiario(ahora: Date): boolean {
     return ahora >= this._dailyResetAt;
   }
+
+  private debeRenovarGratis(ahora: Date): boolean {
+    return ahora >= this._freeResetAt;
+  }
 }
 
 /** Medianoche siguiente en UTC. El contador diario se reinicia ahí. */
 function siguienteMedianoche(ahora: Date): Date {
   const siguiente = new Date(ahora);
   siguiente.setUTCHours(24, 0, 0, 0);
+  return siguiente;
+}
+
+/**
+ * Cuándo vuelven los intentos gratis.
+ *
+ * Siete días desde hoy, a medianoche. Es una ventana rodante y no un día
+ * fijo de la semana: quien instala un jueves no tiene que esperar al lunes
+ * para estrenar sus intentos, y todo el mundo dispone del mismo plazo.
+ */
+function siguienteRenovacion(ahora: Date): Date {
+  const siguiente = new Date(ahora);
+  siguiente.setUTCHours(24, 0, 0, 0);
+  siguiente.setUTCDate(siguiente.getUTCDate() + DIAS_RENOVACION_GRATIS - 1);
   return siguiente;
 }

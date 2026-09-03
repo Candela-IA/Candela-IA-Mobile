@@ -20,10 +20,10 @@ const PREMIUM = true;
 
 describe('CreditBalance', () => {
   describe('usuario gratis', () => {
-    it('arranca con 5 intentos disponibles', () => {
+    it('arranca con todos los intentos de la semana disponibles', () => {
       const saldo = CreditBalance.nuevo(AHORA);
 
-      expect(saldo.gratisRestantes()).toBe(CREDITOS_GRATIS);
+      expect(saldo.gratisRestantes(AHORA)).toBe(CREDITOS_GRATIS);
       expect(saldo.puedeGenerar(GRATIS, AHORA)).toBe(true);
     });
 
@@ -33,10 +33,10 @@ describe('CreditBalance', () => {
       saldo.consumir(GRATIS, AHORA); // primera generación
       saldo.consumir(GRATIS, AHORA); // "Generar otra respuesta"
 
-      expect(saldo.gratisRestantes()).toBe(3);
+      expect(saldo.gratisRestantes(AHORA)).toBe(CREDITOS_GRATIS - 2);
     });
 
-    it('se bloquea al agotar los 5', () => {
+    it('se bloquea al agotarlos todos', () => {
       const saldo = CreditBalance.nuevo(AHORA);
       for (let i = 0; i < CREDITOS_GRATIS; i++) saldo.consumir(GRATIS, AHORA);
 
@@ -48,9 +48,60 @@ describe('CreditBalance', () => {
       const saldo = CreditBalance.nuevo(AHORA);
       for (let i = 0; i < CREDITOS_GRATIS; i++) saldo.consumir(GRATIS, AHORA);
 
-      const unaSemanaDespues = new Date('2026-08-20T10:00:00Z');
+      const alDiaSiguiente = new Date('2026-08-14T10:00:00Z');
 
-      expect(saldo.puedeGenerar(GRATIS, unaSemanaDespues)).toBe(false);
+      expect(saldo.puedeGenerar(GRATIS, alDiaSiguiente)).toBe(false);
+    });
+  });
+
+  describe('renovación semanal de los gratis', () => {
+    /** Ya pasada la ventana de 7 días desde AHORA. */
+    const SEMANA_DESPUES = new Date('2026-08-21T10:00:00Z');
+
+    it('devuelve los intentos cuando pasa la semana', () => {
+      const saldo = CreditBalance.nuevo(AHORA);
+      for (let i = 0; i < CREDITOS_GRATIS; i++) saldo.consumir(GRATIS, AHORA);
+
+      expect(saldo.puedeGenerar(GRATIS, AHORA)).toBe(false);
+      expect(saldo.puedeGenerar(GRATIS, SEMANA_DESPUES)).toBe(true);
+      expect(saldo.gratisRestantes(SEMANA_DESPUES)).toBe(CREDITOS_GRATIS);
+    });
+
+    it('los devuelve aunque no vuelva a generar', () => {
+      // El contador se calcula al consultarlo: quien abre la app después de
+      // un mes ve sus intentos enteros sin tener que gastar uno primero.
+      const saldo = CreditBalance.nuevo(AHORA);
+      for (let i = 0; i < CREDITOS_GRATIS; i++) saldo.consumir(GRATIS, AHORA);
+
+      const vista = saldo.aVistaUsuario(GRATIS, SEMANA_DESPUES);
+
+      expect(vista.gratisRestantes).toBe(CREDITOS_GRATIS);
+      expect(vista.gratisUsados).toBe(0);
+      expect(vista.puedeGenerar).toBe(true);
+    });
+
+    it('al renovar arranca una semana nueva', () => {
+      const saldo = CreditBalance.nuevo(AHORA);
+      for (let i = 0; i < CREDITOS_GRATIS; i++) saldo.consumir(GRATIS, AHORA);
+
+      saldo.consumir(GRATIS, SEMANA_DESPUES);
+
+      expect(saldo.gratisRestantes(SEMANA_DESPUES)).toBe(CREDITOS_GRATIS - 1);
+      expect(saldo.freeResetAt.getTime()).toBeGreaterThan(
+        SEMANA_DESPUES.getTime(),
+      );
+    });
+
+    it('no los devuelve antes de tiempo', () => {
+      const saldo = CreditBalance.nuevo(AHORA);
+      for (let i = 0; i < CREDITOS_GRATIS; i++) saldo.consumir(GRATIS, AHORA);
+
+      const dosDiasDespues = new Date('2026-08-15T10:00:00Z');
+
+      expect(saldo.gratisRestantes(dosDiasDespues)).toBe(0);
+      expect(() => saldo.consumir(GRATIS, dosDiasDespues)).toThrow(
+        SinCreditosError,
+      );
     });
   });
 
@@ -60,7 +111,7 @@ describe('CreditBalance', () => {
 
       saldo.consumir(PREMIUM, AHORA);
 
-      expect(saldo.gratisRestantes()).toBe(CREDITOS_GRATIS);
+      expect(saldo.gratisRestantes(AHORA)).toBe(CREDITOS_GRATIS);
     });
 
     it('respeta el tope diario de uso justo', () => {
@@ -94,7 +145,7 @@ describe('CreditBalance', () => {
 
       saldo.revertir(GRATIS);
 
-      expect(saldo.gratisRestantes()).toBe(CREDITOS_GRATIS);
+      expect(saldo.gratisRestantes(AHORA)).toBe(CREDITOS_GRATIS);
     });
 
     it('devuelve el uso diario al premium', () => {
@@ -117,9 +168,9 @@ describe('CreditBalance', () => {
 
       const vista = saldo.aVistaUsuario(GRATIS, AHORA);
 
-      // La pantalla "Tu respuesta" muestra 4/5
+      // La cabecera de la pantalla muestra "4/6"
       expect(vista.gratisUsados).toBe(4);
-      expect(vista.gratisTotales).toBe(5);
+      expect(vista.gratisTotales).toBe(CREDITOS_GRATIS);
       expect(vista.puedeGenerar).toBe(true);
     });
   });

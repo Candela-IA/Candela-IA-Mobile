@@ -48,7 +48,78 @@ interface Opciones {
   timeoutMs?: number;
 }
 
+/**
+ * REINTENTOS
+ *
+ * Desplegar el backend lo deja unos segundos sin responder, y a quien pulsara
+ * "Generar" justo entonces le salía un "Algo salió mal" que no era culpa
+ * suya ni de su conexión. Reintentando solo, ese hueco pasa desapercibido.
+ */
+const REINTENTOS = 2;
+const ESPERA_BASE_MS = 600;
+
+/**
+ * Por debajo de este tiempo, el servidor NO llegó a procesar la petición.
+ *
+ * Es la salvaguarda que hace seguro reintentar un `POST /generar`, que cobra
+ * un crédito: generar tarda entre 3 y 8 segundos, así que un fallo en menos
+ * de dos segundos y medio significa que la petición ni siquiera se ejecutó.
+ * Si fallara más tarde podría haberse cobrado ya, y reintentar cobraría dos
+ * veces por un solo mensaje.
+ */
+const UMBRAL_NO_PROCESADO_MS = 2_500;
+
 export async function peticion<T>(
+  ruta: string,
+  opciones: Opciones = {},
+): Promise<T> {
+  let ultimoError: ErrorApi | undefined;
+
+  for (let intento = 0; intento <= REINTENTOS; intento++) {
+    const inicio = Date.now();
+
+    try {
+      return await peticionUnica<T>(ruta, opciones);
+    } catch (e) {
+      if (!(e instanceof ErrorApi)) throw e;
+      ultimoError = e;
+
+      const ultimo = intento === REINTENTOS;
+      const duracion = Date.now() - inicio;
+
+      if (ultimo || !sePuedeReintentar(e, opciones.metodo, duracion)) throw e;
+
+      // Espera creciente: si el backend está arrancando, el segundo intento
+      // le da más margen que el primero.
+      await dormir(ESPERA_BASE_MS * (intento + 1));
+    }
+  }
+
+  throw ultimoError;
+}
+
+/**
+ * ¿Es seguro repetir esta petición?
+ *
+ * Un GET se puede repetir siempre, porque no cambia nada. Un POST solo
+ * cuando consta que el servidor no llegó a procesarlo.
+ */
+export function sePuedeReintentar(
+  error: ErrorApi,
+  metodo: Metodo = 'GET',
+  duracionMs: number,
+): boolean {
+  if (!error.reintentable) return false;
+  if (metodo === 'GET') return true;
+
+  return duracionMs < UMBRAL_NO_PROCESADO_MS;
+}
+
+function dormir(ms: number): Promise<void> {
+  return new Promise((listo) => setTimeout(listo, ms));
+}
+
+async function peticionUnica<T>(
   ruta: string,
   { metodo = 'GET', cuerpo, token, timeoutMs = AppConfig.timeoutMs }: Opciones = {},
 ): Promise<T> {

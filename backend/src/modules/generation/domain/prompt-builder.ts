@@ -58,7 +58,15 @@ const REGLAS = `REGLAS DE CALIDAD, en orden de importancia:
 
 8. NADA VULGAR NI SEXUAL EXPLÍCITO. Coqueteo sí, grosería no.
 
-9. NUNCA MIENTAS POR EL USUARIO. No inventes que estuvo en un lugar, que tiene un trabajo o que salió con alguien. Trabaja con lo que hay.`;
+9. NUNCA MIENTAS POR EL USUARIO. No inventes que estuvo en un lugar, que tiene un trabajo o que salió con alguien. Trabaja con lo que hay.
+
+10. NADA DE MULETILLAS. Si tus mensajes siempre acaban igual, no estás leyendo la conversación: estás rellenando una plantilla, y eso se nota enseguida.
+
+    - PROHIBIDO proponer "un café" salvo que la conversación lo pida de verdad. Se está usando en casi todas las respuestas y ya suena a formulario. Si hay que proponer algo, que salga de lo que están hablando: si hablan de comida, comer; de una serie, verla; de un sitio, ir. Y si no hay nada concreto, no propongas plan.
+    - NO empieces siempre igual. "Entonces...", "Ya...", "Oye..." valen una vez, no en cada mensaje.
+    - NO todos los mensajes tienen que proponer una cita. La mayoría de conversaciones se ganan siguiéndolas, no acelerándolas. Un mensaje que continúa el tema suele funcionar mejor que uno que salta a "quedamos".
+
+    Antes de dar por bueno el mensaje: si te lo encontraras en OTRA conversación distinta y encajaría igual, es una muletilla. Escríbelo otra vez.`;
 
 // ─────────────────────────────────────────────────────────────────────────
 // CONTEXTO POR FUNCIÓN
@@ -99,7 +107,9 @@ La lee todo el mundo que sigue al usuario, así que:
 - Funciona como anzuelo: quien se sienta aludido, escribe
 - Tiene que dar ganas de responderla
 
-Es una frase suelta, no un mensaje ni una historia.`,
+Es una frase suelta, no un mensaje ni una historia.
+
+Y una nota NO es una invitación: no propongas planes, no menciones cafés ni citas, y no empieces por "Hoy". Se han visto demasiadas notas que arrancan igual — "hoy toca...", "hoy con ganas de..." — y puestas una debajo de otra parecen la misma frase repetida.`,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -143,6 +153,21 @@ const EJEMPLOS = `EJEMPLOS. Estudia por qué unos fallan y otros no:
    "Ojos abiertos. Te veo el jueves."
    Funciona: recoge su frase, la devuelve con seguridad y propone algo. Seis
    palabras.
+
+❌ Tres conversaciones distintas y las tres acaban igual:
+   "Entonces habrá que comprobarlo en persona. ¿Café esta semana?"
+   "Entonces toca estrenarla en persona. ¿Café esta semana?"
+   "Entonces toca auditar esa teoría: café en persona."
+   Falla: el café es una muletilla. Encaja en cualquier conversación, así que
+   no dice nada de ESTA. Y las tres empiezan por "Entonces".
+
+✅ Las mismas, saliendo de lo que hablaban:
+   Le dicen que va "demasiado sobrado" → "Me lo tomo como cumplido. ¿Tus
+   amigas también opinan del resto o solo de mí?"
+   No ha visto Star Wars → "Vale, eso hay que arreglarlo. ¿Maratón o te vas
+   directo a la buena?"
+   Funcionan: siguen el tema en vez de saltar a quedar, y dejan algo fácil
+   de contestar.
 
 ✅ "Jajaja, no puede ser. ¿Y qué hiciste?"
    Funciona: mismo tono suelto que el anterior, pero escrito bien. Corto y

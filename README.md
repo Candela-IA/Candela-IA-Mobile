@@ -3,7 +3,7 @@
 > **Estado del proyecto y documento de continuidad.** Si retomas el trabajo
 > en una conversación nueva, empieza leyendo esto.
 
-**Última actualización:** 26 de agosto de 2026
+**Última actualización:** 31 de agosto de 2026
 
 ---
 
@@ -16,8 +16,9 @@ tono que elija.
 Es un **encargo de un cliente externo**. Sebastián desarrolla; el cliente
 entrega el diseño (Figma) y pone las cuentas de infraestructura.
 
-**Modelo de negocio:** 5 generaciones gratis por dispositivo → suscripción.
-Plan anual **$39.99** / semanal **$4.99**, con 3 días de prueba.
+**Modelo de negocio:** 6 generaciones gratis por dispositivo **que se renuevan
+cada semana** → suscripción. Plan anual **$32.50** / semanal **$6.50**, con 3
+días de prueba.
 
 > ⚠️ Estos son los precios del diseño de Figma, y son los que están en el
 > código (`mobile/src/features/premium/planes.ts`). Una versión anterior de
@@ -31,7 +32,7 @@ Plan anual **$39.99** / semanal **$4.99**, con 3 días de prueba.
 |---|---|---|---|
 | Analizar chat | Sí | Sí | 6 tonos gratis + 3 premium |
 | Analizar Stories | Sí (vertical) | No | 4 gratis + 2 premium |
-| Rompehielos | No | No | "Básico" es **gratis de verdad**: sale de un banco de 50 frases, no gasta crédito y no llama a la IA. Los otros 4 tonos, premium |
+| Rompehielos | No | No | "Básico" es **gratis de verdad**: sale de un banco de 100 frases, no gasta crédito y no llama a la IA. Los otros 4 tonos, premium |
 | Crear notas | No | No | Máx. 60 caracteres (límite de Instagram) |
 
 ---
@@ -129,11 +130,12 @@ Prisma — son reglas de negocio puras y testeables solas.
 
 - 4 tablas (`devices`, `credit_balances`, `subscriptions`, `generations`)
 - Registro de dispositivo sin login → JWT
-- Créditos: 5 gratis de por vida + tope de 50/día para suscriptores
+- Créditos: **6 gratis que se renuevan cada 7 días** (ventana rodante, no un
+  día fijo) + tope de 50/día para suscriptores
 - Catálogo de 4 funciones y 25 tonos servido por API
 - `POST /generar` con proveedor intercambiable
 - Errores de dominio traducidos a HTTP (402 → paywall)
-- 52 pruebas en verde: 24 del dominio, 15 del entorno y 13 del banco de
+- 56 pruebas en verde: 28 del dominio, 15 del entorno y 13 del banco de
   rompehielos
 - Banco de pruebas de prompts (`npm run probar:prompts`): dispara un lote
   contra la API y lo imprime junto, con su costo y su latencia
@@ -151,28 +153,38 @@ Prisma — son reglas de negocio puras y testeables solas.
 
   Verificado de punta a punta: `/salud` responde 200 con `baseDatos: "ok"`,
   el catálogo sirve las 4 funciones, registrar un dispositivo devuelve JWT y
-  saldo 5/5 —o sea que la migración creó las tablas y se escriben—, y los
+  saldo completo —o sea que la migración creó las tablas y se escriben—, y los
   endpoints que cuestan dinero (`/generar`) o reparten suscripciones
   (`/webhooks/revenuecat`) devuelven 401 sin credenciales. `/api/docs` da
   404, que es lo que debe dar en producción.
 
   Y **una generación real contra OpenAI**, que es lo único que no se puede
   probar gratis: 200 en 3,7 s, mensaje con voz de persona (no las frases
-  enlatadas del modo falso) y el crédito descontado de 5 a 4 en la misma
+  enlatadas del modo falso) y el crédito descontado en la misma
   respuesta. La clave de producción sirve y el circuito entero funciona
 - **Swagger publicado** en `/api/docs`, para que el cliente pueda verificar
   la API por su cuenta. Ver la decisión en la sección 8
 - **Webhook de RevenueCat** (`POST /webhooks/revenuecat`): traduce los eventos
   de la tienda a estados de suscripción, con idempotencia, descarte de
   eventos fuera de orden y guard de tiempo constante. 14 pruebas de dominio
-- **Rompehielos gratis no cuesta nada**: el tono Básico devuelve una de 50
+- **Rompehielos gratis no cuesta nada**: el tono Básico devuelve una de 100
   frases escritas a mano (`domain/rompehielos.ts`) en vez de llamar a la IA.
   Un rompehielos no tiene captura ni contexto que analizar, así que el modelo
   recibía siempre la misma petición. Ahora cuesta $0, responde al instante y
-  **no gasta ninguno de los 5 créditos**, ni siquiera con el saldo agotado.
+  **no gasta ninguno de los créditos**, ni siquiera con el saldo agotado.
   Los cuatro tonos premium de esa función sí pasan por la IA
 - **Regenerar pide otro ángulo**: `esRegeneracion` viaja hasta el modelo, en
   el mensaje de usuario y no en el de sistema, para no romper la caché
+- **Dar premium a mano** (`npm run premium -- <deviceKey> [...]`): concede o
+  retira suscripción a uno o varios dispositivos, para promociones o para
+  compensar a alguien. `--listar` muestra los últimos por actividad, que es
+  como se identifica a una persona. Repartir un APK con premium activado
+  sería la alternativa mala: un binario se filtra, y quien lo tenga genera
+  gratis a costa del saldo de OpenAI del cliente
+- **Prompts contra las muletillas**: el modelo cerraba casi todas las
+  respuestas proponiendo "un café" y empezando por "Entonces". La regla 10 lo
+  prohíbe y añade la prueba del algodón — si el mensaje encajaría igual en
+  otra conversación, es muletilla y se reescribe
 
 ### App ✅ funcional
 
@@ -217,6 +229,31 @@ Prisma — son reglas de negocio puras y testeables solas.
   principal **no parte su texto** y respeta la letra grande del sistema hasta
   1.3×, y los tres efectos de Personalización **se notan al apagarlos** — no
   estaban rotos, eran invisibles
+- **Aguanta la letra grande del sistema y las tablets**: los altos del inicio
+  se multiplican por el `fontScale` real del dispositivo (`altoSegunFuente`),
+  y el contenido se queda al ancho de un teléfono y centrado en pantallas
+  anchas. Ambos fallos los encontró el cliente, no las pruebas
+- **Enlaces legales** a los documentos del cliente:
+  `candela-ia.vercel.app/terminos-de-uso` y `/politica-de-privacidad`. Viven
+  en la web y no dentro de la app a propósito: se corrigen sin publicar
+  versión, y Google Play exige la URL fuera de la app
+- **"Tu opinión"** abre las estrellas de Google Play (`expo-store-review`),
+  con caída a la ficha de la tienda. **No se puede probar hasta publicar**:
+  ese diálogo lo pinta Play y solo aparece si la app se instaló desde ahí
+- **El ID del dispositivo se ve en Ajustes**, tocable para copiarlo. Sin
+  login es lo único que identifica a alguien en soporte, y lo que hace falta
+  para concederle premium
+- **EAS Update montado**: los cambios de JavaScript y assets llegan con
+  `eas update`, sin pasar por la tienda. `runtimeVersion` va en modo
+  `fingerprint`, así un update que necesite código nativo nuevo NO se envía a
+  builds antiguos que no lo llevan — sin eso, la app se cerraría al llamarlo
+- **Reintenta sola** cuando el servidor no responde: hasta dos veces con
+  espera creciente. Los GET siempre; los POST solo si fallaron en menos de
+  2,5 s, porque generar tarda 3-8 y un fallo más tardío pudo haberse cobrado
+  ya. Nace de que un despliegue le cortó una generación al cliente
+- **Preparada para iPhone**: bundle, icono, permiso de fotos con su texto
+  obligatorio y cifrado declarado. Falta solo la cuenta de Apple — ver
+  [`mobile/IOS.md`](mobile/IOS.md)
 - **Personalización** con sus tres interruptores (animaciones, partículas,
   brillo neón). Se guardan en el teléfono y los respetan `FondoPantalla`,
   `TarjetaGlass` e `IconoDegradado`, así que el cambio se ve en toda la app
@@ -227,13 +264,13 @@ Prisma — son reglas de negocio puras y testeables solas.
 
 | Prioridad | Qué | Nota |
 |---|---|---|
-| 🔴 | **Arreglar el auto-despliegue de Railway** | Railway dejó de detectar los push: en *Settings → Source* sale `GitHub Repo not found`. Estuvo un día entero sirviendo código viejo mientras se acumulaban commits, y eso no se nota desde fuera — el health check sigue verde. Se arregla en el lápiz del Source Repo → *Configure GitHub App*, dándole acceso al repositorio |
+| 🔴 | **Que el cliente ponga método de pago en Railway** | El trial va por $4.31 de $5 y 25 días. Cuando se agote, el backend se apaga y la app deja de responder para todos — el APK ya apunta ahí. Es lo único del proyecto con cuenta atrás |
+| 🔴 | **Generar el APK con los cambios pendientes** | Precios nuevos, contador de 6, el ID en Ajustes y el reintento automático están en el repositorio pero no en el APK que tiene el cliente |
 | 🟡 | Renombrar el repo a `Candela-IA` | Se llama `-Mobile` pero tiene backend + mobile |
 | 🟡 | Conectar el cobro (RevenueCat) | Paso a paso, y el reparto de responsabilidades, en [`mobile/PAGOS.md`](mobile/PAGOS.md). El bloqueo ya no es técnico: hace falta que el cliente abra Play Console y verifique su perfil de pagos, que tarda días |
 | 🟡 | Configurar el webhook en el panel de RevenueCat | El secreto ya está generado en Railway. Falta copiarlo al panel junto con la URL `/api/v1/webhooks/revenuecat`, y para eso hace falta la cuenta del cliente |
 | 🟡 | Revisar los precios de GPT-5.6 Luna | OpenAI anunció una bajada del 80%. Los precios están escritos a mano en `openai.provider.ts`; si están desfasados, la columna `costUsd` lleva anotando de más |
 | 🟡 | Medir el prompt nuevo con el banco de pruebas | Los ejemplos y los niveles gratis/premium están escritos pero no comparados. `npm run probar:prompts` con las capturas de `backend/capturas/` cuesta dos centavos |
-| 🟢 | "Tu opinión" | Ya está implementado con `expo-store-review`: diálogo de estrellas dentro de la app, y si no se puede, la ficha de Play. **No se puede probar hasta publicar**: ese diálogo lo pinta Google Play y solo aparece si la app se instaló desde ahí |
 | 🟢 | Historial | Se quitó de la barra; decidir dónde va |
 | 🟢 | Llevarlo a iPhone | El código ya sirve y EAS compila sin Mac. Paso a paso y riesgos de revisión en [`mobile/IOS.md`](mobile/IOS.md). Conviene terminar Android primero: los 99 USD/año de Apple corren desde que se abre la cuenta |
 | 🟢 | Reporte de fallos (Sentry) | El `ErrorBoundary` ya está; falta la cuenta y diez líneas |

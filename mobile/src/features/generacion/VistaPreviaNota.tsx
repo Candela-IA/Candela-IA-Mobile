@@ -41,9 +41,12 @@ const AVATAR = require('../../../assets/avatar-nota.webp');
 
 export function VistaPreviaNota({
   nota,
+  esperando,
   tono,
 }: {
   nota: string;
+  /** Aún no se ha generado nada: la burbuja lleva el texto de espera. */
+  esperando: boolean;
   tono: TonoAcento;
 }) {
   const t = TONOS[tono];
@@ -71,7 +74,9 @@ export function VistaPreviaNota({
             },
           ]}
         >
-          <Text style={estilos.textoNota}>{nota}</Text>
+          <Text style={[estilos.textoNota, esperando && estilos.textoEspera]}>
+            {esperando ? 'Aquí aparecerá tu nota' : nota}
+          </Text>
           {/* Colita de la burbuja, como en Instagram. */}
           <View
             style={[
@@ -155,6 +160,9 @@ const estilos = StyleSheet.create({
     color: colors.texto.blanco,
     textAlign: 'center',
   },
+  /* Apagado a propósito: tiene que leerse como un hueco por llenar, nunca
+     como una nota que la app ya escribió. */
+  textoEspera: { color: colors.texto.tenue },
   colita: {
     position: 'absolute',
     bottom: -5,

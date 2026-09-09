@@ -30,11 +30,14 @@ export function VistaPreviaChat({
   mensaje,
   etiquetaTono,
   emojiTono,
+  esperando,
   tono,
 }: {
   mensaje: string;
   etiquetaTono: string;
   emojiTono: string;
+  /** Aún no se ha generado nada: la burbuja lleva el texto de espera. */
+  esperando: boolean;
   tono: TonoAcento;
 }) {
   const t = TONOS[tono];
@@ -80,7 +83,11 @@ export function VistaPreviaChat({
           end={direccionMarca.end}
           style={estilos.burbuja}
         >
-          <Text style={estilos.textoMensaje}>{mensaje}</Text>
+          <Text
+            style={[estilos.textoMensaje, esperando && estilos.textoEspera]}
+          >
+            {esperando ? 'Aquí aparecerá tu mensaje' : mensaje}
+          </Text>
           <View style={estilos.pieBurbuja}>
             <Text style={estilos.hora}>Ahora</Text>
             <Ionicons
@@ -169,6 +176,10 @@ const estilos = StyleSheet.create({
     ...tipografia.cuerpo,
     color: colors.texto.blanco,
   },
+  /* Blanco translúcido y no el gris tenue de la marca: la burbuja lleva el
+     degradado encima, y sobre él el gris se pierde. Tiene que leerse como un
+     hueco por llenar, nunca como un mensaje que la app ya escribió. */
+  textoEspera: { color: 'rgba(255,255,255,0.62)' },
   pieBurbuja: {
     flexDirection: 'row',
     alignItems: 'center',

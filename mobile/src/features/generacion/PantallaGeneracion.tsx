@@ -229,15 +229,16 @@ export function PantallaGeneracion({
    * sin duplicar el bloque: encima de los modos de respuesta cuando la
    * pantalla no tiene captura ni contexto, y al final en el resto.
    *
-   * Solo existe cuando hay algo real que enseñar: el mensaje generado, o el
-   * checklist mientras se genera. Antes se pintaba un mensaje de muestra con
-   * una insignia "EJEMPLO" para que la pantalla no arrancara vacía; el
-   * cliente lo quitó el 5 de septiembre de 2026, y con razón: era una
+   * Está desde que se abre la pantalla, no solo cuando hay resultado: el
+   * usuario tiene que ver DÓNDE va a salir su mensaje antes de pedirlo.
+   *
+   * Lo que se quitó el 5 de septiembre de 2026, por petición del cliente, fue
+   * el mensaje de muestra que iba dentro con una insignia "EJEMPLO" — una
    * respuesta que nadie había pedido, ocupando el sitio exacto donde iba a
-   * aparecer la de verdad.
+   * aparecer la de verdad. El marco se queda; lo que va dentro, hasta que
+   * generas, es un texto tenue que dice qué va a aparecer ahí.
    */
-  const bloquePrevia =
-    definicion && (resultado !== null || conChecklist) ? (
+  const bloquePrevia = definicion ? (
     <View style={estilos.bloque}>
       <Text style={estilos.etiquetaCaptura}>{ETIQUETA_PREVIA[funcion]}</Text>
 
@@ -248,13 +249,14 @@ export function PantallaGeneracion({
         // remonta y entra con un fundido, así el texto se releva en el mismo
         // sitio en vez de aparecer de golpe.
         <Animated.View
-          key={resultado}
+          key={resultado ?? 'esperando'}
           entering={FadeIn.duration(260)}
           style={generando ? estilos.previaGenerando : undefined}
         >
           <VistaPrevia
             funcion={funcion}
             mensaje={resultado ?? ''}
+            esperando={resultado === null}
             imagenUri={captura?.uri}
             etiquetaTono={tonoElegido?.etiqueta ?? ''}
             emojiTono={tonoElegido?.emoji ?? ''}
@@ -272,7 +274,7 @@ export function PantallaGeneracion({
         </View>
       ) : null}
     </View>
-    ) : null;
+  ) : null;
 
   /**
    * Las funciones con captura pasan por tres pantallas completas —formulario,
@@ -441,8 +443,6 @@ export function PantallaGeneracion({
 
               {previaArriba ? bloquePrevia : null}
 
-              {bloquePrevia ? null : <View style={estilos.respiro} />}
-
               <View style={estilos.bloque}>
                 {tonoImplicito ? null : (
                   <>
@@ -508,8 +508,6 @@ export function PantallaGeneracion({
               </View>
 
               {previaArriba ? null : bloquePrevia}
-
-              {bloquePrevia ? null : <View style={estilos.respiro} />}
             </>
           ) : null}
         </ScrollView>
@@ -579,6 +577,7 @@ export function PantallaGeneracion({
 function VistaPrevia({
   funcion,
   mensaje,
+  esperando,
   imagenUri,
   etiquetaTono,
   emojiTono,
@@ -586,13 +585,15 @@ function VistaPrevia({
 }: {
   funcion: FuncionApi;
   mensaje: string;
+  /** Todavía no se ha generado nada: la maqueta va vacía. */
+  esperando: boolean;
   imagenUri?: string;
   etiquetaTono: string;
   emojiTono: string;
   tono: TonoAcento;
 }) {
   if (funcion === 'CREAR_NOTAS') {
-    return <VistaPreviaNota nota={mensaje} tono={tono} />;
+    return <VistaPreviaNota nota={mensaje} esperando={esperando} tono={tono} />;
   }
 
   if (funcion === 'ROMPEHIELOS') {
@@ -601,6 +602,7 @@ function VistaPrevia({
         mensaje={mensaje}
         etiquetaTono={etiquetaTono}
         emojiTono={emojiTono}
+        esperando={esperando}
         tono={tono}
       />
     );
@@ -610,6 +612,7 @@ function VistaPrevia({
     <VistaPreviaRespuesta
       mensaje={mensaje}
       imagenUri={imagenUri}
+      esperando={esperando}
       tono={tono}
     />
   );
@@ -689,28 +692,7 @@ const estilos = StyleSheet.create({
   flex: { flex: 1 },
   // Aire suficiente para que la ultima fila de chips quede completamente
   // visible al llegar al final, sin quedar pegada al boton.
-  scroll: {
-    paddingHorizontal: espacio.lg,
-    paddingBottom: espacio.xxl,
-    // Crece hasta llenar la pantalla aunque el contenido sea corto, que es
-    // lo que les da espacio a los `respiro` de repartir.
-    flexGrow: 1,
-  },
-
-  /**
-   * Espacio elástico, uno arriba y otro abajo del bloque de tonos.
-   *
-   * Se colapsan a cero en cuanto el contenido llena la pantalla, así que en
-   * Analizar chat —con su zona de captura, su campo de contexto y nueve
-   * tonos— no se nota. Donde trabajan es en Rompehielos, que no tiene
-   * captura ni contexto ni tonos gratis que mostrar: al quitar el mensaje de
-   * ejemplo se quedaba medio alto en blanco entre la grilla y el botón.
-   *
-   * Se reparte el hueco en vez de centrar el contenedor entero porque
-   * centrar recorta el principio cuando el contenido no cabe; un espacio que
-   * se encoge hasta cero no puede hacer eso.
-   */
-  respiro: { flex: 1 },
+  scroll: { paddingHorizontal: espacio.lg, paddingBottom: espacio.xxl },
 
   banner: { marginBottom: espacio.xl },
   filaBanner: { flexDirection: 'row', alignItems: 'center', gap: espacio.md },

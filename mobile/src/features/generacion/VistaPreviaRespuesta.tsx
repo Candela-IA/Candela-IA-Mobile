@@ -21,10 +21,13 @@ import { TarjetaGlass } from '../../core/ui/TarjetaGlass';
 export function VistaPreviaRespuesta({
   mensaje,
   imagenUri,
+  esperando,
   tono,
 }: {
   mensaje: string;
   imagenUri?: string;
+  /** Aún no se ha generado nada: la tarjeta lleva el texto de espera. */
+  esperando: boolean;
   tono: TonoAcento;
 }) {
   return (
@@ -43,8 +46,10 @@ export function VistaPreviaRespuesta({
         <View style={estilos.linea} />
       </View>
 
-      <TarjetaGlass tono={tono} activa padding={espacio.base}>
-        <Text style={estilos.mensaje}>{mensaje}</Text>
+      <TarjetaGlass tono={tono} activa={!esperando} padding={espacio.base}>
+        <Text style={[estilos.mensaje, esperando && estilos.mensajeEspera]}>
+          {esperando ? 'Aquí aparecerá tu respuesta' : mensaje}
+        </Text>
       </TarjetaGlass>
     </View>
   );
@@ -75,4 +80,7 @@ const estilos = StyleSheet.create({
     lineHeight: 23,
     color: colors.texto.blanco,
   },
+  /* Apagado a propósito: se tiene que leer como un hueco por llenar, nunca
+     como una respuesta que la app ya escribió. */
+  mensajeEspera: { color: colors.texto.tenue },
 });

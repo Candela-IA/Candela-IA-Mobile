@@ -3,7 +3,7 @@
 > **Estado del proyecto y documento de continuidad.** Si retomas el trabajo
 > en una conversación nueva, empieza leyendo esto.
 
-**Última actualización:** 31 de agosto de 2026
+**Última actualización:** 5 de septiembre de 2026
 
 ---
 
@@ -16,9 +16,14 @@ tono que elija.
 Es un **encargo de un cliente externo**. Sebastián desarrolla; el cliente
 entrega el diseño (Figma) y pone las cuentas de infraestructura.
 
-**Modelo de negocio:** 6 generaciones gratis por dispositivo **que se renuevan
-cada semana** → suscripción. Plan anual **$32.50** / semanal **$6.50**, con 3
-días de prueba.
+**Modelo de negocio:** 6 generaciones gratis **por cada función**, que se
+renuevan cada semana → suscripción. Plan anual **$32.50** / semanal **$6.50**,
+con 3 días de prueba.
+
+> Son 6 en chats, 6 en Stories, 6 en notas y 6 en Rompehielos, pero **las que
+> se gastan de verdad son tres**: el único tono gratis de Rompehielos sale del
+> banco de frases y nunca toca el saldo. O sea, 18 generaciones gratis por
+> semana y por dispositivo, no 24.
 
 > ⚠️ Estos son los precios del diseño de Figma, y son los que están en el
 > código (`mobile/src/features/premium/planes.ts`). Una versión anterior de
@@ -130,13 +135,14 @@ Prisma — son reglas de negocio puras y testeables solas.
 
 - 4 tablas (`devices`, `credit_balances`, `subscriptions`, `generations`)
 - Registro de dispositivo sin login → JWT
-- Créditos: **6 gratis que se renuevan cada 7 días** (ventana rodante, no un
-  día fijo) + tope de 50/día para suscriptores
-- Catálogo de 4 funciones y 25 tonos servido por API
+- Créditos: **6 gratis POR FUNCIÓN que se renuevan cada 7 días** (ventana
+  rodante, no un día fijo, y las cuatro bolsas vuelven a la vez) + tope de
+  50/día por dispositivo para suscriptores
+- Catálogo de 4 funciones y 26 tonos servido por API
 - `POST /generar` con proveedor intercambiable
 - Errores de dominio traducidos a HTTP (402 → paywall)
-- 56 pruebas en verde: 28 del dominio, 15 del entorno y 13 del banco de
-  rompehielos
+- 64 pruebas en verde: 21 de los créditos, 14 de las suscripciones, 14 del
+  banco de rompehielos y 15 del entorno
 - Banco de pruebas de prompts (`npm run probar:prompts`): dispara un lote
   contra la API y lo imprime junto, con su costo y su latencia
 - `GET /salud` para el health check de la plataforma: comprueba la base de
@@ -185,6 +191,30 @@ Prisma — son reglas de negocio puras y testeables solas.
   respuestas proponiendo "un café" y empezando por "Entonces". La regla 10 lo
   prohíbe y añade la prueba del algodón — si el mensaje encajaría igual en
   otra conversación, es muletilla y se reescribe
+- **Los intentos gratis son de cada función** (5 de septiembre de 2026,
+  petición del cliente): cuatro bolsas de 6 en vez de una compartida, en
+  cuatro columnas de `credit_balances` y no en una tabla aparte, para que el
+  `SELECT ... FOR UPDATE` que ya existía siga protegiendo el saldo entero con
+  un solo bloqueo. Las columnas arrancan en 0 y no heredan la bolsa vieja:
+  sembrarlas con lo gastado dejaría las cuatro vacías justo a quien el cambio
+  pretendía dar más. La respuesta trae un contador por función, y mantiene
+  los campos sumados que lee el APK anterior
+- **Voz gen Z e irónica, y un trabajo que cumplir** (5 de septiembre de 2026,
+  pedido del cliente): la persona ahora tiene veintipocos y escribe con humor
+  seco en vez de piropos de otra época, y la consigna dice para qué sirve el
+  mensaje — abrir el chat o mantenerlo vivo. Uno al que solo se pueda
+  contestar "jajaja" está mal aunque tenga gracia. Dos cuidados que no son
+  obvios: la ironía va en QUÉ se dice y no en escribir sin tildes (la regla 1
+  no se toca), y se subordina al tono elegido, porque un Romántico irónico no
+  es Romántico sino una burla que el usuario mandaría creyendo otra cosa
+- **Los prompts ya no marcan nacionalidad** (misma petición: "nada de
+  nacionalidad... ceviche, etc"). La persona escribía "con la jerga que se usa
+  en Perú" y el banco hacía elegir entre ceviche y pollo a la brasa; para
+  alguien de México o Colombia eso no es cercanía, es un mensaje que delata
+  que lo escribió otro. Cambiaron la persona, la regla 9, un ejemplo del
+  prompt y tres frases del banco, y hay una prueba que vigila que no vuelvan.
+  También cubre los planes: se propone "hay que salir" o "te debo una comida",
+  nunca "vamos por un ceviche"
 
 ### App ✅ funcional
 
@@ -257,6 +287,17 @@ Prisma — son reglas de negocio puras y testeables solas.
 - **Personalización** con sus tres interruptores (animaciones, partículas,
   brillo neón). Se guardan en el teléfono y los respetan `FondoPantalla`,
   `TarjetaGlass` e `IconoDegradado`, así que el cambio se ve en toda la app
+- **El brillo neón bajó ~35%** (5 de septiembre de 2026, "brillo neón un poco
+  menos"). Se tocaron las opacidades de las capas del halo, la sombra de iOS y
+  la elevación de Android en `TarjetaGlass` e `IconoDegradado`, en la misma
+  proporción para que tarjetas e iconos sigan brillando igual entre sí. El
+  número de capas no se toca: son las que hacen que el halo parezca desenfoque
+  y no un marco
+- **La vista previa ya no enseña un ejemplo**: antes se pintaba un mensaje de
+  muestra con una insignia "EJEMPLO" para que la pantalla no arrancara vacía.
+  El cliente lo quitó, y con razón: era una respuesta que nadie había pedido,
+  ocupando el sitio exacto donde iba a aparecer la de verdad. Ahora el bloque
+  aparece al generar, o mientras se genera si hay captura
 
 ---
 
@@ -265,12 +306,12 @@ Prisma — son reglas de negocio puras y testeables solas.
 | Prioridad | Qué | Nota |
 |---|---|---|
 | 🔴 | **Que el cliente ponga método de pago en Railway** | El trial va por $4.31 de $5 y 25 días. Cuando se agote, el backend se apaga y la app deja de responder para todos — el APK ya apunta ahí. Es lo único del proyecto con cuenta atrás |
-| 🔴 | **Generar el APK con los cambios pendientes** | Precios nuevos, contador de 6, el ID en Ajustes y el reintento automático están en el repositorio pero no en el APK que tiene el cliente |
+| 🔴 | **Generar el APK con los cambios pendientes** | Precios nuevos, el ID en Ajustes, el reintento automático, los créditos por función, el brillo bajado y la vista previa sin ejemplo están en el repositorio pero no en el APK que tiene el cliente. **Desplegar el backend antes de repartir el APK nuevo deja su contador marcando la suma (`0/24`)**: se mantuvo a propósito para que no se quede vacío, pero el número solo cuadra con la app nueva |
 | 🟡 | Renombrar el repo a `Candela-IA` | Se llama `-Mobile` pero tiene backend + mobile |
 | 🟡 | Conectar el cobro (RevenueCat) | Paso a paso, y el reparto de responsabilidades, en [`mobile/PAGOS.md`](mobile/PAGOS.md). El bloqueo ya no es técnico: hace falta que el cliente abra Play Console y verifique su perfil de pagos, que tarda días |
 | 🟡 | Configurar el webhook en el panel de RevenueCat | El secreto ya está generado en Railway. Falta copiarlo al panel junto con la URL `/api/v1/webhooks/revenuecat`, y para eso hace falta la cuenta del cliente |
 | 🟡 | Revisar los precios de GPT-5.6 Luna | OpenAI anunció una bajada del 80%. Los precios están escritos a mano en `openai.provider.ts`; si están desfasados, la columna `costUsd` lleva anotando de más |
-| 🟡 | Medir el prompt nuevo con el banco de pruebas | Los ejemplos y los niveles gratis/premium están escritos pero no comparados. `npm run probar:prompts` con las capturas de `backend/capturas/` cuesta dos centavos |
+| 🟡 | Medir el prompt nuevo con el banco de pruebas | Se acumulan cuatro cambios escritos y sin comparar: los ejemplos, la ortografía impecable del 26 de agosto, y el español sin nacionalidad y la voz gen Z del 5 de septiembre. Es lo más urgente de esta lista: la voz es lo que el cliente va a juzgar de un vistazo. `npm run probar:prompts` con las capturas de `backend/capturas/` cuesta dos centavos |
 | 🟢 | Historial | Se quitó de la barra; decidir dónde va |
 | 🟢 | Llevarlo a iPhone | El código ya sirve y EAS compila sin Mac. Paso a paso y riesgos de revisión en [`mobile/IOS.md`](mobile/IOS.md). Conviene terminar Android primero: los 99 USD/año de Apple corren desde que se abre la cuenta |
 | 🟢 | Reporte de fallos (Sentry) | El `ErrorBoundary` ya está; falta la cuenta y diez líneas |
@@ -293,6 +334,13 @@ cuatro funciones, incluidas capturas de chat y de historias.
 | Costo total | **$0.0182** |
 | Por generación | **$0.00059** |
 | Latencia media | 3.3 s |
+
+> ⚠️ **Ese costo es de un prompt más corto.** Desde entonces se añadieron los
+> ejemplos, la ortografía impecable, el español sin nacionalidad y la voz gen
+> Z: solo hoy el prompt de sistema creció un 29% (8 083 → 10 394 caracteres).
+> Sigue cacheado al 10%, así que el aumento real es una décima parte de lo que
+> parece, pero el $0.00059 de la tabla ya no es el número de hoy. Lo dirá el
+> banco de pruebas.
 
 **Salió un tercio más barato de lo estimado** ($0.0009 era la previsión). El
 prompt de sistema es idéntico entre peticiones del mismo tono, así que

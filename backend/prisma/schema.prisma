@@ -49,7 +49,19 @@ model CreditBalance {
   deviceId String @unique
   device   Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 
-  /// Cuántos de los intentos gratis de esta semana ya gastó.
+  /// Cuántos de los intentos gratis de esta semana gastó EN CADA FUNCIÓN.
+  ///
+  /// Una columna por función en vez de una tabla aparte para que el
+  /// `SELECT ... FOR UPDATE` sobre esta fila siga protegiendo el saldo
+  /// entero con un solo bloqueo.
+  freeUsedChat        Int @default(0)
+  freeUsedStories     Int @default(0)
+  freeUsedRompehielos Int @default(0)
+  freeUsedNotas       Int @default(0)
+
+  /// La bolsa compartida de antes del 5 de septiembre de 2026. Ya no la lee
+  /// nadie: se sigue escribiendo con la suma de las cuatro para no perder el
+  /// dato y para que volver atrás no cueste una migración.
   freeUsed Int @default(0)
 
   /// Cuándo vuelven a cero. Ventana rodante de 7 días, no un día fijo.

@@ -6,6 +6,7 @@
  * interfaz, nunca de Prisma.
  */
 
+import { Funcion } from '../../generation/domain/catalogo';
 import { Dispositivo, Plataforma } from './dispositivo.aggregate';
 
 export const DISPOSITIVO_REPO = Symbol('DISPOSITIVO_REPO');
@@ -18,11 +19,11 @@ export interface DatosRegistro {
 
 export interface DispositivoRepository {
   /**
-   * Devuelve el dispositivo si ya existía, o lo crea con 5 créditos.
+   * Devuelve el dispositivo si ya existía, o lo crea con las bolsas llenas.
    *
    * Es idempotente a propósito: la app llama a esto en cada arranque y no
    * debería duplicar nada ni reiniciar contadores. Aquí es donde el usuario
-   * que reinstala recupera su saldo en vez de estrenar cinco intentos.
+   * que reinstala recupera su saldo en vez de estrenar intentos nuevos.
    */
   registrarORecuperar(datos: DatosRegistro): Promise<Dispositivo>;
 
@@ -38,8 +39,12 @@ export interface DispositivoRepository {
    *
    * Devuelve el agregado ya actualizado.
    */
-  consumirCredito(id: string, ahora: Date): Promise<Dispositivo>;
+  consumirCredito(
+    id: string,
+    funcion: Funcion,
+    ahora: Date,
+  ): Promise<Dispositivo>;
 
-  /** Devuelve el crédito cuando la IA falló. */
-  devolverCredito(id: string, ahora: Date): Promise<void>;
+  /** Devuelve el crédito a la bolsa de esa función cuando la IA falló. */
+  devolverCredito(id: string, funcion: Funcion, ahora: Date): Promise<void>;
 }

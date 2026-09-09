@@ -29,17 +29,60 @@ export class RegistrarDispositivoDto {
   appVersion?: string;
 }
 
+/** El contador de UNA función. */
+export class SaldoFuncionDto {
+  @ApiProperty({
+    example: 'ANALIZAR_CHAT',
+    description:
+      'A qué función pertenece este contador. Coincide con el id que sirve ' +
+      'el catálogo.',
+  })
+  funcion!: string;
+
+  @ApiProperty({ example: 4, description: 'El "4" del contador 4/6.' })
+  gratisUsados!: number;
+
+  @ApiProperty({ example: 6, description: 'El "6" del contador 4/6.' })
+  gratisTotales!: number;
+
+  @ApiProperty({ example: 2 })
+  gratisRestantes!: number;
+
+  @ApiProperty({
+    example: true,
+    description:
+      'Si es false, la app abre el paywall en vez de dejar generar EN ESTA ' +
+      'función. Las demás pueden seguir teniendo intentos.',
+  })
+  puedeGenerar!: boolean;
+}
+
 export class SaldoDto {
   @ApiProperty({ example: false })
   esPremium!: boolean;
 
-  @ApiProperty({ example: 4, description: 'El "4" del contador 4/5.' })
+  @ApiProperty({
+    type: [SaldoFuncionDto],
+    description:
+      'Un contador por función: desde el 5 de septiembre de 2026 cada una ' +
+      'tiene sus propios 6 intentos gratis semanales. Es lo que debe pintar ' +
+      'la app; los campos sueltos de abajo son la suma.',
+  })
+  // `readonly` para poder devolver el objeto del dominio tal cual, sin
+  // copiarlo solo para satisfacer al tipo.
+  funciones!: readonly SaldoFuncionDto[];
+
+  @ApiProperty({
+    example: 20,
+    deprecated: true,
+    description: 'Suma de las cuatro bolsas. Solo para el APK anterior.',
+  })
   gratisUsados!: number;
 
-  @ApiProperty({ example: 5, description: 'El "5" del contador 4/5.' })
+  @ApiProperty({ example: 24, deprecated: true })
   gratisTotales!: number;
 
-  @ApiProperty({ example: 1 })
+  @ApiProperty({ example: 4, deprecated: true })
   gratisRestantes!: number;
 
   @ApiProperty({ example: 4 })
@@ -54,8 +97,10 @@ export class SaldoDto {
 
   @ApiProperty({
     example: true,
+    deprecated: true,
     description:
-      'Si es false, la app debe abrir el paywall en vez de dejar generar.',
+      '¿Le queda algo en alguna bolsa? Para decidir si dejar generar, mira ' +
+      'el `puedeGenerar` de la función correspondiente.',
   })
   puedeGenerar!: boolean;
 }

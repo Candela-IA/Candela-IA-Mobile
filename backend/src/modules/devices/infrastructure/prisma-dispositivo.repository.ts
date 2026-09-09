@@ -6,7 +6,10 @@ import { DispositivoNoEncontradoError } from '../../../shared/domain/domain-erro
 import {
   CreditBalance,
   DIAS_RENOVACION_GRATIS,
+  sinUso,
+  UsoPorFuncion,
 } from '../../credits/domain/credit-balance';
+import { Funcion } from '../../generation/domain/catalogo';
 import {
   DatosSuscripcion,
   Dispositivo,
@@ -44,7 +47,7 @@ export class PrismaDispositivoRepository implements DispositivoRepository {
         appVersion: datos.appVersion,
         credits: {
           create: {
-            freeUsed: 0,
+            ...aColumnas(sinUso()),
             freeResetAt: siguienteRenovacion(ahora),
             dailyUsed: 0,
             dailyResetAt: siguienteMedianoche(ahora),
@@ -77,7 +80,11 @@ export class PrismaDispositivoRepository implements DispositivoRepository {
    * uno solo por dos generaciones. A escala pequeña parece improbable; con
    * conexión lenta y doble toque, pasa.
    */
-  async consumirCredito(id: string, ahora: Date): Promise<Dispositivo> {
+  async consumirCredito(
+    id: string,
+    funcion: Funcion,
+    ahora: Date,
+  ): Promise<Dispositivo> {
     return this.prisma.$transaction(async (tx) => {
       await tx.$executeRaw`
         SELECT id FROM credit_balances WHERE deviceId = ${id} FOR UPDATE
@@ -93,13 +100,13 @@ export class PrismaDispositivoRepository implements DispositivoRepository {
       const dispositivo = this.aDominio(fila);
 
       // Si no corresponde, esto lanza y la transacción se revierte sola.
-      dispositivo.consumirCredito(ahora);
+      dispositivo.consumirCredito(funcion, ahora);
 
       const estado = dispositivo.creditos.aPersistencia();
       await tx.creditBalance.update({
         where: { deviceId: id },
         data: {
-          freeUsed: estado.freeUsed,
+          ...aColumnas(estado.freeUsed),
           freeResetAt: estado.freeResetAt,
           dailyUsed: estado.dailyUsed,
           dailyResetAt: estado.dailyResetAt,
@@ -111,7 +118,11 @@ export class PrismaDispositivoRepository implements DispositivoRepository {
     });
   }
 
-  async devolverCredito(id: string, ahora: Date): Promise<void> {
+  async devolverCredito(
+    id: string,
+    funcion: Funcion,
+    ahora: Date,
+  ): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       await tx.$executeRaw`
         SELECT id FROM credit_balances WHERE deviceId = ${id} FOR UPDATE
@@ -125,13 +136,13 @@ export class PrismaDispositivoRepository implements DispositivoRepository {
       if (!fila) return;
 
       const dispositivo = this.aDominio(fila);
-      dispositivo.devolverCredito(ahora);
+      dispositivo.devolverCredito(funcion, ahora);
 
       const estado = dispositivo.creditos.aPersistencia();
       await tx.creditBalance.update({
         where: { deviceId: id },
         data: {
-          freeUsed: estado.freeUsed,
+          ...aColumnas(estado.freeUsed),
           freeResetAt: estado.freeResetAt,
           dailyUsed: estado.dailyUsed,
           lifetimeUsed: estado.lifetimeUsed,
@@ -147,7 +158,7 @@ export class PrismaDispositivoRepository implements DispositivoRepository {
 
     const creditos = fila.credits
       ? CreditBalance.desdePersistencia({
-          freeUsed: fila.credits.freeUsed,
+          freeUsed: desdeColumnas(fila.credits),
           // Las filas anteriores a los créditos semanales no traen fecha de
           // renovación. Se les da una ya vencida, así estrenan sus intentos
           // la próxima vez que abran la app, en vez de arrastrar para siempre
@@ -173,6 +184,48 @@ export class PrismaDispositivoRepository implements DispositivoRepository {
       suscripcion,
     );
   }
+}
+
+/**
+ * Traduce las cuatro bolsas a las cuatro columnas de `credit_balances`.
+ *
+ * Viven en columnas y no en una tabla aparte a propósito: así el
+ * `SELECT ... FOR UPDATE` de arriba sigue protegiendo el saldo entero con un
+ * solo bloqueo, y el agregado se sigue trayendo en una sola consulta. El
+ * precio es una migración el día que se agregue una quinta función, que ya
+ * es un cambio de codigo en media docena de sitios.
+ *
+ * `freeUsed` es la columna vieja, la de la bolsa compartida. Se mantiene
+ * escrita con la suma para no perder el dato y para que volver atrás sea
+ * cambiar el codigo y nada mas; ya no la lee nadie.
+ */
+function aColumnas(freeUsed: UsoPorFuncion) {
+  const porFuncion = {
+    freeUsedChat: freeUsed[Funcion.ANALIZAR_CHAT],
+    freeUsedStories: freeUsed[Funcion.ANALIZAR_STORIES],
+    freeUsedRompehielos: freeUsed[Funcion.ROMPEHIELOS],
+    freeUsedNotas: freeUsed[Funcion.CREAR_NOTAS],
+  };
+
+  return {
+    ...porFuncion,
+    freeUsed: Object.values(porFuncion).reduce((t, n) => t + n, 0),
+  };
+}
+
+/** El camino de vuelta: columnas → bolsas. */
+function desdeColumnas(credits: {
+  freeUsedChat: number;
+  freeUsedStories: number;
+  freeUsedRompehielos: number;
+  freeUsedNotas: number;
+}): Record<Funcion, number> {
+  return {
+    [Funcion.ANALIZAR_CHAT]: credits.freeUsedChat,
+    [Funcion.ANALIZAR_STORIES]: credits.freeUsedStories,
+    [Funcion.ROMPEHIELOS]: credits.freeUsedRompehielos,
+    [Funcion.CREAR_NOTAS]: credits.freeUsedNotas,
+  };
 }
 
 function siguienteMedianoche(ahora: Date): Date {

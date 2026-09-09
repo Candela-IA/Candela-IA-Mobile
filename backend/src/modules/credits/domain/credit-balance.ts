@@ -2,31 +2,45 @@
  * SALDO DE CRÉDITOS — el núcleo del modelo de negocio.
  *
  * Regla única y sin excepciones: **1 acción = 1 crédito**. Da igual si es la
- * primera generación o un "Generar otra respuesta", y da igual la función.
- * Una sola regla es fácil de explicar al usuario y fácil de defender aquí.
+ * primera generación o un "Generar otra respuesta".
+ *
+ * Lo que cambió el 5 de septiembre de 2026, por petición del cliente ("6
+ * intentos individuales por cada bloque"): los intentos gratis ya no salen de
+ * una bolsa común, sino de una por función. Antes, gastar los seis analizando
+ * chats dejaba sin nada a quien todavía no había probado las Stories ni las
+ * notas — se chocaba con el muro antes de conocer la app entera, que es justo
+ * cuando alguien decide que no vale la pena pagarla.
+ *
+ * La semana sigue siendo UNA sola para las cuatro: la ventana se renueva a la
+ * vez en todas. Cuatro fechas distintas serían imposibles de explicar en
+ * pantalla ("te quedan 2 de chat hasta el jueves y 5 de notas hasta el
+ * sábado") y no compran nada a cambio.
  *
  * Clase de dominio pura: no importa NestJS ni Prisma. Se puede testear sola.
  */
 
+import { Funcion } from '../../generation/domain/catalogo';
 import {
   LimiteDiarioAlcanzadoError,
   SinCreditosError,
 } from '../../../shared/domain/domain-error';
 
 /**
- * Intentos gratis, y cada cuánto vuelven.
+ * Intentos gratis POR FUNCIÓN, y cada cuánto vuelven.
  *
- * Antes eran 5 y NO se renovaban nunca. Se pasó a 6 cada semana por petición
+ * Antes eran 5 de por vida y compartidos. Se pasó a 6 semanales por petición
  * del cliente, y la práctica le dio la razón: al quedarse sin intentos la
  * gente no paga, cambia de teléfono y sigue gratis — que es exactamente lo
- * que hizo él probando la app desde cinco móviles distintos. Un límite que
- * se esquiva cambiando de aparato no defiende el negocio, solo enseña a
+ * que hizo él probando la app desde cinco móviles distintos. Un límite que se
+ * esquiva cambiando de aparato no defiende el negocio, solo enseña a
  * esquivarlo.
  *
- * Renovándose cada semana, quien la usa de vez en cuando nunca choca contra
- * el muro, y quien la usa a diario tiene un motivo real para pagar.
+ * Ojo al leer este número: NO son 24 generaciones gratis a la semana. En
+ * Rompehielos el único tono gratis es Básico, y ese sale del banco de frases
+ * sin pasar por la IA ni tocar el saldo, así que las bolsas que se gastan de
+ * verdad son tres: chat, Stories y notas.
  */
-export const CREDITOS_GRATIS = 6;
+export const CREDITOS_GRATIS_POR_FUNCION = 6;
 
 /** Cada cuántos días vuelven los intentos gratis a cero. */
 export const DIAS_RENOVACION_GRATIS = 7;
@@ -36,32 +50,77 @@ export const DIAS_RENOVACION_GRATIS = 7;
  * y para el uso humano real lo son: nadie genera 50 mensajes en un día. El
  * límite existe para que un bot o un script no destruya el margen del plan
  * anual, no para frenar a un usuario legítimo.
+ *
+ * Es del dispositivo entero y no de cada función: defiende el gasto de
+ * OpenAI, y a ese le da igual de qué pantalla salió la petición.
  */
 export const LIMITE_DIARIO_PREMIUM = 50;
 
+/** Las cuatro bolsas de intentos gratis, una por función. */
+export type UsoPorFuncion = Readonly<Record<Funcion, number>>;
+
+/** Todas las funciones, en el orden en que las declara el catálogo. */
+export const FUNCIONES: readonly Funcion[] = Object.values(Funcion);
+
+/** Bolsas recién estrenadas. */
+export function sinUso(): Record<Funcion, number> {
+  return {
+    [Funcion.ANALIZAR_CHAT]: 0,
+    [Funcion.ANALIZAR_STORIES]: 0,
+    [Funcion.ROMPEHIELOS]: 0,
+    [Funcion.CREAR_NOTAS]: 0,
+  };
+}
+
 export interface EstadoSaldo {
-  readonly freeUsed: number;
-  /** Cuándo vuelven a cero los intentos gratis. */
+  readonly freeUsed: UsoPorFuncion;
+  /** Cuándo vuelven a cero los intentos gratis. Una sola fecha para las 4. */
   readonly freeResetAt: Date;
   readonly dailyUsed: number;
   readonly dailyResetAt: Date;
   readonly lifetimeUsed: number;
 }
 
-/** Lo que la app necesita pintar en pantalla (el contador "4/5"). */
-export interface SaldoVisible {
-  readonly esPremium: boolean;
+/** El contador "4/6" de UNA función. */
+export interface SaldoFuncion {
+  readonly funcion: Funcion;
   readonly gratisUsados: number;
   readonly gratisTotales: number;
   readonly gratisRestantes: number;
+  readonly puedeGenerar: boolean;
+}
+
+/**
+ * Lo que la app necesita para pintar los contadores.
+ *
+ * `funciones` es lo que usa la app nueva: cada pantalla busca su entrada y
+ * pinta su propio contador.
+ *
+ * Los cuatro campos sueltos de abajo son la vista sumada, y siguen aquí por
+ * el APK que el cliente ya tiene instalado: lee `gratisUsados` y
+ * `gratisTotales`, y sin ellos el contador de su cabecera se quedaría vacío
+ * el día que se despliegue esto. Se pueden borrar cuando ese APK esté
+ * reemplazado.
+ */
+export interface SaldoVisible {
+  readonly esPremium: boolean;
   readonly usadosHoy: number;
   readonly limiteDiario: number | null;
+  readonly funciones: readonly SaldoFuncion[];
+
+  /** @deprecated Suma de las cuatro bolsas. Solo para el APK anterior. */
+  readonly gratisUsados: number;
+  /** @deprecated */
+  readonly gratisTotales: number;
+  /** @deprecated */
+  readonly gratisRestantes: number;
+  /** @deprecated ¿Le queda algo en alguna bolsa? */
   readonly puedeGenerar: boolean;
 }
 
 export class CreditBalance {
   private constructor(
-    private _freeUsed: number,
+    private _freeUsed: Record<Funcion, number>,
     private _freeResetAt: Date,
     private _dailyUsed: number,
     private _dailyResetAt: Date,
@@ -70,7 +129,7 @@ export class CreditBalance {
 
   static desdePersistencia(estado: EstadoSaldo): CreditBalance {
     return new CreditBalance(
-      estado.freeUsed,
+      { ...estado.freeUsed },
       estado.freeResetAt,
       estado.dailyUsed,
       estado.dailyResetAt,
@@ -80,7 +139,7 @@ export class CreditBalance {
 
   static nuevo(ahora: Date): CreditBalance {
     return new CreditBalance(
-      0,
+      sinUso(),
       siguienteRenovacion(ahora),
       0,
       siguienteMedianoche(ahora),
@@ -90,8 +149,8 @@ export class CreditBalance {
 
   // ── Consultas ───────────────────────────────────────────────────────────
 
-  get freeUsed(): number {
-    return this._freeUsed;
+  freeUsed(funcion: Funcion): number {
+    return this._freeUsed[funcion] ?? 0;
   }
 
   get lifetimeUsed(): number {
@@ -112,64 +171,82 @@ export class CreditBalance {
   }
 
   /**
-   * Intentos gratis que quedan, contando ya si venció la semana.
+   * Intentos gratis que le quedan en esa función, contando ya si venció la
+   * semana.
    *
    * Se calcula en vez de guardarse reiniciado, porque el saldo se consulta
    * mucho más de lo que se modifica: así alguien que abre la app después de
-   * un mes ve sus 6 intentos aunque todavía no haya generado nada.
+   * un mes ve sus intentos aunque todavía no haya generado nada.
    */
-  gratisRestantes(ahora: Date): number {
-    const usados = this.debeRenovarGratis(ahora) ? 0 : this._freeUsed;
-    return Math.max(0, CREDITOS_GRATIS - usados);
+  gratisRestantes(funcion: Funcion, ahora: Date): number {
+    const usados = this.debeRenovarGratis(ahora) ? 0 : this.freeUsed(funcion);
+    return Math.max(0, CREDITOS_GRATIS_POR_FUNCION - usados);
   }
 
   /**
-   * ¿Puede generar ahora mismo?
+   * ¿Puede generar ahora mismo en esa función?
    *
    * - Premium: sí, mientras no supere el tope diario de uso justo.
-   * - Gratis: sí, mientras le queden intentos de los de esta semana.
+   * - Gratis: sí, mientras le queden intentos de esa función esta semana.
    */
-  puedeGenerar(esPremium: boolean, ahora: Date): boolean {
+  puedeGenerar(funcion: Funcion, esPremium: boolean, ahora: Date): boolean {
     if (esPremium) {
       return this.usadosHoy(ahora) < LIMITE_DIARIO_PREMIUM;
     }
-    return this.gratisRestantes(ahora) > 0;
+    return this.gratisRestantes(funcion, ahora) > 0;
   }
 
-  /** Lo que se le devuelve a la app para pintar el contador. */
+  /** Lo que se le devuelve a la app para pintar los contadores. */
   aVistaUsuario(esPremium: boolean, ahora: Date): SaldoVisible {
-    const restantes = this.gratisRestantes(ahora);
+    const funciones = FUNCIONES.map((funcion) => {
+      const restantes = this.gratisRestantes(funcion, ahora);
+
+      return {
+        funcion,
+        gratisUsados: CREDITOS_GRATIS_POR_FUNCION - restantes,
+        gratisTotales: CREDITOS_GRATIS_POR_FUNCION,
+        gratisRestantes: restantes,
+        puedeGenerar: this.puedeGenerar(funcion, esPremium, ahora),
+      };
+    });
+
+    const restantes = funciones.reduce((t, f) => t + f.gratisRestantes, 0);
+    const totales = CREDITOS_GRATIS_POR_FUNCION * funciones.length;
 
     return {
       esPremium,
-      gratisUsados: CREDITOS_GRATIS - restantes,
-      gratisTotales: CREDITOS_GRATIS,
-      gratisRestantes: restantes,
       usadosHoy: this.usadosHoy(ahora),
       limiteDiario: esPremium ? LIMITE_DIARIO_PREMIUM : null,
-      puedeGenerar: this.puedeGenerar(esPremium, ahora),
+      funciones,
+
+      gratisUsados: totales - restantes,
+      gratisTotales: totales,
+      gratisRestantes: restantes,
+      puedeGenerar: funciones.some((f) => f.puedeGenerar),
     };
   }
 
   // ── Comandos ────────────────────────────────────────────────────────────
 
   /**
-   * Descuenta un crédito. Lanza excepción si no corresponde.
+   * Descuenta un crédito de la bolsa de esa función. Lanza si no corresponde.
    *
    * Se llama SIEMPRE antes de invocar a la IA — nunca después. Si la IA
-   * falla, se devuelve el crédito con `revertir()`. Al revés (cobrar
-   * después) abre la puerta a peticiones simultáneas que se saltan el tope.
+   * falla, se devuelve el crédito con `revertir()`. Al revés (cobrar después)
+   * abre la puerta a peticiones simultáneas que se saltan el tope.
    */
-  consumir(esPremium: boolean, ahora: Date): void {
+  consumir(funcion: Funcion, esPremium: boolean, ahora: Date): void {
     if (this.debeReiniciarDiario(ahora)) {
       this._dailyUsed = 0;
       this._dailyResetAt = siguienteMedianoche(ahora);
     }
 
-    // La semana se renueva aquí y no al consultar: es el único momento en
-    // que el saldo se guarda, así que es donde el reinicio queda persistido.
+    // La semana se renueva aquí y no al consultar: es el único momento en que
+    // el saldo se guarda, así que es donde el reinicio queda persistido. Las
+    // cuatro bolsas vuelven juntas, que es lo que permite explicar la
+    // renovación en una sola frase.
     if (this.debeRenovarGratis(ahora)) {
-      this._freeUsed = 0;
+      this._freeUsed = sinUso();
       this._freeResetAt = siguienteRenovacion(ahora);
     }
 
@@ -178,10 +255,10 @@ export class CreditBalance {
         throw new LimiteDiarioAlcanzadoError(LIMITE_DIARIO_PREMIUM);
       }
     } else {
-      if (this.gratisRestantes(ahora) <= 0) {
+      if (this.gratisRestantes(funcion, ahora) <= 0) {
         throw new SinCreditosError();
       }
-      this._freeUsed += 1;
+      this._freeUsed[funcion] = this.freeUsed(funcion) + 1;
     }
 
     this._dailyUsed += 1;
@@ -192,9 +269,9 @@ export class CreditBalance {
    * Devuelve un crédito cuando la generación falló por culpa nuestra
    * (la IA se cayó, timeout, etc.). El usuario no paga nuestros errores.
    */
-  revertir(esPremium: boolean): void {
-    if (!esPremium && this._freeUsed > 0) {
-      this._freeUsed -= 1;
+  revertir(funcion: Funcion, esPremium: boolean): void {
+    if (!esPremium && this.freeUsed(funcion) > 0) {
+      this._freeUsed[funcion] = this.freeUsed(funcion) - 1;
     }
     if (this._dailyUsed > 0) this._dailyUsed -= 1;
     if (this._lifetimeUsed > 0) this._lifetimeUsed -= 1;
@@ -202,7 +279,7 @@ export class CreditBalance {
 
   aPersistencia(): EstadoSaldo {
     return {
-      freeUsed: this._freeUsed,
+      freeUsed: { ...this._freeUsed },
       freeResetAt: this._freeResetAt,
       dailyUsed: this._dailyUsed,
       dailyResetAt: this._dailyResetAt,

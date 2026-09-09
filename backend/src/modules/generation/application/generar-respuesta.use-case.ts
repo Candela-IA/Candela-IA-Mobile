@@ -104,6 +104,7 @@ export class GenerarRespuestaUseCase {
     // 4. Cobrar. Lanza SinCreditosError o LimiteDiarioAlcanzadoError.
     const cobrado = await this.dispositivos.consumirCredito(
       comando.deviceId,
+      comando.funcion,
       ahora,
     );
 
@@ -148,7 +149,7 @@ export class GenerarRespuestaUseCase {
       // La devolución es best-effort: si también falla, preferimos propagar
       // el error original de la IA, que es el que le importa al usuario.
       await this.dispositivos
-        .devolverCredito(comando.deviceId, ahora)
+        .devolverCredito(comando.deviceId, comando.funcion, ahora)
         .catch((errorDevolucion) =>
           this.logger.error(
             `No pude devolver el crédito a ${comando.deviceId}`,
@@ -166,7 +167,7 @@ export class GenerarRespuestaUseCase {
    * Se registra igual en `generations`, con coste y tokens en cero, porque
    * saber cuánto se usa la función gratuita es justo lo que dice si el
    * gancho funciona. El saldo se devuelve intacto: es lo que la app pinta en
-   * el contador, y tiene que seguir marcando los 5 de siempre.
+   * el contador, y la bolsa de Rompehielos tiene que seguir llena.
    */
   private async servirDelBanco(
     comando: ComandoGenerar,

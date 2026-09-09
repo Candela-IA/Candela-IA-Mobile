@@ -5,10 +5,11 @@
  */
 
 import {
-  CREDITOS_GRATIS,
+  CREDITOS_GRATIS_POR_FUNCION,
   CreditBalance,
   LIMITE_DIARIO_PREMIUM,
 } from './credit-balance';
+import { Funcion } from '../../generation/domain/catalogo';
 import {
   LimiteDiarioAlcanzadoError,
   SinCreditosError,
@@ -18,39 +19,84 @@ const AHORA = new Date('2026-08-13T10:00:00Z');
 const GRATIS = false;
 const PREMIUM = true;
 
+const CHAT = Funcion.ANALIZAR_CHAT;
+const NOTAS = Funcion.CREAR_NOTAS;
+
+/** Vacía la bolsa de una función. */
+function agotar(saldo: CreditBalance, funcion: Funcion, ahora = AHORA): void {
+  for (let i = 0; i < CREDITOS_GRATIS_POR_FUNCION; i++) {
+    saldo.consumir(funcion, GRATIS, ahora);
+  }
+}
+
 describe('CreditBalance', () => {
   describe('usuario gratis', () => {
     it('arranca con todos los intentos de la semana disponibles', () => {
       const saldo = CreditBalance.nuevo(AHORA);
 
-      expect(saldo.gratisRestantes(AHORA)).toBe(CREDITOS_GRATIS);
-      expect(saldo.puedeGenerar(GRATIS, AHORA)).toBe(true);
+      expect(saldo.gratisRestantes(CHAT, AHORA)).toBe(
+        CREDITOS_GRATIS_POR_FUNCION,
+      );
+      expect(saldo.puedeGenerar(CHAT, GRATIS, AHORA)).toBe(true);
     });
 
     it('descuenta uno por cada acción, incluyendo regeneraciones', () => {
       const saldo = CreditBalance.nuevo(AHORA);
 
-      saldo.consumir(GRATIS, AHORA); // primera generación
-      saldo.consumir(GRATIS, AHORA); // "Generar otra respuesta"
+      saldo.consumir(CHAT, GRATIS, AHORA); // primera generación
+      saldo.consumir(CHAT, GRATIS, AHORA); // "Generar otra respuesta"
 
-      expect(saldo.gratisRestantes(AHORA)).toBe(CREDITOS_GRATIS - 2);
+      expect(saldo.gratisRestantes(CHAT, AHORA)).toBe(
+        CREDITOS_GRATIS_POR_FUNCION - 2,
+      );
     });
 
-    it('se bloquea al agotarlos todos', () => {
+    it('se bloquea al agotar los de esa función', () => {
       const saldo = CreditBalance.nuevo(AHORA);
-      for (let i = 0; i < CREDITOS_GRATIS; i++) saldo.consumir(GRATIS, AHORA);
+      agotar(saldo, CHAT);
 
-      expect(saldo.puedeGenerar(GRATIS, AHORA)).toBe(false);
-      expect(() => saldo.consumir(GRATIS, AHORA)).toThrow(SinCreditosError);
+      expect(saldo.puedeGenerar(CHAT, GRATIS, AHORA)).toBe(false);
+      expect(() => saldo.consumir(CHAT, GRATIS, AHORA)).toThrow(
+        SinCreditosError,
+      );
     });
 
     it('NO recupera intentos al día siguiente', () => {
       const saldo = CreditBalance.nuevo(AHORA);
-      for (let i = 0; i < CREDITOS_GRATIS; i++) saldo.consumir(GRATIS, AHORA);
+      agotar(saldo, CHAT);
 
       const alDiaSiguiente = new Date('2026-08-14T10:00:00Z');
 
-      expect(saldo.puedeGenerar(GRATIS, alDiaSiguiente)).toBe(false);
+      expect(saldo.puedeGenerar(CHAT, GRATIS, alDiaSiguiente)).toBe(false);
+    });
+  });
+
+  /**
+   * El motivo del cambio del 5 de septiembre de 2026. Si estas dos se caen,
+   * volvimos a la bolsa compartida sin darnos cuenta.
+   */
+  describe('una bolsa por función', () => {
+    it('gastar los de una función no toca las demás', () => {
+      const saldo = CreditBalance.nuevo(AHORA);
+      agotar(saldo, CHAT);
+
+      expect(saldo.puedeGenerar(CHAT, GRATIS, AHORA)).toBe(false);
+      expect(saldo.puedeGenerar(NOTAS, GRATIS, AHORA)).toBe(true);
+      expect(saldo.gratisRestantes(NOTAS, AHORA)).toBe(
+        CREDITOS_GRATIS_POR_FUNCION,
+      );
+    });
+
+    it('cada función lleva su propia cuenta', () => {
+      const saldo = CreditBalance.nuevo(AHORA);
+
+      saldo.consumir(CHAT, GRATIS, AHORA);
+      saldo.consumir(NOTAS, GRATIS, AHORA);
+      saldo.consumir(NOTAS, GRATIS, AHORA);
+
+      expect(saldo.freeUsed(CHAT)).toBe(1);
+      expect(saldo.freeUsed(NOTAS)).toBe(2);
+      expect(saldo.freeUsed(Funcion.ANALIZAR_STORIES)).toBe(0);
     });
   });
 
@@ -60,33 +106,50 @@ describe('CreditBalance', () => {
 
     it('devuelve los intentos cuando pasa la semana', () => {
       const saldo = CreditBalance.nuevo(AHORA);
-      for (let i = 0; i < CREDITOS_GRATIS; i++) saldo.consumir(GRATIS, AHORA);
+      agotar(saldo, CHAT);
 
-      expect(saldo.puedeGenerar(GRATIS, AHORA)).toBe(false);
-      expect(saldo.puedeGenerar(GRATIS, SEMANA_DESPUES)).toBe(true);
-      expect(saldo.gratisRestantes(SEMANA_DESPUES)).toBe(CREDITOS_GRATIS);
+      expect(saldo.puedeGenerar(CHAT, GRATIS, AHORA)).toBe(false);
+      expect(saldo.puedeGenerar(CHAT, GRATIS, SEMANA_DESPUES)).toBe(true);
+      expect(saldo.gratisRestantes(CHAT, SEMANA_DESPUES)).toBe(
+        CREDITOS_GRATIS_POR_FUNCION,
+      );
+    });
+
+    it('renueva las cuatro bolsas a la vez', () => {
+      const saldo = CreditBalance.nuevo(AHORA);
+      agotar(saldo, CHAT);
+      agotar(saldo, NOTAS);
+
+      // Basta con generar una vez para que el reinicio quede persistido.
+      saldo.consumir(CHAT, GRATIS, SEMANA_DESPUES);
+
+      expect(saldo.freeUsed(CHAT)).toBe(1);
+      expect(saldo.freeUsed(NOTAS)).toBe(0);
     });
 
     it('los devuelve aunque no vuelva a generar', () => {
       // El contador se calcula al consultarlo: quien abre la app después de
       // un mes ve sus intentos enteros sin tener que gastar uno primero.
       const saldo = CreditBalance.nuevo(AHORA);
-      for (let i = 0; i < CREDITOS_GRATIS; i++) saldo.consumir(GRATIS, AHORA);
+      agotar(saldo, CHAT);
 
       const vista = saldo.aVistaUsuario(GRATIS, SEMANA_DESPUES);
+      const chat = vista.funciones.find((f) => f.funcion === CHAT)!;
 
-      expect(vista.gratisRestantes).toBe(CREDITOS_GRATIS);
-      expect(vista.gratisUsados).toBe(0);
-      expect(vista.puedeGenerar).toBe(true);
+      expect(chat.gratisRestantes).toBe(CREDITOS_GRATIS_POR_FUNCION);
+      expect(chat.gratisUsados).toBe(0);
+      expect(chat.puedeGenerar).toBe(true);
     });
 
     it('al renovar arranca una semana nueva', () => {
       const saldo = CreditBalance.nuevo(AHORA);
-      for (let i = 0; i < CREDITOS_GRATIS; i++) saldo.consumir(GRATIS, AHORA);
+      agotar(saldo, CHAT);
 
-      saldo.consumir(GRATIS, SEMANA_DESPUES);
+      saldo.consumir(CHAT, GRATIS, SEMANA_DESPUES);
 
-      expect(saldo.gratisRestantes(SEMANA_DESPUES)).toBe(CREDITOS_GRATIS - 1);
+      expect(saldo.gratisRestantes(CHAT, SEMANA_DESPUES)).toBe(
+        CREDITOS_GRATIS_POR_FUNCION - 1,
+      );
       expect(saldo.freeResetAt.getTime()).toBeGreaterThan(
         SEMANA_DESPUES.getTime(),
       );
@@ -94,12 +157,12 @@ describe('CreditBalance', () => {
 
     it('no los devuelve antes de tiempo', () => {
       const saldo = CreditBalance.nuevo(AHORA);
-      for (let i = 0; i < CREDITOS_GRATIS; i++) saldo.consumir(GRATIS, AHORA);
+      agotar(saldo, CHAT);
 
       const dosDiasDespues = new Date('2026-08-15T10:00:00Z');
 
-      expect(saldo.gratisRestantes(dosDiasDespues)).toBe(0);
-      expect(() => saldo.consumir(GRATIS, dosDiasDespues)).toThrow(
+      expect(saldo.gratisRestantes(CHAT, dosDiasDespues)).toBe(0);
+      expect(() => saldo.consumir(CHAT, GRATIS, dosDiasDespues)).toThrow(
         SinCreditosError,
       );
     });
@@ -109,18 +172,33 @@ describe('CreditBalance', () => {
     it('no toca los intentos gratis', () => {
       const saldo = CreditBalance.nuevo(AHORA);
 
-      saldo.consumir(PREMIUM, AHORA);
+      saldo.consumir(CHAT, PREMIUM, AHORA);
 
-      expect(saldo.gratisRestantes(AHORA)).toBe(CREDITOS_GRATIS);
+      expect(saldo.gratisRestantes(CHAT, AHORA)).toBe(
+        CREDITOS_GRATIS_POR_FUNCION,
+      );
     });
 
     it('respeta el tope diario de uso justo', () => {
       const saldo = CreditBalance.nuevo(AHORA);
       for (let i = 0; i < LIMITE_DIARIO_PREMIUM; i++) {
-        saldo.consumir(PREMIUM, AHORA);
+        saldo.consumir(CHAT, PREMIUM, AHORA);
       }
 
-      expect(() => saldo.consumir(PREMIUM, AHORA)).toThrow(
+      expect(() => saldo.consumir(CHAT, PREMIUM, AHORA)).toThrow(
+        LimiteDiarioAlcanzadoError,
+      );
+    });
+
+    it('el tope diario es del dispositivo, no de cada función', () => {
+      // Defiende el gasto de OpenAI, y a ese le da igual de qué pantalla
+      // salió la petición: cambiar de función no lo reinicia.
+      const saldo = CreditBalance.nuevo(AHORA);
+      for (let i = 0; i < LIMITE_DIARIO_PREMIUM; i++) {
+        saldo.consumir(CHAT, PREMIUM, AHORA);
+      }
+
+      expect(() => saldo.consumir(NOTAS, PREMIUM, AHORA)).toThrow(
         LimiteDiarioAlcanzadoError,
       );
     });
@@ -128,50 +206,91 @@ describe('CreditBalance', () => {
     it('recupera el tope al día siguiente', () => {
       const saldo = CreditBalance.nuevo(AHORA);
       for (let i = 0; i < LIMITE_DIARIO_PREMIUM; i++) {
-        saldo.consumir(PREMIUM, AHORA);
+        saldo.consumir(CHAT, PREMIUM, AHORA);
       }
 
       const manana = new Date('2026-08-14T00:00:01Z');
 
-      expect(saldo.puedeGenerar(PREMIUM, manana)).toBe(true);
+      expect(saldo.puedeGenerar(CHAT, PREMIUM, manana)).toBe(true);
       expect(saldo.usadosHoy(manana)).toBe(0);
     });
   });
 
   describe('cuando falla la IA', () => {
-    it('devuelve el crédito al usuario gratis', () => {
+    it('devuelve el crédito a la bolsa de la que salió', () => {
       const saldo = CreditBalance.nuevo(AHORA);
-      saldo.consumir(GRATIS, AHORA);
+      saldo.consumir(CHAT, GRATIS, AHORA);
 
-      saldo.revertir(GRATIS);
+      saldo.revertir(CHAT, GRATIS);
 
-      expect(saldo.gratisRestantes(AHORA)).toBe(CREDITOS_GRATIS);
+      expect(saldo.gratisRestantes(CHAT, AHORA)).toBe(
+        CREDITOS_GRATIS_POR_FUNCION,
+      );
+    });
+
+    it('no le regala un intento a otra función', () => {
+      const saldo = CreditBalance.nuevo(AHORA);
+      saldo.consumir(CHAT, GRATIS, AHORA);
+
+      saldo.revertir(NOTAS, GRATIS);
+
+      expect(saldo.freeUsed(CHAT)).toBe(1);
+      expect(saldo.freeUsed(NOTAS)).toBe(0);
     });
 
     it('devuelve el uso diario al premium', () => {
       const saldo = CreditBalance.nuevo(AHORA);
-      saldo.consumir(PREMIUM, AHORA);
+      saldo.consumir(CHAT, PREMIUM, AHORA);
 
-      saldo.revertir(PREMIUM);
+      saldo.revertir(CHAT, PREMIUM);
 
       expect(saldo.usadosHoy(AHORA)).toBe(0);
     });
   });
 
   describe('vista que consume la app', () => {
-    it('expone el contador tal como se pinta en pantalla', () => {
+    it('expone un contador por función, tal como se pinta', () => {
       const saldo = CreditBalance.nuevo(AHORA);
-      saldo.consumir(GRATIS, AHORA);
-      saldo.consumir(GRATIS, AHORA);
-      saldo.consumir(GRATIS, AHORA);
-      saldo.consumir(GRATIS, AHORA);
+      saldo.consumir(CHAT, GRATIS, AHORA);
+      saldo.consumir(CHAT, GRATIS, AHORA);
+      saldo.consumir(CHAT, GRATIS, AHORA);
+      saldo.consumir(CHAT, GRATIS, AHORA);
+
+      const vista = saldo.aVistaUsuario(GRATIS, AHORA);
+      const chat = vista.funciones.find((f) => f.funcion === CHAT)!;
+      const notas = vista.funciones.find((f) => f.funcion === NOTAS)!;
+
+      // La cabecera de Analizar chat muestra "4/6"...
+      expect(chat.gratisUsados).toBe(4);
+      expect(chat.gratisTotales).toBe(CREDITOS_GRATIS_POR_FUNCION);
+      // ...y la de Crear notas, "0/6".
+      expect(notas.gratisUsados).toBe(0);
+      expect(vista.funciones).toHaveLength(4);
+    });
+
+    it('mantiene la suma para el APK anterior', () => {
+      const saldo = CreditBalance.nuevo(AHORA);
+      saldo.consumir(CHAT, GRATIS, AHORA);
+      saldo.consumir(NOTAS, GRATIS, AHORA);
 
       const vista = saldo.aVistaUsuario(GRATIS, AHORA);
 
-      // La cabecera de la pantalla muestra "4/6"
-      expect(vista.gratisUsados).toBe(4);
-      expect(vista.gratisTotales).toBe(CREDITOS_GRATIS);
+      expect(vista.gratisUsados).toBe(2);
+      expect(vista.gratisTotales).toBe(CREDITOS_GRATIS_POR_FUNCION * 4);
       expect(vista.puedeGenerar).toBe(true);
+    });
+
+    it('el resumen solo se apaga cuando no queda nada en ninguna bolsa', () => {
+      const saldo = CreditBalance.nuevo(AHORA);
+      agotar(saldo, CHAT);
+
+      expect(saldo.aVistaUsuario(GRATIS, AHORA).puedeGenerar).toBe(true);
+
+      for (const funcion of Object.values(Funcion)) {
+        if (funcion !== CHAT) agotar(saldo, funcion);
+      }
+
+      expect(saldo.aVistaUsuario(GRATIS, AHORA).puedeGenerar).toBe(false);
     });
   });
 });

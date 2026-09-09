@@ -42,15 +42,37 @@ export function obtenerCatalogo(): Promise<DefinicionFuncionApi[]> {
 
 // ── Dispositivo ───────────────────────────────────────────────────────────
 
+/** El contador de UNA función: cada pantalla pinta el suyo. */
+export interface SaldoFuncionApi {
+  funcion: FuncionApi;
+  gratisUsados: number;
+  gratisTotales: number;
+  gratisRestantes: number;
+  puedeGenerar: boolean;
+}
+
 export interface SaldoApi {
   esPremium: boolean;
   /** Acento de la marca con el que se pinta. Lo decide el catálogo. */
   color: TonoAcento;
-  gratisUsados: number;
-  gratisTotales: number;
-  gratisRestantes: number;
+  /**
+   * Un contador por función. Desde el 5 de septiembre de 2026 los intentos
+   * gratis no son una bolsa compartida: cada función tiene los suyos.
+   *
+   * Opcional porque un backend anterior al cambio no lo manda, y la app tiene
+   * que seguir arrancando contra él en vez de romperse.
+   */
+  funciones?: SaldoFuncionApi[];
   usadosHoy: number;
   limiteDiario: number | null;
+
+  /** @deprecated Suma de las cuatro bolsas. Usa `funciones`. */
+  gratisUsados: number;
+  /** @deprecated */
+  gratisTotales: number;
+  /** @deprecated */
+  gratisRestantes: number;
+  /** @deprecated Mira el `puedeGenerar` de la función que toca. */
   puedeGenerar: boolean;
 }
 

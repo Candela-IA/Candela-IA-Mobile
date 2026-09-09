@@ -10,7 +10,7 @@
  */
 
 import { CreditBalance, SaldoVisible } from '../../credits/domain/credit-balance';
-import { Nivel, Tono } from '../../generation/domain/catalogo';
+import { Funcion, Nivel, Tono } from '../../generation/domain/catalogo';
 import { TonoPremiumBloqueadoError } from '../../../shared/domain/domain-error';
 
 export enum Plataforma {
@@ -77,17 +77,24 @@ export class Dispositivo {
     }
   }
 
-  /** Descuenta un crédito aplicando las reglas según sea premium o no. */
-  consumirCredito(ahora: Date): void {
-    this.creditos.consumir(this.esPremium(ahora), ahora);
+  /**
+   * Descuenta un crédito de la bolsa de esa función, aplicando las reglas
+   * según sea premium o no.
+   *
+   * La función es obligatoria porque desde el 5 de septiembre de 2026 cada
+   * una tiene sus propios intentos gratis: sin ella no se sabe de dónde
+   * descontar.
+   */
+  consumirCredito(funcion: Funcion, ahora: Date): void {
+    this.creditos.consumir(funcion, this.esPremium(ahora), ahora);
   }
 
-  /** Devuelve el crédito cuando la generación falló por nuestra culpa. */
-  devolverCredito(ahora: Date): void {
-    this.creditos.revertir(this.esPremium(ahora));
+  /** Devuelve el crédito a su bolsa cuando la generación falló por nuestra culpa. */
+  devolverCredito(funcion: Funcion, ahora: Date): void {
+    this.creditos.revertir(funcion, this.esPremium(ahora));
   }
 
-  /** Lo que la app pinta: el contador "4/5" y si puede seguir generando. */
+  /** Lo que la app pinta: los contadores "4/6" y si puede seguir generando. */
   saldoVisible(ahora: Date): SaldoVisible {
     return this.creditos.aVistaUsuario(this.esPremium(ahora), ahora);
   }

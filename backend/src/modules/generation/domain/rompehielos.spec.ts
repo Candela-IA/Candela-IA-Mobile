@@ -22,6 +22,23 @@ const PROHIBIDAS = [
   'hola como estas',
 ];
 
+/**
+ * Referencias que solo se entienden en un país. El cliente las prohibió el 2
+ * de septiembre de 2026 ("nada de nacionalidad... ceviche, etc"): la app se
+ * usa en toda Latinoamérica, y un guiño local que no toca delata que el
+ * mensaje lo escribió otra persona.
+ */
+const LOCALES = [
+  'ceviche',
+  'chifa',
+  'pollo a la brasa',
+  'chicharrón',
+  'anticucho',
+  'lomo saltado',
+  'inca kola',
+  'peruan',
+];
+
 describe('banco de rompehielos', () => {
   it('tiene los 100 que se prometieron', () => {
     expect(ROMPEHIELOS).toHaveLength(100);
@@ -81,6 +98,16 @@ describe('banco de rompehielos', () => {
     expect(malos).toEqual([]);
   });
 
+  it('no ata ninguna frase a un país', () => {
+    for (const frase of ROMPEHIELOS) {
+      const minuscula = frase.toLowerCase();
+
+      for (const local of LOCALES) {
+        expect(minuscula).not.toContain(local);
+      }
+    }
+  });
+
   it('ninguno inventa datos de la otra persona', () => {
     // Un rompehielos no sabe el nombre de nadie. Si aparece un hueco de
     // plantilla, alguien lo dejó a medias.
@@ -113,7 +140,7 @@ describe('elegirRompehielos', () => {
     const vistos = new Set<string>();
     for (let i = 0; i < 200; i++) vistos.add(elegirRompehielos());
 
-    // Con 50 frases y 200 tiradas, ver menos de 20 distintas señalaría que
+    // Con 100 frases y 200 tiradas, ver menos de 20 distintas señalaría que
     // el reparto está roto.
     expect(vistos.size).toBeGreaterThan(20);
   });

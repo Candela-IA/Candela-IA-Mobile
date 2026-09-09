@@ -7,8 +7,8 @@
  * ni contexto que analizar. El modelo recibe siempre la misma petición y
  * devuelve variaciones de lo mismo, así que se estaba pagando por generar
  * algo que se puede escribir una vez y servir infinitas veces. Sirviéndolos
- * desde aquí, la función es gratis de verdad —no gasta ninguno de los 5
- * créditos— y responde al instante en vez de tardar tres segundos.
+ * desde aquí, la función es gratis de verdad —no gasta ninguno de los
+ * créditos gratis— y responde al instante en vez de tardar tres segundos.
  *
  * Los cuatro tonos premium de Rompehielos SÍ pasan por la IA: ahí es donde
  * está la diferencia por la que alguien paga.
@@ -23,18 +23,25 @@
  * 2. No puede depender de datos que no tenemos: ni nombre, ni ciudad, ni de
  *    dónde se conocen.
  * 3. Nada que sirva para cualquiera ("hola linda", "vi tu perfil").
- * 4. Que suene a persona: frases cortas, minúscula inicial, sin signos de
- *    apertura si no hacen falta.
+ * 4. Que suene a persona, pero BIEN ESCRITO: frases cortas y naturales, con
+ *    mayúscula inicial, tildes y signos de apertura. Igual que la regla 1
+ *    del prompt, y por el mismo motivo: el usuario lo copia y lo manda tal
+ *    cual, así que la falta acabaría siendo suya.
+ * 5. NADA que ate la frase a un país: ni comidas locales (ceviche, chifa,
+ *    pollo a la brasa), ni jerga de una sola región. La app se usa en toda
+ *    Latinoamérica y un guiño que no se entiende delata que el mensaje lo
+ *    escribió otro. Lo pidió el cliente el 2 de septiembre de 2026, y la
+ *    prueba `no ata ninguna frase a un país` lo vigila.
  */
 
 export const ROMPEHIELOS: readonly string[] = [
   // ── Dilemas: se responden solos porque obligan a elegir ────────────────
   'Pregunta seria y sin miedo: ¿piña en la pizza, sí o no?',
-  'Necesito un desempate: ¿el pan con chicharrón es desayuno o almuerzo?',
+  'Necesito un desempate: ¿el desayuno se puede comer a las tres de la tarde?',
   'Dime algo, ¿eres de los que dejan en visto o de los que responden a los tres días?',
-  'Elige: nunca más ceviche o nunca más pollo a la brasa.',
+  'Elige: nunca más pizza o nunca más helado. No hay opción C.',
   '¿Playa o montaña? Y ojo, que tu respuesta dice mucho de ti.',
-  'Debate del día: ¿el chifa es comida peruana o comida china?',
+  'Debate del día: ¿el hot dog es un sándwich? Necesito tu postura.',
   'Una cosa importante antes de seguir: ¿café o té?',
   '¿Eres de levantarse temprano o de dormir hasta tarde? Necesito saber con quién trato.',
   'Define: ¿la mejor pizza es la que tiene mucho queso o la que tiene poco pero bueno?',
@@ -169,7 +176,7 @@ export function elegirRompehielos(anterior?: string): string {
 
   const elegido = candidatos[Math.floor(Math.random() * candidatos.length)];
 
-  // `candidatos` nunca está vacío —el banco tiene 50 y solo se excluye uno—,
+  // `candidatos` nunca está vacío —el banco tiene 100 y solo se excluye uno—,
   // pero el tipo no lo sabe.
   return elegido ?? ROMPEHIELOS[0]!;
 }

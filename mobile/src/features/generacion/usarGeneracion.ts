@@ -105,7 +105,6 @@ export function usarGeneracion({ funcion, onSinCreditos }: Opciones) {
 
   return {
     resultado,
-    esEjemplo: resultado === null,
     generando: mutacion.isPending,
     generar: mutacion.mutate,
     copiar,

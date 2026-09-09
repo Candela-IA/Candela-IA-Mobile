@@ -23,8 +23,10 @@ import { TarjetaGlass } from '../../core/ui/TarjetaGlass';
  * publicar": ver la burbuja sobre la foto de perfil comunica el resultado
  * mucho mejor que un cuadro de texto suelto.
  *
- * Antes de generar muestra un ejemplo etiquetado como tal, así la pantalla
- * nunca se ve vacía y se entiende de inmediato qué se va a obtener.
+ * Solo aparece cuando hay una nota generada. Antes se pintaba una de muestra
+ * con una insignia "EJEMPLO" para que la pantalla no arrancara vacía; el
+ * cliente la quitó el 5 de septiembre de 2026, y con razón: era una nota que
+ * el usuario no había pedido, en el sitio exacto donde iba a salir la suya.
  */
 
 /**
@@ -37,15 +39,11 @@ import { TarjetaGlass } from '../../core/ui/TarjetaGlass';
  */
 const AVATAR = require('../../../assets/avatar-nota.webp');
 
-export const NOTA_EJEMPLO = 'Buscando a alguien que me robe una sonrisa 💜';
-
 export function VistaPreviaNota({
   nota,
-  esEjemplo,
   tono,
 }: {
   nota: string;
-  esEjemplo: boolean;
   tono: TonoAcento;
 }) {
   const t = TONOS[tono];
@@ -84,28 +82,6 @@ export function VistaPreviaNota({
               },
             ]}
           />
-
-          {/* La insignia cuelga del canto superior de la burbuja, montada
-              sobre su borde. Suelta encima parecía un elemento aparte;
-              pegada se lee como una etiqueta DE la burbuja, que es lo que
-              es: avisa de que ese texto es un ejemplo, no tu nota. */}
-          {esEjemplo ? (
-            <View style={estilos.filaInsignia} pointerEvents="none">
-              <View
-                style={[
-                  estilos.insigniaEjemplo,
-                  {
-                    borderColor: `rgba(${t.rgb},0.5)`,
-                    backgroundColor: `rgba(${t.rgb},0.12)`,
-                  },
-                ]}
-              >
-                <Text style={[estilos.textoEjemplo, { color: t.hex }]}>
-                  EJEMPLO
-                </Text>
-              </View>
-            </View>
-          ) : null}
         </View>
 
         {/* Foto de perfil con anillo degradado. */}
@@ -164,27 +140,6 @@ const estilos = StyleSheet.create({
     paddingVertical: espacio.md,
     gap: 6,
   },
-  filaInsignia: {
-    position: 'absolute',
-    top: -9,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-  },
-  insigniaEjemplo: {
-    paddingHorizontal: espacio.sm,
-    paddingVertical: 3,
-    borderRadius: radio.pildora,
-    borderWidth: 1,
-    borderColor: `rgba(255,45,138,0.5)`,
-    backgroundColor: 'rgba(255,45,138,0.12)',
-  },
-  textoEjemplo: {
-    ...tipografia.etiqueta,
-    fontSize: 9,
-    color: colors.marca.rosa,
-  },
-
   burbuja: {
     maxWidth: '86%',
     marginTop: espacio.sm,

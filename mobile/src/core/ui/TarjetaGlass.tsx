@@ -37,12 +37,19 @@ interface Props {
   resplandor?: boolean;
 }
 
-/** Marcos del halo, de fuera hacia dentro. Ver `IconoDegradado`. */
+/**
+ * Marcos del halo, de fuera hacia dentro. Ver `IconoDegradado`.
+ *
+ * Las opacidades bajaron ~35% el 5 de septiembre de 2026 ("brillo neón un
+ * poco menos", cliente). Se mantiene el número de capas y su reparto: lo que
+ * hace que el halo parezca desenfoque y no un marco es que la opacidad se
+ * acumule hacia el centro, y quitar capas devolvería el canto duro.
+ */
 const CAPAS_RESPLANDOR = [
-  { crece: 18, opacidad: 0.07 },
-  { crece: 12, opacidad: 0.09 },
-  { crece: 7, opacidad: 0.11 },
-  { crece: 3, opacidad: 0.13 },
+  { crece: 18, opacidad: 0.045 },
+  { crece: 12, opacidad: 0.06 },
+  { crece: 7, opacidad: 0.075 },
+  { crece: 3, opacidad: 0.085 },
 ];
 
 /**
@@ -58,7 +65,7 @@ const CAPAS_RESPLANDOR = [
 export function TarjetaGlass({
   children,
   tono = 'purpura',
-  intensidad = 0.22,
+  intensidad = 0.15,
   activa = false,
   onPress,
   estilo,
@@ -82,11 +89,11 @@ export function TarjetaGlass({
           ? Platform.select({
               ios: {
                 shadowColor: t.hex,
-                shadowOpacity: intensidad + (activa ? 0.35 : 0.12),
+                shadowOpacity: intensidad + (activa ? 0.22 : 0.08),
                 shadowRadius: 24,
                 shadowOffset: { width: 0, height: 8 },
               },
-              android: { elevation: activa ? 10 : 4 },
+              android: { elevation: activa ? 6 : 3 },
             })
           : null,
         estilo,

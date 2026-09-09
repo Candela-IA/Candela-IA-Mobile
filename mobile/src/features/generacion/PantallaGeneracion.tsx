@@ -22,6 +22,7 @@ import {
   DefinicionFuncionApi,
   FuncionApi,
   obtenerCatalogo,
+  SaldoApi,
   TonoApi,
 } from '../../core/api/candela';
 import { useSesion } from '../../core/di/sesion';
@@ -45,12 +46,9 @@ import { ContadorCaracteres } from './ContadorCaracteres';
 import { PantallaAnalizando } from './PantallaAnalizando';
 import { PantallaResultado } from './PantallaResultado';
 import { usarGeneracion } from './usarGeneracion';
-import { ROMPEHIELOS_EJEMPLO, VistaPreviaChat } from './VistaPreviaChat';
-import { NOTA_EJEMPLO, VistaPreviaNota } from './VistaPreviaNota';
-import {
-  RESPUESTA_EJEMPLO,
-  VistaPreviaRespuesta,
-} from './VistaPreviaRespuesta';
+import { VistaPreviaChat } from './VistaPreviaChat';
+import { VistaPreviaNota } from './VistaPreviaNota';
+import { VistaPreviaRespuesta } from './VistaPreviaRespuesta';
 import { borrarCaptura } from './borrarCaptura';
 import { CapturaSeleccionada, ZonaCaptura } from './ZonaCaptura';
 
@@ -187,7 +185,6 @@ export function PantallaGeneracion({
 
   const {
     resultado,
-    esEjemplo,
     generando,
     generar: pedirGeneracion,
     copiar,
@@ -215,9 +212,6 @@ export function PantallaGeneracion({
     });
   };
 
-  /** El texto que se muestra: el resultado real o el ejemplo de la función. */
-  const mensajeVisible = resultado ?? ejemploDe(funcion);
-
   /**
    * El checklist solo tiene sentido cuando hay una captura que analizar.
    *
@@ -234,8 +228,16 @@ export function PantallaGeneracion({
    * La vista previa, extraída para poder colocarla en dos sitios distintos
    * sin duplicar el bloque: encima de los modos de respuesta cuando la
    * pantalla no tiene captura ni contexto, y al final en el resto.
+   *
+   * Solo existe cuando hay algo real que enseñar: el mensaje generado, o el
+   * checklist mientras se genera. Antes se pintaba un mensaje de muestra con
+   * una insignia "EJEMPLO" para que la pantalla no arrancara vacía; el
+   * cliente lo quitó el 5 de septiembre de 2026, y con razón: era una
+   * respuesta que nadie había pedido, ocupando el sitio exacto donde iba a
+   * aparecer la de verdad.
    */
-  const bloquePrevia = definicion ? (
+  const bloquePrevia =
+    definicion && (resultado !== null || conChecklist) ? (
     <View style={estilos.bloque}>
       <Text style={estilos.etiquetaCaptura}>{ETIQUETA_PREVIA[funcion]}</Text>
 
@@ -246,14 +248,13 @@ export function PantallaGeneracion({
         // remonta y entra con un fundido, así el texto se releva en el mismo
         // sitio en vez de aparecer de golpe.
         <Animated.View
-          key={mensajeVisible}
+          key={resultado}
           entering={FadeIn.duration(260)}
           style={generando ? estilos.previaGenerando : undefined}
         >
           <VistaPrevia
             funcion={funcion}
-            mensaje={mensajeVisible}
-            esEjemplo={esEjemplo}
+            mensaje={resultado ?? ''}
             imagenUri={captura?.uri}
             etiquetaTono={tonoElegido?.etiqueta ?? ''}
             emojiTono={tonoElegido?.emoji ?? ''}
@@ -265,13 +266,13 @@ export function PantallaGeneracion({
       {definicion.maxCaracteres !== null && !conChecklist ? (
         <View style={estilos.contadorNota}>
           <ContadorCaracteres
-            usados={[...mensajeVisible].length}
+            usados={[...(resultado ?? '')].length}
             maximo={definicion.maxCaracteres}
           />
         </View>
       ) : null}
     </View>
-  ) : null;
+    ) : null;
 
   /**
    * Las funciones con captura pasan por tres pantallas completas —formulario,
@@ -318,7 +319,9 @@ export function PantallaGeneracion({
     <FondoPantalla>
       <CabeceraPantalla
         titulo={titulo}
-        derecha={saldo ? <Contador saldo={saldo} /> : undefined}
+        derecha={
+          saldo ? <Contador saldo={saldo} funcion={funcion} /> : undefined
+        }
       />
 
       <KeyboardAvoidingView
@@ -572,7 +575,6 @@ export function PantallaGeneracion({
 function VistaPrevia({
   funcion,
   mensaje,
-  esEjemplo,
   imagenUri,
   etiquetaTono,
   emojiTono,
@@ -580,14 +582,13 @@ function VistaPrevia({
 }: {
   funcion: FuncionApi;
   mensaje: string;
-  esEjemplo: boolean;
   imagenUri?: string;
   etiquetaTono: string;
   emojiTono: string;
   tono: TonoAcento;
 }) {
   if (funcion === 'CREAR_NOTAS') {
-    return <VistaPreviaNota nota={mensaje} esEjemplo={esEjemplo} tono={tono} />;
+    return <VistaPreviaNota nota={mensaje} tono={tono} />;
   }
 
   if (funcion === 'ROMPEHIELOS') {
@@ -596,7 +597,6 @@ function VistaPrevia({
         mensaje={mensaje}
         etiquetaTono={etiquetaTono}
         emojiTono={emojiTono}
-        esEjemplo={esEjemplo}
         tono={tono}
       />
     );
@@ -606,7 +606,6 @@ function VistaPrevia({
     <VistaPreviaRespuesta
       mensaje={mensaje}
       imagenUri={imagenUri}
-      esEjemplo={esEjemplo}
       tono={tono}
     />
   );
@@ -626,21 +625,27 @@ const TEXTO_COPIAR: Record<FuncionApi, string> = {
   ANALIZAR_STORIES: 'Copiar y usar',
 };
 
-function ejemploDe(funcion: FuncionApi): string {
-  if (funcion === 'CREAR_NOTAS') return NOTA_EJEMPLO;
-  if (funcion === 'ROMPEHIELOS') return ROMPEHIELOS_EJEMPLO;
-  return RESPUESTA_EJEMPLO;
-}
-
 /** "Generar nota" → "Generar otra nota". */
 function textoBotonRegenerar(original: string): string {
   return original.replace(/^Generar /, 'Generar otro ').replace(/^Analizar /, 'Analizar de nuevo ');
 }
 
+/**
+ * El contador de la cabecera.
+ *
+ * Desde el 5 de septiembre de 2026 los intentos gratis son de cada función,
+ * así que aquí se pinta el de ESTA pantalla y no el del dispositivo entero.
+ *
+ * Si el saldo llegara sin `funciones` —un backend anterior, o una respuesta
+ * guardada de antes del cambio— no se pinta nada: mejor sin contador que con
+ * uno que dice un número que no es.
+ */
 function Contador({
   saldo,
+  funcion,
 }: {
-  saldo: { esPremium: boolean; gratisUsados: number; gratisTotales: number };
+  saldo: SaldoApi;
+  funcion: FuncionApi;
 }) {
   if (saldo.esPremium) {
     return (
@@ -650,10 +655,13 @@ function Contador({
     );
   }
 
+  const propio = saldo.funciones?.find((f) => f.funcion === funcion);
+  if (!propio) return null;
+
   return (
     <View style={estilos.contador}>
       <Text style={estilos.textoContador}>
-        {saldo.gratisUsados}/{saldo.gratisTotales}
+        {propio.gratisUsados}/{propio.gratisTotales}
       </Text>
     </View>
   );

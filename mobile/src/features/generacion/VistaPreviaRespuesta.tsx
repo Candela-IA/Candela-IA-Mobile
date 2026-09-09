@@ -18,18 +18,13 @@ import { TarjetaGlass } from '../../core/ui/TarjetaGlass';
  * junto a la respuesta sugerida, para juzgar si encaja.
  */
 
-export const RESPUESTA_EJEMPLO =
-  'Hay personas que te hacen querer apagar el teléfono y hay personas que te hacen querer seguir escribiendo. Tú eres de las segundas ❤️';
-
 export function VistaPreviaRespuesta({
   mensaje,
   imagenUri,
-  esEjemplo,
   tono,
 }: {
   mensaje: string;
   imagenUri?: string;
-  esEjemplo: boolean;
   tono: TonoAcento;
 }) {
   return (
@@ -44,13 +39,11 @@ export function VistaPreviaRespuesta({
 
       <View style={estilos.divisor}>
         <View style={estilos.linea} />
-        <Text style={estilos.etiqueta}>
-          {esEjemplo ? 'Ejemplo de respuesta' : 'Respuesta sugerida'}
-        </Text>
+        <Text style={estilos.etiqueta}>Respuesta sugerida</Text>
         <View style={estilos.linea} />
       </View>
 
-      <TarjetaGlass tono={tono} activa={!esEjemplo} padding={espacio.base}>
+      <TarjetaGlass tono={tono} activa padding={espacio.base}>
         <Text style={estilos.mensaje}>{mensaje}</Text>
       </TarjetaGlass>
     </View>

@@ -26,20 +26,15 @@ import { TarjetaGlass } from '../../core/ui/TarjetaGlass';
  * quién le va a escribir el usuario.
  */
 
-export const ROMPEHIELOS_EJEMPLO =
-  'Oye, tu perfil me sacó una sonrisa. ¿Eres igual de interesante en persona? 😏';
-
 export function VistaPreviaChat({
   mensaje,
   etiquetaTono,
   emojiTono,
-  esEjemplo,
   tono,
 }: {
   mensaje: string;
   etiquetaTono: string;
   emojiTono: string;
-  esEjemplo: boolean;
   tono: TonoAcento;
 }) {
   const t = TONOS[tono];
@@ -78,22 +73,6 @@ export function VistaPreviaChat({
       <View style={estilos.separador} />
 
       <View style={estilos.conversacion}>
-        {esEjemplo ? (
-          <View
-            style={[
-              estilos.insigniaEjemplo,
-              {
-                borderColor: `rgba(${t.rgb},0.5)`,
-                backgroundColor: `rgba(${t.rgb},0.12)`,
-              },
-            ]}
-          >
-            <Text style={[estilos.textoEjemplo, { color: t.hex }]}>
-              EJEMPLO
-            </Text>
-          </View>
-        ) : null}
-
         {/* Burbuja del usuario, alineada a la derecha. */}
         <LinearGradient
           colors={degradados.marca}
@@ -178,21 +157,6 @@ const estilos = StyleSheet.create({
     gap: espacio.md,
     alignItems: 'flex-end',
   },
-  insigniaEjemplo: {
-    alignSelf: 'center',
-    paddingHorizontal: espacio.sm,
-    paddingVertical: 3,
-    borderRadius: radio.pildora,
-    borderWidth: 1,
-    borderColor: 'rgba(255,45,138,0.5)',
-    backgroundColor: 'rgba(255,45,138,0.12)',
-  },
-  textoEjemplo: {
-    ...tipografia.etiqueta,
-    fontSize: 9,
-    color: colors.marca.rosa,
-  },
-
   burbuja: {
     maxWidth: '90%',
     paddingHorizontal: espacio.base,

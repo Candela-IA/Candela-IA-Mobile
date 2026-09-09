@@ -33,12 +33,16 @@ interface Props {
  * una capa única deja un canto duro visible, y superponerlas hace que la
  * opacidad se acumule hacia el centro y se desvanezca hacia fuera, que es
  * lo que hace un desenfoque de verdad.
+ *
+ * Bajaron ~35% el 5 de septiembre de 2026 ("brillo neón un poco menos",
+ * cliente), en la misma proporción que las de `TarjetaGlass` para que los
+ * iconos y las tarjetas sigan brillando igual entre sí.
  */
 const CAPAS_RESPLANDOR = [
-  { crece: 0.26, opacidad: 0.09 },
-  { crece: 0.18, opacidad: 0.11 },
-  { crece: 0.11, opacidad: 0.13 },
-  { crece: 0.05, opacidad: 0.15 },
+  { crece: 0.26, opacidad: 0.06 },
+  { crece: 0.18, opacidad: 0.07 },
+  { crece: 0.11, opacidad: 0.085 },
+  { crece: 0.05, opacidad: 0.1 },
 ];
 
 /**
@@ -86,7 +90,7 @@ export function IconoDegradado({
                 // para Android, donde `elevation` solo pinta gris.
                 ios: {
                   shadowColor: t.hex,
-                  shadowOpacity: 0.85,
+                  shadowOpacity: 0.55,
                   shadowRadius: 14,
                   shadowOffset: { width: 0, height: 6 },
                 },

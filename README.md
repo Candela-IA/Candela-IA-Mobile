@@ -141,8 +141,8 @@ Prisma — son reglas de negocio puras y testeables solas.
 - Catálogo de 4 funciones y 26 tonos servido por API
 - `POST /generar` con proveedor intercambiable
 - Errores de dominio traducidos a HTTP (402 → paywall)
-- 64 pruebas en verde: 21 de los créditos, 14 de las suscripciones, 14 del
-  banco de rompehielos y 15 del entorno
+- 70 pruebas en verde: 21 de los créditos, 14 de las suscripciones, 14 del
+  banco de rompehielos, 6 del guardia de ortografía y 15 del entorno
 - Banco de pruebas de prompts (`npm run probar:prompts`): dispara un lote
   contra la API y lo imprime junto, con su costo y su latencia
 - `GET /salud` para el health check de la plataforma: comprueba la base de
@@ -311,7 +311,7 @@ Prisma — son reglas de negocio puras y testeables solas.
 | 🟡 | Conectar el cobro (RevenueCat) | Paso a paso, y el reparto de responsabilidades, en [`mobile/PAGOS.md`](mobile/PAGOS.md). El bloqueo ya no es técnico: hace falta que el cliente abra Play Console y verifique su perfil de pagos, que tarda días |
 | 🟡 | Configurar el webhook en el panel de RevenueCat | El secreto ya está generado en Railway. Falta copiarlo al panel junto con la URL `/api/v1/webhooks/revenuecat`, y para eso hace falta la cuenta del cliente |
 | 🟡 | Revisar los precios de GPT-5.6 Luna | OpenAI anunció una bajada del 80%. Los precios están escritos a mano en `openai.provider.ts`; si están desfasados, la columna `costUsd` lleva anotando de más |
-| 🟡 | Medir el prompt nuevo con el banco de pruebas | Se acumulan cuatro cambios escritos y sin comparar: los ejemplos, la ortografía impecable del 26 de agosto, y el español sin nacionalidad y la voz gen Z del 5 de septiembre. Es lo más urgente de esta lista: la voz es lo que el cliente va a juzgar de un vistazo. `npm run probar:prompts` con las capturas de `backend/capturas/` cuesta dos centavos |
+| 🟢 | Capturas de prueba de verdad | `capturas/chat/` y `capturas/stories/` tienen la MISMA imagen en `.jpg`, `.png` y `.webp`, así que cada lote paga tres veces por la misma conversación. Cambiarlas por tres conversaciones distintas mediría variedad en vez de formatos |
 | 🟢 | Historial | Se quitó de la barra; decidir dónde va |
 | 🟢 | Llevarlo a iPhone | El código ya sirve y EAS compila sin Mac. Paso a paso y riesgos de revisión en [`mobile/IOS.md`](mobile/IOS.md). Conviene terminar Android primero: los 99 USD/año de Apple corren desde que se abre la cuenta |
 | 🟢 | Reporte de fallos (Sentry) | El `ErrorBoundary` ya está; falta la cuenta y diez líneas |
@@ -335,12 +335,41 @@ cuatro funciones, incluidas capturas de chat y de historias.
 | Por generación | **$0.00059** |
 | Latencia media | 3.3 s |
 
-> ⚠️ **Ese costo es de un prompt más corto.** Desde entonces se añadieron los
-> ejemplos, la ortografía impecable, el español sin nacionalidad y la voz gen
-> Z: solo hoy el prompt de sistema creció un 29% (8 083 → 10 394 caracteres).
-> Sigue cacheado al 10%, así que el aumento real es una décima parte de lo que
-> parece, pero el $0.00059 de la tabla ya no es el número de hoy. Lo dirá el
-> banco de pruebas.
+### Medido otra vez el 9 de septiembre de 2026
+
+31 generaciones, esta vez **con las dos funciones de imagen**, que en el lote
+de agosto se habían quedado fuera.
+
+| | agosto | septiembre |
+|---|---|---|
+| Por generación | $0.00059 | **$0.00089** |
+| Latencia media | 3,3 s | **5,0 s** |
+
+Subió la mitad, y era de esperar: entre medias entraron los ejemplos, la
+ortografía impecable, el español sin nacionalidad y la voz gen Z — solo el 5
+de septiembre el prompt de sistema creció un 29%. Sigue cacheado al 10%, así
+que de ese crecimiento se paga una décima parte.
+
+**Qué salió bien:** el modelo lee la captura de verdad (las respuestas
+hablaban de la clase, del enlace y del perro del meme que salían en el chat),
+no se coló una sola referencia local, la ironía aterrizó sin volverse chiste
+fácil, y las notas respetaron los 60 caracteres.
+
+**Lo que falla, y es la regla 1:** de 31 mensajes, **uno salió en minúscula**
+—"gracias, me salvaste. ya entro…"—, justo en Salvar situación. Es el riesgo
+que trae la voz gen Z, y el ejemplo que ya está en el prompt no lo atrapó esa
+vez. Un 3% no es alarmante, pero es la regla que el cliente pidió por escrito.
+
+**Arreglado el mismo día**, en los dos sitios: el prompt lo repite donde más
+pesa (la descripción del campo `mensaje`, que es lo último que el modelo lee
+antes de escribirlo) y `domain/ortografia.ts` lo garantiza pase lo que pase.
+Solo la mayúscula inicial — las tildes que falten no se pueden poner sin
+entender la frase, y ese trabajo sigue siendo del prompt. Cuando el guardia
+actúa deja un aviso en el log: si empieza a saltar seguido, el problema no se
+arregla ahí sino en el prompt.
+
+**Otros dos** cerraron sin dejar por dónde seguir, que es lo que la consigna
+nueva pide evitar. Nueve de cada diez sí dejaban puerta.
 
 **Salió un tercio más barato de lo estimado** ($0.0009 era la previsión). El
 prompt de sistema es idéntico entre peticiones del mismo tono, así que

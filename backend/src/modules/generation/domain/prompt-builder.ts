@@ -369,8 +369,10 @@ export const ESQUEMA_RESPUESTA = {
       type: 'string',
       description:
         'Cómo escribe la otra persona: ¿usa tildes? ¿emojis? ¿mayúscula ' +
-        'inicial? ¿qué jerga? Si no hay conversación que mirar ' +
-        '(Rompehielos, Crear notas), escribe "sin referencia".',
+        'inicial? ¿qué jerga? Esto es para copiar su ENERGÍA, nunca su ' +
+        'ortografía: la tuya va bien siempre, escriba ella como escriba. ' +
+        'Si no hay conversación que mirar (Rompehielos, Crear notas), ' +
+        'escribe "sin referencia".',
     },
     largo: {
       type: 'string',
@@ -388,7 +390,11 @@ export const ESQUEMA_RESPUESTA = {
     },
     mensaje: {
       type: 'string',
-      description: 'El mensaje listo para copiar y enviar. Sin comillas.',
+      description:
+        'El mensaje listo para copiar y enviar. Sin comillas. Empieza con ' +
+        'MAYÚSCULA y lleva las tildes y los signos de apertura puestos, ' +
+        'aunque la conversación de la captura esté escrita en minúscula: lo ' +
+        'va a mandar una persona de verdad a alguien que le importa.',
     },
   },
   required: ['registro', 'largo', 'lectura', 'mensaje'],

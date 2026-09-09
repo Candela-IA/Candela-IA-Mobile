@@ -24,6 +24,7 @@ import {
   obtenerTono,
   Tono,
 } from '../domain/catalogo';
+import { asegurarMayusculaInicial } from '../domain/ortografia';
 import { elegirRompehielos } from '../domain/rompehielos';
 
 export interface ComandoGenerar {
@@ -118,7 +119,19 @@ export class GenerarRespuestaUseCase {
         esRegeneracion: comando.esRegeneracion,
       });
 
-      // 6. Métricas. Nunca la imagen ni el texto de la conversación:
+      // 6. La regla 1 no puede quedar en manos del modelo: lo que sale de
+      // aquí lo copia el usuario y lo manda tal cual. Ver `domain/ortografia`.
+      const revision = asegurarMayusculaInicial(resultado.mensaje);
+
+      if (revision.corregido) {
+        this.logger.warn(
+          `Mayuscula inicial corregida a mano en ${funcion.etiqueta}/` +
+            `${tono.id}. Si esto empieza a repetirse no es que el guardia ` +
+            `funcione: es que el prompt se esta soltando, y se arregla ahi.`,
+        );
+      }
+
+      // 7. Métricas. Nunca la imagen ni el texto de la conversación:
       // solo qué función, qué tono y cuánto costó.
       const generacion = await this.prisma.generation.create({
         data: {
@@ -142,7 +155,7 @@ export class GenerarRespuestaUseCase {
 
       return {
         generacionId: generacion.id,
-        mensaje: resultado.mensaje,
+        mensaje: revision.mensaje,
         saldo: cobrado.saldoVisible(ahora),
       };
     } catch (e) {

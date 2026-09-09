@@ -441,6 +441,8 @@ export function PantallaGeneracion({
 
               {previaArriba ? bloquePrevia : null}
 
+              {bloquePrevia ? null : <View style={estilos.respiro} />}
+
               <View style={estilos.bloque}>
                 {tonoImplicito ? null : (
                   <>
@@ -506,6 +508,8 @@ export function PantallaGeneracion({
               </View>
 
               {previaArriba ? null : bloquePrevia}
+
+              {bloquePrevia ? null : <View style={estilos.respiro} />}
             </>
           ) : null}
         </ScrollView>
@@ -685,7 +689,28 @@ const estilos = StyleSheet.create({
   flex: { flex: 1 },
   // Aire suficiente para que la ultima fila de chips quede completamente
   // visible al llegar al final, sin quedar pegada al boton.
-  scroll: { paddingHorizontal: espacio.lg, paddingBottom: espacio.xxl },
+  scroll: {
+    paddingHorizontal: espacio.lg,
+    paddingBottom: espacio.xxl,
+    // Crece hasta llenar la pantalla aunque el contenido sea corto, que es
+    // lo que les da espacio a los `respiro` de repartir.
+    flexGrow: 1,
+  },
+
+  /**
+   * Espacio elástico, uno arriba y otro abajo del bloque de tonos.
+   *
+   * Se colapsan a cero en cuanto el contenido llena la pantalla, así que en
+   * Analizar chat —con su zona de captura, su campo de contexto y nueve
+   * tonos— no se nota. Donde trabajan es en Rompehielos, que no tiene
+   * captura ni contexto ni tonos gratis que mostrar: al quitar el mensaje de
+   * ejemplo se quedaba medio alto en blanco entre la grilla y el botón.
+   *
+   * Se reparte el hueco en vez de centrar el contenedor entero porque
+   * centrar recorta el principio cuando el contenido no cabe; un espacio que
+   * se encoge hasta cero no puede hacer eso.
+   */
+  respiro: { flex: 1 },
 
   banner: { marginBottom: espacio.xl },
   filaBanner: { flexDirection: 'row', alignItems: 'center', gap: espacio.md },

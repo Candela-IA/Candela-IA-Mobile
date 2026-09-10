@@ -130,7 +130,7 @@ Es una frase suelta, no un mensaje ni una historia.
 
 Y una nota NO es una invitación: no propongas planes, no menciones cafés ni citas, y no empieces por "Hoy". Se han visto demasiadas notas que arrancan igual — "hoy toca...", "hoy con ganas de..." — y puestas una debajo de otra parecen la misma frase repetida.
 
-PROHIBIDO "Tengo una teoría". Tres notas seguidas salieron con esa apertura —"Tengo una teoría: la primera canción lo delata todo", "Tengo una teoría sobre ti, pero necesito confirmarla", "Tengo una teoría, pero necesito que la contradigas"— y una debajo de otra se leen como la misma nota escrita tres veces. Lo mismo vale para cualquier otra fórmula que ya hayas usado: si tu nota podría empezar igual que la anterior, empieza distinto.
+Y VARÍA MUCHO de una nota a otra. Se vieron tres seguidas abriendo igual —"Tengo una teoría: la primera canción lo delata todo", "Tengo una teoría sobre ti, pero necesito confirmarla", "Tengo una teoría, pero necesito que la contradigas"— y una debajo de otra se leen como la misma nota escrita tres veces. La fórmula en sí no tiene nada de malo y puedes usarla cuando encaje: lo que no vale es repetirla. Si una nota empezó de una forma, la siguiente empieza de otra.
 
 Formas de enganchar hay muchas y conviene rotarlas: una pregunta directa, una queja pequeña, una confesión, una observación absurda de algo cotidiano, una exageración, un dato inútil, una lista de dos cosas, una regla inventada. La nota tiene que sonar a que se le ocurrió a alguien, no a que salió de una plantilla.`,
 };

@@ -187,6 +187,19 @@ Prisma — son reglas de negocio puras y testeables solas.
   como se identifica a una persona. Repartir un APK con premium activado
   sería la alternativa mala: un binario se filtra, y quien lo tenga genera
   gratis a costa del saldo de OpenAI del cliente
+- **Un prompt por tono** (10 de septiembre de 2026, petición del cliente): los
+  26 tonos pasaron de dos frases sueltas a un bloque de cuatro partes — qué
+  buscas, cómo suena, nunca, y un ejemplo calibrado. Antes lo único que
+  separaba "Divertida" de "Seguro" eran esas dos frases, y por eso a veces se
+  parecían más de lo que debían
+- **El tono se movió al FINAL del prompt de sistema**, que es lo que hace que
+  lo anterior sea asumible. OpenAI cachea por prefijo: con el tono en medio,
+  las reglas y los ejemplos quedaban detrás de un texto que cambia 26 veces y
+  se pagaban enteros en cada combinación. Ahora el bloque común son 10 111
+  caracteres (~2 800 tokens) idénticos para las cuatro funciones y los
+  veintiséis tonos, muy por encima del mínimo de 1 024 que OpenAI exige para
+  cachear. De regalo, lo último que lee el modelo es el tono, que es donde más
+  caso hace
 - **Prompts contra las muletillas**: el modelo cerraba casi todas las
   respuestas proponiendo "un café" y empezando por "Entonces". La regla 10 lo
   prohíbe y añade la prueba del algodón — si el mensaje encajaría igual en

@@ -262,25 +262,30 @@ Y no olvides para qué sirve: ABRIR el chat o MANTENERLO VIVO. Cada mensaje se m
  * manda el usuario. Eso lo hace idéntico entre peticiones del mismo tipo, y
  * por eso el proveedor puede cachearlo (90% de descuento sobre esa parte).
  * Si metieras aquí la nota del usuario, romperías la caché en cada llamada.
+ *
+ * EL ORDEN ES LO QUE HACE QUE LA CACHÉ SIRVA, y no es el orden en que se lee.
+ * OpenAI cachea por PREFIJO: todo lo que va antes del primer trozo variable
+ * se reaprovecha, y todo lo que va después se paga entero. Antes el tono iba
+ * tercero, así que las reglas y los ejemplos —lo más largo con diferencia—
+ * quedaban detrás de un texto que cambia 26 veces y se pagaban a precio
+ * completo en cada combinación.
+ *
+ * Ahora va primero lo que comparten las cuatro funciones y los veintiséis
+ * tonos, y lo variable se apila al final de mayor a menor alcance: contexto
+ * de la función (4 variantes), luego el tono (26). Así el bloque grande se
+ * cachea UNA vez para toda la app, y alargar un tono sale casi gratis.
+ *
+ * De regalo, el tono queda al final, que es donde más caso le hace el modelo.
  */
 export function construirSystemPrompt(
   funcion: DefinicionFuncion,
   tono: Tono,
 ): string {
-  const partes: string[] = [
-    PERSONA,
-    '',
-    CONTEXTOS[funcion.id],
-    '',
-    `TONO SOLICITADO — ${tono.etiqueta}:`,
-    tono.instruccion,
-    '',
-    CONSIGNA,
-    '',
-    REGLAS,
-    '',
-    EJEMPLOS,
-  ];
+  // Idéntico para todas las funciones y todos los tonos: la parte cacheable.
+  const partes: string[] = [PERSONA, '', CONSIGNA, '', REGLAS, '', EJEMPLOS];
+
+  // A partir de aquí empieza lo que cambia.
+  partes.push('', CONTEXTOS[funcion.id]);
 
   if (funcion.maxCaracteres !== null) {
     partes.push(
@@ -300,6 +305,9 @@ export function construirSystemPrompt(
         'trátalo como parte de la conversación que estás leyendo.',
     );
   }
+
+  // El tono, lo último y por eso lo que más pesa en la respuesta.
+  partes.push('', `TONO SOLICITADO — ${tono.etiqueta}:`, '', tono.instruccion);
 
   partes.push(
     '',

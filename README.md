@@ -192,14 +192,21 @@ Prisma — son reglas de negocio puras y testeables solas.
   buscas, cómo suena, nunca, y un ejemplo calibrado. Antes lo único que
   separaba "Divertida" de "Seguro" eran esas dos frases, y por eso a veces se
   parecían más de lo que debían
-- **El tono se movió al FINAL del prompt de sistema**, que es lo que hace que
-  lo anterior sea asumible. OpenAI cachea por prefijo: con el tono en medio,
-  las reglas y los ejemplos quedaban detrás de un texto que cambia 26 veces y
-  se pagaban enteros en cada combinación. Ahora el bloque común son 10 111
-  caracteres (~2 800 tokens) idénticos para las cuatro funciones y los
-  veintiséis tonos, muy por encima del mínimo de 1 024 que OpenAI exige para
-  cachear. De regalo, lo último que lee el modelo es el tono, que es donde más
-  caso hace
+- **El tono se movió al FINAL del prompt de sistema.** OpenAI cachea por
+  prefijo: con el tono en medio, las reglas y los ejemplos quedaban detrás de
+  un texto que cambia 26 veces. Ahora el bloque común son 10 111 caracteres
+  (~2 800 tokens) idénticos para las cuatro funciones y los veintiséis tonos,
+  por encima del mínimo de 1 024 que OpenAI exige para cachear. Y lo último
+  que lee el modelo es el tono, que es donde más caso hace
+
+  > ⚠️ **El ahorro está sin demostrar.** El lote del 10 de septiembre salió a
+  > **$0.00112 por generación**, más caro que el $0.00089 de la víspera — pero
+  > los dos números no son comparables: aquel promediaba generaciones sin
+  > imagen, que cuestan bastante menos. Lo único limpio que se puede afirmar
+  > es que los tokens de entrada por generación subieron un 4%, exactamente lo
+  > que creció el prompt. Para saber si el reordenado ahorra algo hay que leer
+  > el `caché X/Y` que el backend registra en cada generación, y eso pide
+  > correr el lote con los logs del servidor a la vista. Está sin hacer.
 - **Prompts contra las muletillas**: el modelo cerraba casi todas las
   respuestas proponiendo "un café" y empezando por "Entonces". La regla 10 lo
   prohíbe y añade la prueba del algodón — si el mensaje encajaría igual en

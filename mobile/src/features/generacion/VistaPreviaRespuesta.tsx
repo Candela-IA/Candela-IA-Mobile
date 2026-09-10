@@ -40,12 +40,6 @@ export function VistaPreviaRespuesta({
         />
       ) : null}
 
-      <View style={estilos.divisor}>
-        <View style={estilos.linea} />
-        <Text style={estilos.etiqueta}>Respuesta sugerida</Text>
-        <View style={estilos.linea} />
-      </View>
-
       <TarjetaGlass tono={tono} activa={!esperando} padding={espacio.base}>
         <Text style={[estilos.mensaje, esperando && estilos.mensajeEspera]}>
           {esperando ? 'Aquí aparecerá tu respuesta' : mensaje}
@@ -63,16 +57,6 @@ const estilos = StyleSheet.create({
     borderRadius: radio.xl,
     borderWidth: 1,
     borderColor: colors.borde,
-  },
-  divisor: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: espacio.md,
-  },
-  linea: { flex: 1, height: 1, backgroundColor: colors.borde },
-  etiqueta: {
-    ...tipografia.etiqueta,
-    color: colors.texto.tenue,
   },
   mensaje: {
     ...tipografia.cuerpo,

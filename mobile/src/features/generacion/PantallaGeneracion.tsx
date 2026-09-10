@@ -249,7 +249,9 @@ export function PantallaGeneracion({
    */
   const bloquePrevia = definicion ? (
     <View style={estilos.bloque}>
-      <Text style={estilos.etiquetaCaptura}>{ETIQUETA_PREVIA[funcion]}</Text>
+      {ETIQUETA_PREVIA[funcion] ? (
+        <Text style={estilos.etiquetaCaptura}>{ETIQUETA_PREVIA[funcion]}</Text>
+      ) : null}
 
       {conChecklist ? (
         <ChecklistCarga conImagen />
@@ -627,11 +629,20 @@ function VistaPrevia({
   );
 }
 
-const ETIQUETA_PREVIA: Record<FuncionApi, string> = {
+/**
+ * La etiqueta encima de la vista previa.
+ *
+ * `null` en las dos funciones con captura: ahí la tarjeta ya dice "Aquí
+ * aparecerá tu respuesta", y encima llevaba un "Tu respuesta" y un
+ * "Respuesta sugerida" que decían lo mismo tres veces seguidas. Donde sí
+ * hace falta es en Notas y Rompehielos, porque ahí la etiqueta no nombra el
+ * mensaje: nombra la maqueta en la que se está viendo.
+ */
+const ETIQUETA_PREVIA: Record<FuncionApi, string | null> = {
   CREAR_NOTAS: 'Vista previa en Instagram',
   ROMPEHIELOS: 'Vista previa del chat',
-  ANALIZAR_CHAT: 'Tu respuesta',
-  ANALIZAR_STORIES: 'Tu respuesta',
+  ANALIZAR_CHAT: null,
+  ANALIZAR_STORIES: null,
 };
 
 const TEXTO_COPIAR: Record<FuncionApi, string> = {

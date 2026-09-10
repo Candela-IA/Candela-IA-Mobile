@@ -47,14 +47,24 @@ export const DIAS_RENOVACION_GRATIS = 7;
 
 /**
  * Tope diario para suscriptores. El paywall promete "respuestas ilimitadas",
- * y para el uso humano real lo son: nadie genera 50 mensajes en un día. El
- * límite existe para que un bot o un script no destruya el margen del plan
- * anual, no para frenar a un usuario legítimo.
+ * y para el uso humano real lo son. El límite existe para que un bot o un
+ * script no destruya el margen del plan anual, no para frenar a un usuario
+ * legítimo.
+ *
+ * Subió de 50 a 100 el 10 de septiembre de 2026: con 50 se toparon Sebastián
+ * y el cliente el mismo día probando la app, y a un usuario que se topa el
+ * paywall le acaba de mentir. A $0.0009 la generación, 100 son nueve centavos
+ * por teléfono y día en el peor caso — el techo real de gasto lo pone el
+ * saldo prepago de OpenAI, no esta constante.
+ *
+ * Ojo con la hora a la que vuelve: se reinicia a MEDIANOCHE UTC, que en Perú
+ * son las 7 de la tarde. Un tope "por día" que vuelve a media tarde confunde,
+ * y por eso el aviso de la app dice la hora en vez de decir "mañana".
  *
  * Es del dispositivo entero y no de cada función: defiende el gasto de
  * OpenAI, y a ese le da igual de qué pantalla salió la petición.
  */
-export const LIMITE_DIARIO_PREMIUM = 50;
+export const LIMITE_DIARIO_PREMIUM = 100;
 
 /** Las cuatro bolsas de intentos gratis, una por función. */
 export type UsoPorFuncion = Readonly<Record<Funcion, number>>;

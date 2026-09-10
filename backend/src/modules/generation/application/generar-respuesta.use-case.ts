@@ -117,6 +117,7 @@ export class GenerarRespuestaUseCase {
         imagen: comando.imagen,
         contextoUsuario: comando.contexto,
         esRegeneracion: comando.esRegeneracion,
+        mensajeAnterior: comando.mensajeAnterior,
       });
 
       // 6. La regla 1 no puede quedar en manos del modelo: lo que sale de

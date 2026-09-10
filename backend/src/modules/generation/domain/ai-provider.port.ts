@@ -35,6 +35,19 @@ export interface PeticionGeneracion {
    * mismo.
    */
   readonly esRegeneracion?: boolean;
+  /**
+   * Lo que el usuario ya tiene en pantalla, cuando pidió otro.
+   *
+   * Decirle "cambia el ángulo" no basta si no sabe de qué ángulo viene. En
+   * Crear notas, que no tiene captura ni contexto, tres regeneraciones
+   * seguidas salían las tres abriendo con "Tengo una teoría": para el modelo
+   * cada petición era la primera. Enseñándole lo anterior, la repetición
+   * deja de ser invisible.
+   *
+   * Va en el mensaje de usuario, nunca en el de sistema: el de sistema tiene
+   * que seguir siendo idéntico entre peticiones para que se cachee.
+   */
+  readonly mensajeAnterior?: string;
 }
 
 export interface UsoTokens {

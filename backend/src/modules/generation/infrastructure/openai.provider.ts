@@ -57,14 +57,25 @@ export class OpenAiProvider implements AiProvider {
   }
 
   async generar(peticion: PeticionGeneracion): Promise<ResultadoGeneracion> {
-    const { funcion, tono, imagen, contextoUsuario, esRegeneracion } =
-      peticion;
+    const {
+      funcion,
+      tono,
+      imagen,
+      contextoUsuario,
+      esRegeneracion,
+      mensajeAnterior,
+    } = peticion;
     const inicio = Date.now();
 
     const contenidoUsuario: OpenAI.Chat.ChatCompletionContentPart[] = [
       {
         type: 'text',
-        text: construirMensajeUsuario(funcion, contextoUsuario, esRegeneracion),
+        text: construirMensajeUsuario(
+          funcion,
+          contextoUsuario,
+          esRegeneracion,
+          mensajeAnterior,
+        ),
       },
     ];
 

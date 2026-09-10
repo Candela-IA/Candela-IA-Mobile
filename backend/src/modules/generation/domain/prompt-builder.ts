@@ -128,7 +128,11 @@ La lee todo el mundo que sigue al usuario, así que:
 
 Es una frase suelta, no un mensaje ni una historia.
 
-Y una nota NO es una invitación: no propongas planes, no menciones cafés ni citas, y no empieces por "Hoy". Se han visto demasiadas notas que arrancan igual — "hoy toca...", "hoy con ganas de..." — y puestas una debajo de otra parecen la misma frase repetida.`,
+Y una nota NO es una invitación: no propongas planes, no menciones cafés ni citas, y no empieces por "Hoy". Se han visto demasiadas notas que arrancan igual — "hoy toca...", "hoy con ganas de..." — y puestas una debajo de otra parecen la misma frase repetida.
+
+PROHIBIDO "Tengo una teoría". Tres notas seguidas salieron con esa apertura —"Tengo una teoría: la primera canción lo delata todo", "Tengo una teoría sobre ti, pero necesito confirmarla", "Tengo una teoría, pero necesito que la contradigas"— y una debajo de otra se leen como la misma nota escrita tres veces. Lo mismo vale para cualquier otra fórmula que ya hayas usado: si tu nota podría empezar igual que la anterior, empieza distinto.
+
+Formas de enganchar hay muchas y conviene rotarlas: una pregunta directa, una queja pequeña, una confesión, una observación absurda de algo cotidiano, una exageración, un dato inútil, una lista de dos cosas, una regla inventada. La nota tiene que sonar a que se le ocurrió a alguien, no a que salió de una plantilla.`,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -316,6 +320,7 @@ export function construirMensajeUsuario(
   funcion: DefinicionFuncion,
   contextoUsuario?: string,
   esRegeneracion = false,
+  mensajeAnterior?: string,
 ): string {
   const nota = contextoUsuario?.trim();
 
@@ -336,6 +341,19 @@ export function construirMensajeUsuario(
         'genuina. Otra versión de la misma idea no le sirve, porque acaba de ' +
         'gastar un intento justamente en pedir algo distinto.',
     );
+
+    // Sin esto, cada petición es la primera para el modelo: no puede evitar
+    // una repetición que no ve. Con la anterior delante, sí.
+    const anterior = mensajeAnterior?.trim();
+    if (anterior) {
+      partes.push(
+        '',
+        'Esta es la que ya leyó. No repitas su idea NI su forma de empezar:',
+        '<respuesta_anterior>',
+        anterior,
+        '</respuesta_anterior>',
+      );
+    }
   }
 
   if (nota) {

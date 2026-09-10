@@ -11,6 +11,7 @@ export default function Rompehielos() {
       icono="flash"
       tono="rosa"
       textoBoton="Generar rompehielos"
+      textoBotonRegenerar="Generar otro rompehielos"
       // El modo Básico se aplica solo: la pantalla promete un rompehielos
       // al instante, así que no se le pide elegir nada. Los cuatro tonos
       // premium quedan visibles únicamente como incentivo.

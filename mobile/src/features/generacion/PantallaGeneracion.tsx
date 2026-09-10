@@ -65,6 +65,14 @@ interface Props {
   icono: keyof typeof Ionicons.glyphMap;
   tono: TonoAcento;
   textoBoton: string;
+  /**
+   * El del botón cuando ya hay una respuesta en pantalla.
+   *
+   * Se declara por pantalla en vez de derivarlo del anterior: derivándolo
+   * salía "Generar otro nota", porque el género del sustantivo no se puede
+   * adivinar con un reemplazo de texto.
+   */
+  textoBotonRegenerar: string;
   /** Las historias de IG usan zona de captura vertical. */
   capturaVertical?: boolean;
   /**
@@ -103,6 +111,7 @@ export function PantallaGeneracion({
   icono,
   tono,
   textoBoton,
+  textoBotonRegenerar,
   capturaVertical = false,
   tonoImplicito = false,
   previaArriba = false,
@@ -523,7 +532,7 @@ export function PantallaGeneracion({
               faltaCaptura
                 ? 'Sube una captura primero'
                 : resultado
-                  ? textoBotonRegenerar(textoBoton)
+                  ? textoBotonRegenerar
                   : textoBoton
             }
             onPress={generar}
@@ -631,11 +640,6 @@ const TEXTO_COPIAR: Record<FuncionApi, string> = {
   ANALIZAR_CHAT: 'Copiar y usar',
   ANALIZAR_STORIES: 'Copiar y usar',
 };
-
-/** "Generar nota" → "Generar otra nota". */
-function textoBotonRegenerar(original: string): string {
-  return original.replace(/^Generar /, 'Generar otro ').replace(/^Analizar /, 'Analizar de nuevo ');
-}
 
 /**
  * El contador de la cabecera.

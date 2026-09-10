@@ -10,6 +10,7 @@ export default function AnalizarChat() {
       icono="chatbubble-ellipses"
       tono="azul"
       textoBoton="Analizar chat"
+      textoBotonRegenerar="Analizar de nuevo"
       mostrarTonoEnBanner
     />
   );

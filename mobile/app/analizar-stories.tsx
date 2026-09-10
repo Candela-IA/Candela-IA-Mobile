@@ -11,6 +11,7 @@ export default function AnalizarStories() {
       icono="logo-instagram"
       tono="purpura"
       textoBoton="Analizar historia"
+      textoBotonRegenerar="Analizar de nuevo"
       capturaVertical
     />
   );

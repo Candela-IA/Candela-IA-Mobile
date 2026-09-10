@@ -8,6 +8,7 @@ import { usarArranque } from '../src/core/di/arranque';
 import { usarPreferencias } from '../src/core/di/preferencias';
 import { useSesion } from '../src/core/di/sesion';
 import { colors } from '../src/core/theme';
+import { Aviso } from '../src/core/ui/Aviso';
 import { PantallaError } from '../src/core/ui/PantallaError';
 
 /**
@@ -157,6 +158,12 @@ export default function LayoutRaiz() {
             }}
           />
         </Stack>
+
+        {/* Fuera del Stack y montado una sola vez: los avisos se disparan
+            desde el cliente HTTP y desde el selector de fotos, que no saben
+            en qué pantalla está el usuario. Dentro del Stack habría uno por
+            ruta y podrían apilarse dos. */}
+        <Aviso />
       </SafeAreaProvider>
     </QueryClientProvider>
   );

@@ -4,7 +4,6 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -19,6 +18,7 @@ import { useSesion } from '../../src/core/di/sesion';
 import { abrirEnlaceLegal, contactarSoporte } from '../../src/core/legal';
 import { valorarApp } from '../../src/core/valoracion';
 import { colors, espacio, radio, tipografia } from '../../src/core/theme';
+import { mostrarAviso } from '../../src/core/ui/Aviso';
 import { FilaAjuste, SeparadorAjuste } from '../../src/core/ui/FilaAjuste';
 import { FondoPantalla } from '../../src/core/ui/FondoPantalla';
 import { Interruptor } from '../../src/core/ui/Interruptor';
@@ -57,7 +57,7 @@ export default function Ajustes() {
   };
 
   const pendiente = (que: string) =>
-    Alert.alert('Todavía no está listo', `${que} se conecta más adelante.`);
+    mostrarAviso('Todavía no está listo', `${que} se conecta más adelante.`);
 
   return (
     <FondoPantalla>
@@ -142,7 +142,7 @@ export default function Ajustes() {
                 subtitulo="La próxima vez volverá a salir la bienvenida"
                 onPress={() => {
                   olvidarOnboarding();
-                  Alert.alert(
+                  mostrarAviso(
                     'Listo',
                     'Recarga la app y verás la bienvenida desde el principio.',
                   );

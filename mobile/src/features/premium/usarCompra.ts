@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Alert } from 'react-native';
+import { mostrarAviso } from '../../core/ui/Aviso';
 
 import { abrirEnlaceLegal, TipoEnlaceLegal } from '../../core/legal';
 import { IdPlan, PLANES } from './planes';
@@ -33,7 +33,7 @@ export function usarCompra() {
   const comprar = useCallback((idPlan: IdPlan) => {
     const plan = PLANES.find((p) => p.id === idPlan);
 
-    Alert.alert(
+    mostrarAviso(
       TITULO_PENDIENTE,
       `Aquí se abrirá el cobro de Google Play o App Store para el ` +
         `${plan?.etiqueta ?? idPlan}.\n\n` +
@@ -43,7 +43,7 @@ export function usarCompra() {
   }, []);
 
   const restaurar = useCallback(() => {
-    Alert.alert(
+    mostrarAviso(
       TITULO_PENDIENTE,
       'Restaurar compras devuelve la suscripción a quien ya pagó y cambió ' +
         'de teléfono. Se activa junto con el resto del cobro.',

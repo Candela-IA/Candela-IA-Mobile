@@ -2,11 +2,11 @@ import { useMutation } from '@tanstack/react-query';
 import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Alert } from 'react-native';
-
 import { FuncionApi, generar } from '../../core/api/candela';
 import { ErrorApi } from '../../core/api/cliente';
 import { useSesion } from '../../core/di/sesion';
+import { mostrarAviso } from '../../core/ui/Aviso';
+import { describirFallo } from './mensajesDeFallo';
 import { CapturaSeleccionada } from './ZonaCaptura';
 
 /**
@@ -67,12 +67,8 @@ export function usarGeneracion({ funcion, onSinCreditos }: Opciones) {
         return;
       }
 
-      Alert.alert(
-        'No pudimos generar',
-        error instanceof Error
-          ? error.message
-          : 'Algo salió mal. Intenta de nuevo.',
-      );
+      const { titulo, mensaje } = describirFallo(error);
+      mostrarAviso(titulo, mensaje);
     },
   });
 

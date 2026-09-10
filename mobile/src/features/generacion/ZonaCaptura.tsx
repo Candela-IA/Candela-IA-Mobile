@@ -3,7 +3,9 @@ import { Image } from 'expo-image';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { mostrarAviso } from '../../core/ui/Aviso';
 
 import { AppConfig } from '../../config/app_config';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -72,7 +74,7 @@ export function ZonaCaptura({
     const permiso = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permiso.granted) {
-      Alert.alert(
+      mostrarAviso(
         'Sin acceso a tus fotos',
         'Candela necesita permiso para leer la captura que quieres analizar. ' +
           'Puedes activarlo en los ajustes del sistema.',
@@ -119,7 +121,7 @@ export function ZonaCaptura({
         mimeType: 'image/jpeg',
       });
     } catch {
-      Alert.alert(
+      mostrarAviso(
         'No pudimos leer la captura',
         'Intenta con otra imagen de tu galería.',
       );

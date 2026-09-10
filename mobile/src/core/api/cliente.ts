@@ -18,6 +18,7 @@ export type CodigoError =
   | 'DISPOSITIVO_NO_ENCONTRADO'
   | 'GENERACION_RECHAZADA'
   | 'GENERACION_FALLIDA'
+  | 'GENERACION_A_TOPE'
   | 'SIN_CONEXION'
   | 'DESCONOCIDO';
 
@@ -27,6 +28,14 @@ export class ErrorApi extends Error {
     mensaje: string,
     readonly estado?: number,
     readonly reintentable = false,
+    /**
+     * Cuándo vuelve el cupo, en ISO. Solo llega con LIMITE_DIARIO.
+     *
+     * El backend manda la fecha y no un texto porque el contador se reinicia
+     * a medianoche UTC, que en cada país cae a una hora distinta. Quien sabe
+     * la zona horaria es el teléfono.
+     */
+    readonly reiniciaEn?: string,
   ) {
     super(mensaje);
     this.name = 'ErrorApi';
@@ -164,15 +173,23 @@ async function traducirRespuesta(respuesta: Response): Promise<ErrorApi> {
   let codigo: CodigoError = 'DESCONOCIDO';
   let mensaje = 'Algo salió mal. Intenta de nuevo.';
   let reintentable = respuesta.status >= 500;
+  let reiniciaEn: string | undefined;
 
   try {
     const cuerpo = await respuesta.json();
     if (typeof cuerpo?.codigo === 'string') codigo = cuerpo.codigo;
     if (typeof cuerpo?.mensaje === 'string') mensaje = cuerpo.mensaje;
     if (typeof cuerpo?.reintentable === 'boolean') reintentable = cuerpo.reintentable;
+    if (typeof cuerpo?.reiniciaEn === 'string') reiniciaEn = cuerpo.reiniciaEn;
   } catch {
     // Respuesta sin JSON válido: nos quedamos con los valores por defecto.
   }
 
-  return new ErrorApi(codigo, mensaje, respuesta.status, reintentable);
+  return new ErrorApi(
+    codigo,
+    mensaje,
+    respuesta.status,
+    reintentable,
+    reiniciaEn,
+  );
 }

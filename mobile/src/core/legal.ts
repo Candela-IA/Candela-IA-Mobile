@@ -1,4 +1,6 @@
-import { Alert, Linking } from 'react-native';
+import { Linking } from 'react-native';
+
+import { mostrarAviso } from './ui/Aviso';
 
 /**
  * ENLACES LEGALES Y DE SOPORTE
@@ -29,7 +31,7 @@ export function abrirEnlaceLegal(cual: TipoEnlaceLegal) {
   const url = ENLACES_LEGALES[cual];
 
   if (!url) {
-    Alert.alert(
+    mostrarAviso(
       'Enlace pendiente',
       'Falta que el cliente entregue la URL de términos de uso y de política ' +
         'de privacidad. Las dos tienen que estar publicadas antes de enviar ' +
@@ -70,7 +72,7 @@ export async function contactarSoporte() {
   try {
     await Linking.openURL(url);
   } catch {
-    Alert.alert(
+    mostrarAviso(
       'Sin app de correo',
       `Escríbenos a ${CORREO_SOPORTE} desde donde prefieras.`,
     );

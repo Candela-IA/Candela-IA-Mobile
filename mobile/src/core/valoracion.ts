@@ -1,5 +1,7 @@
 import * as StoreReview from 'expo-store-review';
-import { Alert, Linking, Platform } from 'react-native';
+import { Linking, Platform } from 'react-native';
+
+import { mostrarAviso } from './ui/Aviso';
 
 /**
  * "Tu opinión": pedirle al usuario que califique la app.
@@ -67,7 +69,7 @@ export async function valorarApp(): Promise<void> {
   }
 
   // 3. Nada funcionó. Antes que dejar el botón muerto, se dice la verdad.
-  Alert.alert(
+  mostrarAviso(
     'Todavía no se puede',
     Platform.OS === 'android'
       ? 'Podrás calificarnos desde Google Play cuando la app esté publicada. ' +

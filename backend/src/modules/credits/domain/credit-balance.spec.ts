@@ -209,10 +209,31 @@ describe('CreditBalance', () => {
         saldo.consumir(CHAT, PREMIUM, AHORA);
       }
 
-      const manana = new Date('2026-08-14T00:00:01Z');
+      // Medianoche del usuario, que estando en UTC-5 son las 05:00 UTC.
+      const manana = new Date('2026-08-14T05:00:01Z');
 
       expect(saldo.puedeGenerar(CHAT, PREMIUM, manana)).toBe(true);
       expect(saldo.usadosHoy(manana)).toBe(0);
+    });
+
+    it('el día termina a medianoche del usuario, no a medianoche UTC', () => {
+      // La razón de existir de MINUTOS_DESFASE_HORARIO. Con UTC a secas, el
+      // contador volvía a cero a las 7 de la tarde en Perú y el usuario veía
+      // renovarse su cupo a media tarde, sin explicación posible.
+      const saldo = CreditBalance.nuevo(AHORA);
+      for (let i = 0; i < LIMITE_DIARIO_PREMIUM; i++) {
+        saldo.consumir(CHAT, PREMIUM, AHORA);
+      }
+
+      // 00:00 UTC son las 7 de la tarde suyas: su día no ha terminado.
+      expect(
+        saldo.puedeGenerar(CHAT, PREMIUM, new Date('2026-08-14T00:00:01Z')),
+      ).toBe(false);
+
+      // Cinco horas más tarde sí, que ahí son sus 00:00.
+      expect(
+        saldo.puedeGenerar(CHAT, PREMIUM, new Date('2026-08-14T05:00:01Z')),
+      ).toBe(true);
     });
   });
 

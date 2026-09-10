@@ -47,7 +47,7 @@ export function describirFallo(error: unknown): AvisoDeFallo {
 
       return {
         titulo: 'Llegaste al límite de hoy',
-        mensaje: hora ? `${error.message} Vuelven a las ${hora}.` : error.message,
+        mensaje: hora ? `${error.message} Vuelven a ${hora}.` : error.message,
       };
     }
 
@@ -70,6 +70,10 @@ export function describirFallo(error: unknown): AvisoDeFallo {
  * Se formatea a mano en vez de con `toLocaleTimeString` para no depender de
  * que el motor traiga Intl, que en Android no siempre viene completo — y un
  * formato roto aquí deja el aviso diciendo "Vuelven a las Invalid Date".
+ *
+ * Devuelve la frase con su artículo puesto ("las 7 de la tarde",
+ * "medianoche") porque "a las medianoche" no se dice, y el artículo depende
+ * de la hora que salga.
  */
 export function horaDeVuelta(iso?: string): string | null {
   if (!iso) return null;
@@ -80,11 +84,16 @@ export function horaDeVuelta(iso?: string): string | null {
   const h24 = fecha.getHours();
   const minutos = fecha.getMinutes();
 
+  // Las dos horas que tienen nombre propio. Y son justo las que salen: el
+  // cupo vuelve al terminar el día.
+  if (minutos === 0 && h24 === 0) return 'medianoche';
+  if (minutos === 0 && h24 === 12) return 'mediodía';
+
   const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
   const reloj =
     minutos === 0 ? `${h12}` : `${h12}:${String(minutos).padStart(2, '0')}`;
 
-  return `${reloj} ${franja(h24)}`;
+  return `las ${reloj} ${franja(h24)}`;
 }
 
 /** "de la tarde" suena a persona; "p. m." suena a formulario. */

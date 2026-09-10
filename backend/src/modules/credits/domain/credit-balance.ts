@@ -57,14 +57,32 @@ export const DIAS_RENOVACION_GRATIS = 7;
  * por teléfono y día en el peor caso — el techo real de gasto lo pone el
  * saldo prepago de OpenAI, no esta constante.
  *
- * Ojo con la hora a la que vuelve: se reinicia a MEDIANOCHE UTC, que en Perú
- * son las 7 de la tarde. Un tope "por día" que vuelve a media tarde confunde,
- * y por eso el aviso de la app dice la hora en vez de decir "mañana".
+ * Vuelve al terminar el día del usuario, a medianoche de su huso. El aviso
+ * de la app dice la hora exacta en vez de "mañana", porque a las 11 de la
+ * noche "mañana" y "en una hora" son la misma cosa y no se parecen en nada.
  *
  * Es del dispositivo entero y no de cada función: defiende el gasto de
  * OpenAI, y a ese le da igual de qué pantalla salió la petición.
  */
 export const LIMITE_DIARIO_PREMIUM = 100;
+
+/**
+ * Minutos de desfase con UTC del huso en el que vive el usuario.
+ *
+ * Todo lo que se reinicia "al terminar el día" —el tope diario y la semana de
+ * intentos gratis— lo hace a MEDIANOCHE DE ESE HUSO, no a medianoche UTC.
+ *
+ * Antes era UTC a secas, y en Perú eso caía a las 7 de la tarde: el usuario
+ * veía su contador volver a cero a media tarde, sin explicación posible. Un
+ * límite "por día" tiene que terminar cuando termina el día de quien lo usa.
+ *
+ * -300 son las 5 horas de Perú, Colombia y Ecuador. Es una sola constante
+ * para toda la app porque hoy se vende ahí; cuando el mercado se abra de
+ * verdad, esto pasa a ser un dato del dispositivo —la app conoce su huso y
+ * lo puede mandar al registrarse— y esta constante se queda de valor por
+ * defecto para las filas que no lo traigan.
+ */
+export const MINUTOS_DESFASE_HORARIO = -300;
 
 /** Las cuatro bolsas de intentos gratis, una por función. */
 export type UsoPorFuncion = Readonly<Record<Funcion, number>>;
@@ -311,23 +329,36 @@ export class CreditBalance {
   }
 }
 
-/** Medianoche siguiente en UTC. El contador diario se reinicia ahí. */
-function siguienteMedianoche(ahora: Date): Date {
-  const siguiente = new Date(ahora);
-  siguiente.setUTCHours(24, 0, 0, 0);
-  return siguiente;
+/**
+ * La medianoche siguiente EN EL HUSO DEL USUARIO. El contador diario se
+ * reinicia ahí, o sea al terminar su día, no al terminar el día en Londres.
+ *
+ * Se calcula corriendo el reloj al huso, saltando a las 00:00 del día
+ * siguiente y devolviéndolo a UTC, que es como se guarda todo.
+ */
+export function siguienteMedianoche(ahora: Date): Date {
+  const desfase = MINUTOS_DESFASE_HORARIO * 60_000;
+
+  const local = new Date(ahora.getTime() + desfase);
+  local.setUTCHours(24, 0, 0, 0);
+
+  return new Date(local.getTime() - desfase);
 }
 
 /**
  * Cuándo vuelven los intentos gratis.
  *
- * Siete días desde hoy, a medianoche. Es una ventana rodante y no un día
- * fijo de la semana: quien instala un jueves no tiene que esperar al lunes
- * para estrenar sus intentos, y todo el mundo dispone del mismo plazo.
+ * Siete días desde hoy, a medianoche del huso del usuario. Es una ventana
+ * rodante y no un día fijo de la semana: quien instala un jueves no tiene que
+ * esperar al lunes para estrenar sus intentos, y todo el mundo dispone del
+ * mismo plazo.
  */
-function siguienteRenovacion(ahora: Date): Date {
-  const siguiente = new Date(ahora);
-  siguiente.setUTCHours(24, 0, 0, 0);
-  siguiente.setUTCDate(siguiente.getUTCDate() + DIAS_RENOVACION_GRATIS - 1);
-  return siguiente;
+export function siguienteRenovacion(ahora: Date): Date {
+  const desfase = MINUTOS_DESFASE_HORARIO * 60_000;
+
+  const local = new Date(ahora.getTime() + desfase);
+  local.setUTCHours(24, 0, 0, 0);
+  local.setUTCDate(local.getUTCDate() + DIAS_RENOVACION_GRATIS - 1);
+
+  return new Date(local.getTime() - desfase);
 }

@@ -22,8 +22,8 @@ describe('describirFallo', () => {
   });
 
   it('el tope diario dice a qué hora vuelve', () => {
-    // Mediodía UTC para que la franja no dependa de la zona horaria de quien
-    // corra la prueba: se construye la fecha en hora local.
+    // Se construye en hora local para que la franja no dependa de la zona
+    // horaria de quien corra la prueba.
     const vuelve = new Date();
     vuelve.setHours(19, 0, 0, 0);
 
@@ -40,6 +40,24 @@ describe('describirFallo', () => {
       mensaje:
         'Alcanzaste el límite de 50 generaciones por hoy. Vuelven a las 7 de la tarde.',
     });
+  });
+
+  it('a medianoche dice "medianoche", que es lo que se dice', () => {
+    // Es la hora que va a salir de verdad: el cupo vuelve al terminar el día.
+    const vuelve = new Date();
+    vuelve.setHours(0, 0, 0, 0);
+
+    const error = new ErrorApi(
+      'LIMITE_DIARIO',
+      'Alcanzaste el límite de 100 generaciones por hoy.',
+      429,
+      false,
+      vuelve.toISOString(),
+    );
+
+    expect(describirFallo(error).mensaje).toBe(
+      'Alcanzaste el límite de 100 generaciones por hoy. Vuelven a medianoche.',
+    );
   });
 
   it('si el backend no manda la hora, no se la inventa', () => {
@@ -90,20 +108,24 @@ describe('horaDeVuelta', () => {
   };
 
   it('usa la franja del día en vez de "p. m."', () => {
-    expect(aLas(3)).toBe('3 de la madrugada');
-    expect(aLas(9)).toBe('9 de la mañana');
-    expect(aLas(19)).toBe('7 de la tarde');
-    expect(aLas(22)).toBe('10 de la noche');
+    expect(aLas(3)).toBe('las 3 de la madrugada');
+    expect(aLas(9)).toBe('las 9 de la mañana');
+    expect(aLas(19)).toBe('las 7 de la tarde');
+    expect(aLas(22)).toBe('las 10 de la noche');
   });
 
   it('las horas en punto no arrastran ":00"', () => {
-    expect(aLas(19)).toBe('7 de la tarde');
-    expect(aLas(19, 30)).toBe('7:30 de la tarde');
+    expect(aLas(19)).toBe('las 7 de la tarde');
+    expect(aLas(19, 30)).toBe('las 7:30 de la tarde');
   });
 
-  it('medianoche y mediodía no salen como "0"', () => {
-    expect(aLas(0)).toBe('12 de la madrugada');
-    expect(aLas(12)).toBe('12 de la tarde');
+  it('medianoche y mediodía tienen nombre propio', () => {
+    expect(aLas(0)).toBe('medianoche');
+    expect(aLas(12)).toBe('mediodía');
+  });
+
+  it('pero solo en punto: las 00:30 son las 12 y media', () => {
+    expect(aLas(0, 30)).toBe('las 12:30 de la madrugada');
   });
 
   it('no revienta con basura', () => {

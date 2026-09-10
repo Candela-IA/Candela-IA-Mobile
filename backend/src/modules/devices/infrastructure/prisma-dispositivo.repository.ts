@@ -5,7 +5,8 @@ import { PrismaService } from '../../../shared/infrastructure/prisma/prisma.serv
 import { DispositivoNoEncontradoError } from '../../../shared/domain/domain-error';
 import {
   CreditBalance,
-  DIAS_RENOVACION_GRATIS,
+  siguienteMedianoche,
+  siguienteRenovacion,
   sinUso,
   UsoPorFuncion,
 } from '../../credits/domain/credit-balance';
@@ -228,22 +229,3 @@ function desdeColumnas(credits: {
   };
 }
 
-function siguienteMedianoche(ahora: Date): Date {
-  const siguiente = new Date(ahora);
-  siguiente.setUTCHours(24, 0, 0, 0);
-  return siguiente;
-}
-
-/**
- * Igual que `siguienteRenovacion` del dominio: siete días desde hoy, a
- * medianoche.
- *
- * Se duplica aquí, como ya se hacía con `siguienteMedianoche`, para que la
- * fila se pueda crear en el mismo `upsert` sin construir antes el agregado.
- */
-function siguienteRenovacion(ahora: Date): Date {
-  const siguiente = new Date(ahora);
-  siguiente.setUTCHours(24, 0, 0, 0);
-  siguiente.setUTCDate(siguiente.getUTCDate() + DIAS_RENOVACION_GRATIS - 1);
-  return siguiente;
-}

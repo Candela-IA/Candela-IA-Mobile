@@ -252,7 +252,10 @@ export class CreditBalance {
 
     if (esPremium) {
       if (this._dailyUsed >= LIMITE_DIARIO_PREMIUM) {
-        throw new LimiteDiarioAlcanzadoError(LIMITE_DIARIO_PREMIUM);
+        throw new LimiteDiarioAlcanzadoError(
+          LIMITE_DIARIO_PREMIUM,
+          this._dailyResetAt,
+        );
       }
     } else {
       if (this.gratisRestantes(funcion, ahora) <= 0) {

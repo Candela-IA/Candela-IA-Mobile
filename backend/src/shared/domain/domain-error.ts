@@ -24,11 +24,22 @@ export class SinCreditosError extends DomainError {
   }
 }
 
-/** Suscriptor que superó el tope diario de uso justo. */
+/**
+ * Suscriptor que superó el tope diario de uso justo.
+ *
+ * Lleva la fecha en que vuelve porque un límite sin hora de vuelta deja al
+ * usuario sin saber si son minutos o un día. La hora NO se escribe aquí: el
+ * contador se reinicia a medianoche UTC, que en cada país cae a una hora
+ * distinta, así que se manda la fecha y la app la formatea con la zona
+ * horaria del teléfono.
+ */
 export class LimiteDiarioAlcanzadoError extends DomainError {
   readonly code = 'LIMITE_DIARIO';
 
-  constructor(limite: number) {
+  constructor(
+    readonly limite: number,
+    readonly reiniciaEn: Date,
+  ) {
     super(`Alcanzaste el límite de ${limite} generaciones por hoy.`);
   }
 }

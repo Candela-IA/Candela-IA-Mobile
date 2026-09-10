@@ -4,6 +4,7 @@ import OpenAI from 'openai';
 
 import {
   AiProvider,
+  GeneracionATopeError,
   GeneracionFallidaError,
   GeneracionRechazadaError,
   PeticionGeneracion,
@@ -191,10 +192,18 @@ export class OpenAiProvider implements AiProvider {
         );
       }
       if (e.status === 429) {
-        return new GeneracionFallidaError(
-          'Estamos a tope en este momento. Intenta en unos segundos.',
-          true,
-        );
+        // 429 con `insufficient_quota` no es ritmo: es que se acabó el saldo
+        // prepago de OpenAI. Esperar no lo arregla, hay que recargar — y el
+        // log tiene que gritarlo, porque mientras tanto la app no genera.
+        if (e.code === 'insufficient_quota') {
+          this.logger.error(
+            'SE ACABO EL SALDO DE OPENAI. La app no puede generar hasta ' +
+              'que se recargue la cuenta.',
+          );
+          return new GeneracionFallidaError('Saldo de OpenAI agotado.', false);
+        }
+
+        return new GeneracionATopeError();
       }
       return new GeneracionFallidaError(e.message, reintentable);
     }

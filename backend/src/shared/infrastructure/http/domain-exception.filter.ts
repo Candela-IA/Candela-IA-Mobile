@@ -7,8 +7,12 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 
-import { DomainError } from '../../domain/domain-error';
 import {
+  DomainError,
+  LimiteDiarioAlcanzadoError,
+} from '../../domain/domain-error';
+import {
+  GeneracionATopeError,
   GeneracionFallidaError,
   GeneracionRechazadaError,
 } from '../../../modules/generation/domain/ai-provider.port';
@@ -38,9 +42,22 @@ interface CuerpoError {
   codigo: string;
   mensaje: string;
   reintentable?: boolean;
+  /**
+   * Cuándo vuelve a estar disponible, en ISO. Solo en LIMITE_DIARIO.
+   *
+   * Va la fecha y no un texto porque la hora depende de la zona horaria del
+   * usuario: el contador se reinicia a medianoche UTC, que en Perú son las 7
+   * de la tarde y en México las 6. La app lo formatea con la del teléfono.
+   */
+  reiniciaEn?: string;
 }
 
-@Catch(DomainError, GeneracionRechazadaError, GeneracionFallidaError)
+@Catch(
+  DomainError,
+  GeneracionRechazadaError,
+  GeneracionFallidaError,
+  GeneracionATopeError,
+)
 export class DomainExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(DomainExceptionFilter.name);
 
@@ -60,7 +77,26 @@ export class DomainExceptionFilter implements ExceptionFilter {
     if (error instanceof DomainError) {
       return {
         estado: CODIGO_A_HTTP[error.code] ?? HttpStatus.BAD_REQUEST,
-        cuerpo: { codigo: error.code, mensaje: error.message },
+        cuerpo: {
+          codigo: error.code,
+          mensaje: error.message,
+          ...(error instanceof LimiteDiarioAlcanzadoError
+            ? { reiniciaEn: error.reiniciaEn.toISOString() }
+            : {}),
+        },
+      };
+    }
+
+    // Ritmo, no avería: al usuario le basta con esperar unos segundos, así
+    // que merece su propio código y su propio mensaje.
+    if (error instanceof GeneracionATopeError) {
+      return {
+        estado: HttpStatus.TOO_MANY_REQUESTS,
+        cuerpo: {
+          codigo: 'GENERACION_A_TOPE',
+          mensaje: 'Vas muy rápido. Espera unos segundos y vuelve a intentar.',
+          reintentable: true,
+        },
       };
     }
 

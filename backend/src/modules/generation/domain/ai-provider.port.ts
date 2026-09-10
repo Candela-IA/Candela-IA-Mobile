@@ -61,7 +61,27 @@ export class GeneracionRechazadaError extends Error {
   }
 }
 
-/** Falla técnica: red caída, timeout, rate limit, error del proveedor. */
+/**
+ * El proveedor pide que bajes el ritmo (429 por límite de peticiones).
+ *
+ * Tiene clase propia y no es un `GeneracionFallidaError` más porque al
+ * usuario hay que decirle algo distinto: no se rompió nada, solo va muy
+ * rápido y con esperar unos segundos se arregla. Mezclarlo con los fallos de
+ * verdad hacía que la app dijera "algo salió mal" cuando no había salido mal
+ * nada.
+ *
+ * OJO: 429 de OpenAI también significa "se acabó el saldo prepago"
+ * (`insufficient_quota`). Ese NO es este error — ahí sí está roto y no lo
+ * arregla esperar. Se distinguen por el `code`, no por el status.
+ */
+export class GeneracionATopeError extends Error {
+  constructor() {
+    super('El proveedor está limitando las peticiones.');
+    this.name = 'GeneracionATopeError';
+  }
+}
+
+/** Falla técnica: red caída, timeout, error del proveedor. */
 export class GeneracionFallidaError extends Error {
   constructor(
     message: string,

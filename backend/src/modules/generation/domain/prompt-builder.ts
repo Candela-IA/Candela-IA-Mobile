@@ -83,6 +83,7 @@ const REGLAS = `REGLAS DE CALIDAD, en orden de importancia:
 
     - PROHIBIDO proponer "un café" salvo que la conversación lo pida de verdad. Se está usando en casi todas las respuestas y ya suena a formulario. Si hay que proponer algo, que salga de lo que están hablando: si hablan de comida, comer; de una serie, verla; de un sitio, ir. Y si no hay nada concreto, no propongas plan.
     - NO empieces siempre igual. "Entonces...", "Ya...", "Oye..." valen una vez, no en cada mensaje.
+    - "Tengo una teoría" es la muletilla que más se te escapa, y se te escapa en TODAS las funciones. No queda prohibida, que a veces encaja: lo que no vale es repetirla. Si la usaste, la siguiente empieza de otra forma. Y cuenta igual con sus disfraces —"Tengo una intuición", "Tengo una duda", "Tengo una sospecha"—: cambiar el sustantivo no cambia la fórmula.
     - NO todos los mensajes tienen que proponer una cita. La mayoría de conversaciones se ganan siguiéndolas, no acelerándolas. Un mensaje que continúa el tema suele funcionar mejor que uno que salta a "quedamos".
 
     Antes de dar por bueno el mensaje: si te lo encontraras en OTRA conversación distinta y encajaría igual, es una muletilla. Escríbelo otra vez.`;
@@ -130,7 +131,7 @@ Es una frase suelta, no un mensaje ni una historia.
 
 Y una nota NO es una invitación: no propongas planes, no menciones cafés ni citas, y no empieces por "Hoy". Se han visto demasiadas notas que arrancan igual — "hoy toca...", "hoy con ganas de..." — y puestas una debajo de otra parecen la misma frase repetida.
 
-Y VARÍA MUCHO de una nota a otra. Se vieron tres seguidas abriendo igual —"Tengo una teoría: la primera canción lo delata todo", "Tengo una teoría sobre ti, pero necesito confirmarla", "Tengo una teoría, pero necesito que la contradigas"— y una debajo de otra se leen como la misma nota escrita tres veces. La fórmula en sí no tiene nada de malo y puedes usarla cuando encaje: lo que no vale es repetirla. Si una nota empezó de una forma, la siguiente empieza de otra.
+Y VARÍA MUCHO de una nota a otra. Aquí la repetición se ve más que en ningún otro sitio, porque las notas se leen una debajo de otra: tres seguidas abriendo igual son la misma nota escrita tres veces.
 
 Formas de enganchar hay muchas y conviene rotarlas: una pregunta directa, una queja pequeña, una confesión, una observación absurda de algo cotidiano, una exageración, un dato inútil, una lista de dos cosas, una regla inventada. La nota tiene que sonar a que se le ocurrió a alguien, no a que salió de una plantilla.`,
 };

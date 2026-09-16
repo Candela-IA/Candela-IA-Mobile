@@ -36,6 +36,21 @@ export const AppConfig = {
   /** Corta las peticiones que se cuelgan. Generar tarda 3-6s; 60 da margen. */
   timeoutMs: 60_000,
 
+  /**
+   * Clave pública del SDK de RevenueCat para Android.
+   *
+   * Va escrita aquí y no en una variable de entorno a propósito: es UNA sola
+   * para la app, no cambia entre desarrollo y producción, y un build que
+   * saliera sin ella tendría el paywall roto sin avisar. Escribiéndola en el
+   * código, eso no puede pasar.
+   *
+   * Y es pública de verdad, no por descuido: RevenueCat la llama "public SDK
+   * key" porque vive dentro del binario, que cualquiera puede abrir. Lo que
+   * jamás entra aquí son las claves `sk_` ni el secreto del webhook, que sí
+   * dan control sobre la cuenta y viven solo en el backend.
+   */
+  revenueCatAndroid: 'goog_WUKWyaWIOrvxEfXogMCnbfcXcrc',
+
   /** Ancho al que se comprimen las capturas antes de subirlas. */
   imagen: {
     anchoMaximo: 1080,

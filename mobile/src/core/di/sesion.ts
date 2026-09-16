@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 import { create } from 'zustand';
 
 import { AppConfig } from '../../config/app_config';
+import { configurarPagos } from '../../features/premium/revenuecat';
 import { registrarDispositivo, SaldoApi } from '../api/candela';
 
 /**
@@ -96,6 +97,12 @@ export const useSesion = create<EstadoSesion>((set, get) => ({
 
     try {
       const deviceKey = await obtenerDeviceKey();
+
+      // RevenueCat se arranca con ESTA clave como identidad, no con un id
+      // anónimo suyo: el webhook que concede premium busca al usuario por
+      // ella. Va antes del registro y sin await bloqueante propio porque un
+      // fallo de la tienda no puede impedir que la app arranque.
+      void configurarPagos(deviceKey);
 
       const sesion = await registrarDispositivo({
         deviceKey,

@@ -136,6 +136,16 @@ el tráfico de la app.
 
 ## 6. Cerrar el webhook
 
+> ⚠️ **El nombre de la variable es `REVENUECAT_WEBHOOK_SECRET`**, en inglés
+> como todas las demás del proyecto. El 16 de septiembre de 2026 se puso en
+> Railway como `REVENUECAT_WEBHOOK_SECRETO` y el backend la leía vacía: el
+> guard rechazaba **todos** los webhooks con 401 mientras el panel mostraba la
+> variable ahí puesta. El síntoma habría sido el peor posible — la compra
+> cobra y el premium no se concede nunca — y el log decía "no está
+> configurado" contradiciendo lo que se veía en pantalla.
+>
+> Si el webhook devuelve 401, comprueba el NOMBRE antes que el valor.
+
 En Railway ya existe `REVENUECAT_WEBHOOK_SECRET` con un valor generado. Falta
 llevarlo al otro lado:
 

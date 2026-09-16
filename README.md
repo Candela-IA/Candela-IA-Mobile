@@ -25,10 +25,11 @@ con 3 días de prueba.
 > banco de frases y nunca toca el saldo. O sea, 18 generaciones gratis por
 > semana y por dispositivo, no 24.
 
-> ⚠️ Estos son los precios del diseño de Figma, y son los que están en el
-> código (`mobile/src/features/premium/planes.ts`). Una versión anterior de
-> este documento decía $32.99 / $4.40 — **falta confirmar con el cliente cuál
-> es el bueno**. El precio definitivo lo fija la ficha del producto en las
+> ✅ **Confirmados por el cliente el 13 de septiembre de 2026**, después de
+> meses con tres versiones distintas dando vueltas ($39.99/$4.99 y
+> $32.99/$4.40 fueron las otras dos). El plan corto es **semanal**, no
+> mensual: se preguntó expresamente, porque entre una cosa y otra van $338 o
+> $78 al año. El precio que se cobra lo fija la ficha del producto en las
 > tiendas, no la app.
 
 ### Las cuatro funciones

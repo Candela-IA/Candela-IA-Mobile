@@ -83,19 +83,27 @@ Dos suscripciones, con estos IDs **exactos** — están escritos en
 `src/features/premium/planes.ts` y si no coinciden, la compra falla en
 silencio:
 
-| ID del producto | Periodo | Precio de referencia |
+| ID del producto | Periodo | Precio |
 |---|---|---|
-| `candela_premium_anual` | 1 año | $39.99 |
-| `candela_premium_semanal` | 1 semana | $4.99 |
+| `candela_premium_anual` | 1 año | **$32.50** |
+| `candela_premium_semanal` | **1 semana** | **$6.50** |
 
 Las dos con **3 días de prueba gratuita**, como dice el diseño.
 
-> ⚠️ El precio real lo fija la ficha del producto, no la app. Los números de
+Precios **confirmados por el cliente el 13 de septiembre de 2026**, después
+de meses de tres versiones distintas dando vueltas. El plan corto es
+**semanal**, no mensual: se preguntó expresamente porque la diferencia entre
+una cosa y otra son $338 o $78 al año.
+
+> ⚠️ El periodo de facturación de una suscripción **no se puede cambiar**
+> una vez creada en Play Console. Si se crea semanal y resulta que era
+> mensual, hay que crear otro producto y jubilar el primero. Revisar ese
+> campo dos veces antes de guardar.
+
+> El precio real lo fija la ficha del producto, no la app. Los números de
 > `planes.ts` son provisionales y sirven para maquetar: en cuanto RevenueCat
 > esté conectado, se reemplazan por los que devuelve la tienda, que además
-> vienen ya convertidos a la moneda de cada usuario. Y sigue pendiente
-> confirmar con el cliente si son $39.99/$4.99 o los $32.99/$4.40 de una
-> versión anterior del README.
+> vienen ya convertidos a la moneda de cada usuario.
 
 ---
 

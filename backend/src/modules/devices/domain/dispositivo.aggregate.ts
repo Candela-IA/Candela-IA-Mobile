@@ -36,11 +36,23 @@ export enum EstadoSuscripcion {
  *
  * CANCELLED también cuenta mientras no venza: canceló la renovación, pero
  * pagó hasta cierta fecha y le corresponde usarlo hasta ahí.
+ *
+ * BILLING_ISSUE cuenta, y es el menos obvio de los tres. Google da un
+ * PERÍODO DE GRACIA —14 días, configurado en la ficha de la suscripción—
+ * durante el cual sigue reintentando el cobro y el usuario sigue siendo
+ * suscriptor a todos los efectos. Sin esta línea, a quien se le caduca la
+ * tarjeta le quitábamos premium el mismo día: convertir un problema de
+ * tarjeta en una cancelación, y encima a alguien que ya venía pagando.
+ *
+ * No regala nada, porque la fecha manda igual: `esPremium` exige además que
+ * la suscripción no haya vencido, y cuando la gracia se agota sin cobrar,
+ * RevenueCat deja de extender esa fecha y el acceso se cae solo.
  */
 const ESTADOS_CON_ACCESO = new Set([
   EstadoSuscripcion.ACTIVE,
   EstadoSuscripcion.TRIAL,
   EstadoSuscripcion.CANCELLED,
+  EstadoSuscripcion.BILLING_ISSUE,
 ]);
 
 export interface DatosSuscripcion {

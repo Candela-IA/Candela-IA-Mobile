@@ -1,4 +1,5 @@
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
 import { AppConfig } from '../../config/app_config';
 
@@ -48,9 +49,44 @@ function cargar(): ModuloPurchases | null {
   }
 }
 
+/**
+ * La clave pública que le toca a esta plataforma, o `null` si no hay.
+ *
+ * Se exporta suelta y recibe la plataforma por parámetro para poder probarla
+ * sin simular un teléfono entero: es la decisión que, mal tomada, deja el
+ * paywall sin cobrar en una tienda y nadie lo nota hasta que alguien intenta
+ * pagar.
+ *
+ * iOS devuelve `null` a propósito mientras no exista la cuenta de Apple del
+ * cliente: RevenueCat genera la clave `appl_` al dar de alta la app en App
+ * Store Connect, y hasta entonces no hay ninguna que poner. Ver
+ * `AppConfig.revenueCat.ios`.
+ */
+export function claveDeTienda(plataforma: string): string | null {
+  if (plataforma === 'android') return AppConfig.revenueCat.android;
+  if (plataforma === 'ios') return AppConfig.revenueCat.ios;
+
+  // Web y cualquier cosa que venga después. No hay tienda que valga.
+  return null;
+}
+
+/**
+ * El módulo, pero solo si además hay clave para esta plataforma.
+ *
+ * Sin clave, el SDK está ahí pero nunca se configuró, y pedirle una compra
+ * lanza un error del que no se puede decir nada útil al usuario. Tratarlo
+ * como "aquí no se puede comprar" es más honesto y ya tiene su aviso hecho.
+ */
+function tienda(): ModuloPurchases | null {
+  const rc = cargar();
+  if (!rc) return null;
+
+  return claveDeTienda(Platform.OS) ? rc : null;
+}
+
 /** ¿Se puede comprar en este build? */
 export function pagosDisponibles(): boolean {
-  return cargar() !== null;
+  return tienda() !== null;
 }
 
 /**
@@ -68,9 +104,24 @@ export async function configurarPagos(deviceKey: string): Promise<void> {
   const rc = cargar();
   if (!rc || configurado) return;
 
+  const clave = claveDeTienda(Platform.OS);
+
+  if (!clave) {
+    // Hoy es el caso de iOS: el build lleva el SDK dentro, pero la clave de
+    // Apple no existe hasta que exista la cuenta del cliente. Se avisa en
+    // desarrollo porque desde fuera esto se ve igual que un build sin tienda,
+    // y es la diferencia entre "aquí no se puede comprar" y "falta un dato".
+    if (AppConfig.esDesarrollo) {
+      console.warn(
+        `[pagos] No hay clave de RevenueCat para ${Platform.OS}: el paywall no podrá cobrar`,
+      );
+    }
+    return;
+  }
+
   try {
     await rc.default.configure({
-      apiKey: AppConfig.revenueCatAndroid,
+      apiKey: clave,
       appUserID: deviceKey,
     });
     configurado = true;
@@ -101,7 +152,7 @@ export type ResultadoCompra =
 export async function comprarPlan(
   productoTienda: string,
 ): Promise<ResultadoCompra> {
-  const rc = cargar();
+  const rc = tienda();
   if (!rc) return { estado: 'sin_tienda' };
 
   try {
@@ -139,7 +190,7 @@ export async function comprarPlan(
 
 /** Devuelve la suscripción a quien ya pagó y cambió de teléfono. */
 export async function restaurarCompras(): Promise<ResultadoCompra> {
-  const rc = cargar();
+  const rc = tienda();
   if (!rc) return { estado: 'sin_tienda' };
 
   try {

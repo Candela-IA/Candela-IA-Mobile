@@ -37,19 +37,33 @@ export const AppConfig = {
   timeoutMs: 60_000,
 
   /**
-   * Clave pública del SDK de RevenueCat para Android.
+   * Claves públicas del SDK de RevenueCat, UNA POR TIENDA.
    *
-   * Va escrita aquí y no en una variable de entorno a propósito: es UNA sola
-   * para la app, no cambia entre desarrollo y producción, y un build que
-   * saliera sin ella tendría el paywall roto sin avisar. Escribiéndola en el
-   * código, eso no puede pasar.
+   * Van escritas aquí y no en variables de entorno a propósito: son una por
+   * plataforma, no cambian entre desarrollo y producción, y un build que
+   * saliera sin la suya tendría el paywall roto sin avisar. Escribiéndolas
+   * en el código, eso no puede pasar.
    *
-   * Y es pública de verdad, no por descuido: RevenueCat la llama "public SDK
-   * key" porque vive dentro del binario, que cualquiera puede abrir. Lo que
-   * jamás entra aquí son las claves `sk_` ni el secreto del webhook, que sí
-   * dan control sobre la cuenta y viven solo en el backend.
+   * Y son públicas de verdad, no por descuido: RevenueCat las llama "public
+   * SDK key" porque viven dentro del binario, que cualquiera puede abrir. Lo
+   * que jamás entra aquí son las claves `sk_` ni el secreto del webhook, que
+   * sí dan control sobre la cuenta y viven solo en el backend.
+   *
+   * **No son intercambiables.** Arrancar el SDK en un iPhone con la clave
+   * `goog_` no da un aviso: da un paywall que no cobra.
    */
-  revenueCatAndroid: 'goog_WUKWyaWIOrvxEfXogMCnbfcXcrc',
+  revenueCat: {
+    android: 'goog_WUKWyaWIOrvxEfXogMCnbfcXcrc',
+
+    /**
+     * TODO(ios): la genera RevenueCat al dar de alta la app de App Store, y
+     * para eso hace falta la cuenta de Apple Developer del cliente. Mientras
+     * siga en `null`, `revenuecat.ts` trata iOS como un build sin tienda: el
+     * paywall dice "Pagos no disponibles aquí", que es la verdad, en vez de
+     * reventar a mitad de una compra.
+     */
+    ios: null as string | null,
+  },
 
   /** Ancho al que se comprimen las capturas antes de subirlas. */
   imagen: {

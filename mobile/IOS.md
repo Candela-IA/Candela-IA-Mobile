@@ -7,15 +7,86 @@
 
 ## Lo esencial, en treinta segundos
 
-- **No hace falta un Mac.** EAS compila para iPhone desde Windows.
-- **No hay que reprogramar nada ya.** El código corre ahora en Android
-  funciona en iOS; ya está configurado.
+- **No hace falta un Mac.** EAS compila para iPhone desde Windows. Y si lo
+  hay, el simulador sale gratis: ver la **Parte 0**.
+- **Queda una cosa por programar: los pagos.** Todo lo demás que corre hoy en
+  Android funciona en iOS tal cual y ya está configurado. Pero RevenueCat
+  necesita la clave de Apple, y esa no existe hasta que exista la cuenta del
+  cliente.
 - **No se puede convertir el APK.** Son sistemas incompatibles, y aunque no
   lo fueran, iOS solo ejecuta apps firmadas por Apple.
 - **El único requisito real son 99 USD al año** de la cuenta de Apple
   Developer, y son del cliente.
 - Sin pagar, hay **dos formas de verla** — con límites, pero suficientes para
   decidir.
+
+---
+
+# PARTE 0 · Si hay un Mac a mano
+
+Desde septiembre de 2026 lo hay, así que esto es lo primero que conviene
+hacer: **no necesita la cuenta de Apple y no cuesta nada.**
+
+## Qué desbloquea, y qué no
+
+| Con el Mac ya se puede | Sigue necesitando los 99 USD |
+|---|---|
+| El simulador de iOS, gratis e ilimitado | TestFlight |
+| Un build nativo local, que enseña lo que Expo Go tapa | Tenerla en un iPhone más de 7 días |
+| Iterar en minutos, sin cola de EAS | **Comprobar que el cobro funciona** |
+
+Lo último es el límite de verdad: Apple IAP solo responde si la app viene de
+la tienda, igual que Google Play Billing. En el simulador el paywall se abre
+y no cobra, y así seguirá hasta TestFlight.
+
+## Los pasos
+
+1. **Xcode** desde el App Store. Son ~17 GB, así que déjalo bajando mientras
+   haces otra cosa. Hace falta **Xcode 16 o superior** para el SDK 54 y
+   React Native 0.81.
+2. `xcode-select --install`, para las herramientas de línea de comandos.
+3. Clonar el repositorio y, dentro de `mobile/`, `npm install`. Hace falta
+   **Node 20 o superior**; en la laptop de Windows corre el 24.
+4. **Crear `mobile/.env`** apuntando al backend de Railway:
+
+   ```
+   EXPO_PUBLIC_API_URL=https://candela-ia-mobile-production.up.railway.app/api/v1
+   ```
+
+   Sin eso, la app busca el backend en la IP local del Mac, donde no hay
+   nada escuchando. El `.env` no viaja en el repositorio a propósito: cada
+   máquina decide con qué backend habla.
+5. Y ya:
+
+   ```bash
+   npx expo run:ios
+   ```
+
+   La primera vez hace el prebuild, instala los pods y compila, así que
+   tarda. Las siguientes son segundos.
+
+## Qué mirar, que es justo lo que Expo Go tapa
+
+- **Dynamic Island y áreas seguras**: el hero del inicio es lo primero que se
+  mete debajo.
+- **El teclado** tapando el campo de contexto en Analizar chat.
+- **El selector de fotos** con su texto de permiso, el que tiene que pasar
+  revisión.
+- **Las fuentes y el icono.**
+- **El gesto de volver** deslizando desde el borde, que en iOS es nativo y en
+  Android se desactivó a propósito.
+- **El paywall**, que hoy dirá "Pagos no disponibles aquí" — correcto
+  mientras no exista la clave de Apple.
+
+> ⚠️ **La carpeta `ios/` que aparece al correr ese comando no se sube.** Ya
+> está en el `.gitignore` y tiene que seguir ahí: si se commiteara, EAS la
+> usaría en vez de regenerarla desde `app.json`, y los cambios de icono o de
+> permisos dejarían de aplicarse sin decir nada.
+
+> **Los builds de tienda siguen saliendo de EAS, no del Mac.** Local para
+> iterar, EAS para publicar. Las firmas viven en la cuenta de Expo del
+> cliente, y repartirlas entre una laptop y la nube es exactamente cómo se
+> acaba perdiendo una.
 
 ---
 
@@ -174,6 +245,26 @@ fueron corrigiendo en Android.
 
 ---
 
+## Los pagos en iOS: lo único que sí es programar
+
+El resto del código ya sirve; esto no. Nada de esta tabla se puede empezar
+antes de la cuenta de Apple, porque todo cuelga de ella.
+
+| Qué | Quién | Nota |
+|---|---|---|
+| La clave `appl_` de RevenueCat | Sebastián | La genera RevenueCat al dar de alta la app de App Store. Va en `AppConfig.revenueCat.ios`, hoy `null` a propósito |
+| Las dos suscripciones en App Store Connect | Cliente + Sebastián | Con los **mismos IDs** que en Google: `candela_premium_anual` y `candela_premium_semanal`. El código busca por ese identificador |
+| El *App-Specific Shared Secret* de Apple | Cliente | RevenueCat lo necesita para validar los recibos. Es secreto: va en el panel de RevenueCat, nunca dentro de la app |
+| El webhook | — | **No hay que montar otro.** RevenueCat manda los eventos de las dos tiendas al mismo `/api/v1/webhooks/revenuecat` que ya existe |
+
+Mientras `AppConfig.revenueCat.ios` siga en `null`, el iPhone se comporta
+como un build sin tienda: el paywall se abre, se ve entero, y al tocar un
+plan dice "Pagos no disponibles aquí". Es deliberado. La alternativa —
+arrancar el SDK con la clave `goog_` porque es la que hay— no falla al
+compilar ni al instalar: falla el día del lanzamiento, cobrando a nadie.
+
+---
+
 # PARTE 3 · Lo que no se puede hacer, y por qué
 
 **Convertir el APK a iPhone.** Un APK lleva código compilado para el runtime
@@ -244,3 +335,5 @@ funciones, no solo el logo.
 | Permiso de fotos | Con su texto explicativo, obligatorio para pasar revisión |
 | Cifrado declarado | Evita la pregunta de Apple en cada subida |
 | Las cuatro funciones, diseño y backend | El 95% del trabajo, ya hecho |
+| Restaurar compras | Hecho, y Apple lo exige por la guía 3.1.1 |
+| Los pagos | ⚠️ **Lo único que falta**: la clave de Apple y sus productos. Ver la sección de arriba |

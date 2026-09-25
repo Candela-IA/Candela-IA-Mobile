@@ -3,7 +3,7 @@
 > **Estado del proyecto y documento de continuidad.** Si retomas el trabajo
 > en una conversación nueva, empieza leyendo esto.
 
-**Última actualización:** 21 de septiembre de 2026
+**Última actualización:** 25 de septiembre de 2026
 
 ---
 
@@ -346,13 +346,13 @@ Prisma — son reglas de negocio puras y testeables solas.
 |---|---|---|
 | 🔴 | **Que el cliente ponga método de pago en Railway** | Cuando se agote el trial, el backend se apaga y la app deja de responder para todos — el APK y el AAB apuntan ahí. Es lo único del proyecto con cuenta atrás |
 | 🔴 | **Que el cliente configure el webhook en el panel de RevenueCat** | El secreto ya está en Railway; falta pegarlo en el panel junto con la URL `/api/v1/webhooks/revenuecat`. Sin eso, en la prueba cerrada los testers pagan y el premium no llega nunca, y parece que la app está rota. Cuidado con el NOMBRE de la variable: la trampa está documentada en [`mobile/PAGOS.md`](mobile/PAGOS.md) |
-| 🔴 | **La prueba cerrada en Play** | El AAB `versionCode 4` se construyó y entregó el 17 de septiembre de 2026 (el 3 ya estaba usado por la prueba interna). Si la cuenta de Play es personal, la prueba cerrada exige **12 testers dentro durante 14 días seguidos** antes de poder pedir producción, y el contador se reinicia si bajan de 12 |
+| 🔴 | **La prueba cerrada, en marcha** | Arrancó el **25 de septiembre de 2026** con el AAB `versionCode 4`. La cuenta de Play del cliente es **personal**, así que los 12 testers durante 14 días seguidos son obligatorios: los cumple alrededor del **9 de octubre**, y solo entonces se puede *solicitar* acceso a producción. El contador se reinicia si bajan de 12. Esos 14 días son además la única ventana para probar el cobro sin usuarios reales |
 | 🟡 | Crear las dos suscripciones en Play Console | Con los IDs exactos de `planes.ts`, y ojo al periodo: una vez creada, la facturación de una suscripción no se puede cambiar. Depende del perfil de pagos del cliente, que Google tarda días en verificar. Paso a paso en [`mobile/PAGOS.md`](mobile/PAGOS.md) |
 | 🟡 | Renombrar el repo a `Candela-IA` | Se llama `-Mobile` pero tiene backend + mobile |
 | 🟡 | Revisar los precios de GPT-5.6 Luna | OpenAI anunció una bajada del 80%. Los precios están escritos a mano en `openai.provider.ts`; si están desfasados, la columna `costUsd` lleva anotando de más |
 | 🟢 | Capturas de prueba de verdad | `capturas/chat/` y `capturas/stories/` tienen la MISMA imagen en `.jpg`, `.png` y `.webp`, así que cada lote paga tres veces por la misma conversación. Cambiarlas por tres conversaciones distintas mediría variedad en vez de formatos |
 | 🟢 | Historial | Se quitó de la barra; decidir dónde va |
-| 🟢 | Llevarlo a iPhone | **Ya corre**: probada en el simulador el 25 de septiembre de 2026, sin un solo ajuste de diseño (Parte 0 de [`mobile/IOS.md`](mobile/IOS.md)). Lo que falta no es código: son los 99 USD al año de la cuenta de Apple, sin los cuales no hay TestFlight, ni iPhone de verdad, ni forma de probar el cobro. Y con esa cuenta viene la clave `appl_` de RevenueCat |
+| 🟡 | Llevarlo a iPhone | El cliente abre la cuenta de Apple el **26 de septiembre de 2026**, así que esto deja de estar parado. **Ya corre**: probada en el simulador el 25 de septiembre de 2026, sin un solo ajuste de diseño (Parte 0 de [`mobile/IOS.md`](mobile/IOS.md)). Lo que falta no es código: son los 99 USD al año de la cuenta de Apple, sin los cuales no hay TestFlight, ni iPhone de verdad, ni forma de probar el cobro. Y con esa cuenta viene la clave `appl_` de RevenueCat. Las respuestas de la revisión —etiqueta de privacidad, clasificación por edad y las notas para el revisor— están escritas de antemano en la Parte 4 de ese mismo documento |
 | 🟢 | Reporte de fallos (Sentry) | El `ErrorBoundary` ya está; falta la cuenta y diez líneas |
 | 🟢 | `avatar-nota.webp` pesa 780 KB | Los PNG ya se optimizaron con `scripts/optimizar-imagenes.js`, que no sabe de WebP. Este va a mano por squoosh.app |
 

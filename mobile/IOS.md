@@ -310,7 +310,7 @@ viene de la tienda. Igual que Google Play Billing.
 
 ---
 
-# PARTE 4 · Dónde puede rechazarla Apple
+# PARTE 4 · La revisión de Apple, contestada de antemano
 
 Google revisa casi en automático; Apple pone a una persona. Por orden de
 riesgo para esta app:
@@ -337,7 +337,148 @@ funciones, no solo el logo.
 
 ---
 
+## La etiqueta de privacidad, campo por campo
+
+Se rellena en App Store Connect y es donde más se improvisa, porque son
+veinte casillas y ninguna explica qué pasa si te equivocas. Declarar de menos
+es motivo de rechazo; declarar de más asusta al usuario en la ficha sin
+motivo. Esto es lo que corresponde a esta app:
+
+| Dato | ¿Se recoge? | Categoría de Apple | Uso | ¿Ligado a la identidad? |
+|---|---|---|---|---|
+| El identificador del dispositivo | Sí | Identifiers → User ID | Funcionalidad de la app | Sí |
+| Estado de la suscripción | Sí | Purchases | Funcionalidad de la app | Sí |
+| Qué función y qué tono se usó | Sí | Usage Data → Product Interaction | Funcionalidad y analítica | Sí |
+| La captura que sube el usuario | **Ver abajo** | User Content → Photos or Videos | Funcionalidad de la app | No |
+| Nombre, correo, teléfono, ubicación, contactos | **No** | — | — | — |
+
+**En las cuatro últimas filas está la ventaja de esta app, y conviene no
+desaprovecharla**: no hay login, así que no hay correo ni nombre que declarar.
+Eso en la ficha se ve, y en una app de ligar se agradece.
+
+### La casilla discutible: la captura
+
+El backend **no guarda la imagen ni el texto de la conversación** — solo
+anota función, tono, tokens, costo y latencia. Con ese criterio se podría
+defender que no hay nada que declarar, porque Apple pide declarar lo que se
+recoge y retiene.
+
+Pero la imagen **sí sale del teléfono**: viaja al backend y de ahí a OpenAI.
+Recomiendo declararla igualmente, como *User Content → Photos or Videos*, uso
+"Funcionalidad de la app", **no ligada a la identidad y no usada para
+seguimiento**, y explicar en las notas del revisor que se procesa y se
+descarta. Cuesta una casilla y cierra la discusión antes de que empiece.
+
+Al revés —no declararla y que el revisor vea salir una imagen en el tráfico—
+es de los rechazos más caros, porque ya no discutes sobre una casilla sino
+sobre tu credibilidad.
+
+---
+
+## La clasificación por edad
+
+Se saca de un cuestionario, no se elige a dedo. Las respuestas honestas para
+esta app:
+
+- **Temas sugerentes o para adultos**: sí, con moderación. Es una app de
+  ligar; el contenido es sugerente por definición, pero los prompts prohíben
+  lo vulgar y lo sexual explícito.
+- **Contenido sexual o desnudos**: no.
+- **Violencia, drogas, juego, alcohol, lenguaje soez**: no.
+- **Contenido generado por IA sin filtrar**: no — ver la sección siguiente.
+
+Con eso sale la categoría de adultos que le toque (Apple cambió la escala en
+2025, así que el número exacto lo dirá el cuestionario). **No lo bajes a mano
+para ampliar público**: una clasificación por debajo de lo que la app enseña
+es causa de retirada, y es lo primero que mira un revisor en una app de
+citas.
+
+
+---
+
+## Las notas para el revisor
+
+Es el campo *App Review Information → Notes*, y es el que más rechazos evita
+por lo poco que cuesta. Va en inglés: no porque lo exijan, sino porque no
+sabes a quién le toca y un revisor que no entiende algo no pregunta, rechaza.
+
+**El motivo número uno de rechazo automático en apps así es que el revisor no
+consigue entrar.** Esta no tiene login, y hay que decírselo — si no, busca
+credenciales, no las encuentra y la devuelve sin llegar a abrirla.
+
+Para pegar tal cual:
+
+```
+This app does not require an account. There is no login, so no demo
+credentials are needed — just open it.
+
+What it does: the user picks one of four features, optionally adds a
+screenshot of a chat or an Instagram story, chooses a tone, and the app
+returns one suggested message to copy. It is a writing assistant, not a
+social network: there is no user-to-user content, no profiles and no feed.
+
+To reach the paywall: Settings → Premium, or use up the free generations
+(6 per feature per week, no account needed).
+
+Screenshots: the image is sent to our backend, used to generate the reply,
+and discarded. We never store the image or the conversation text — only the
+feature, tone, token count, cost and latency.
+
+Content safeguards: the model is instructed to refuse vulgar or sexually
+explicit output, and never to suggest ways to insist with someone who has
+shown disinterest.
+
+To report inappropriate output: Settings → Contact us, which opens an email
+to our support address.
+
+Terms: https://candela-ia.vercel.app/terminos-de-uso
+Privacy: https://candela-ia.vercel.app/politica-de-privacidad
+```
+
+---
+
+## Las tres guías que aplican, contestadas
+
+### 1.2 — Contenido generado
+
+La que más se teme y la que menos aplica aquí, **pero hay que saber
+argumentarla**: la guía 1.2 habla de contenido *generado por usuarios* —
+feeds, perfiles, mensajes entre personas. En Candela no hay nada de eso: el
+mensaje lo genera el modelo, para una sola persona, y no lo ve nadie más.
+
+Lo que sí piden en apps con IA, y lo que hay que enseñar que existe:
+
+| Piden | Qué contestar |
+|---|---|
+| Filtrado de contenido ofensivo | Está en el prompt: prohibido lo vulgar y lo sexual explícito, y la regla 7 impide sugerir formas de insistirle a alguien que mostró desinterés |
+| Una vía para reportar | Ajustes → Contáctanos, que abre el correo |
+| Bloquear usuarios abusivos | No aplica: no hay usuarios que interactúen entre sí |
+
+> **Si el revisor insiste** en un botón de reportar dentro de la pantalla del
+> resultado, es media tarde de trabajo: una acción más junto a "Copiar" que
+> abra el correo con la respuesta generada ya puesta en el cuerpo. No lo
+> hagas por adelantado —añade ruido a una pantalla cuidada— pero tenlo
+> pensado para no improvisar con el reloj corriendo.
+
+### 3.1.1 — Suscripciones
+
+Ya cumple, y conviene saber por qué para no romperlo sin querer. Apple exige
+que en la pantalla de compra se vea: precio, duración, qué incluye, enlace a
+los términos y a la privacidad, y un **Restaurar compras**. El paywall tiene
+las cinco cosas, y los precios desde el 25 de septiembre los manda la tienda,
+así que coinciden con lo que se cobra.
+
+### 4.2 — Poco valor
+
+El rechazo más común en apps sencillas, y no se pelea con código sino con la
+ficha: **capturas reales de las cuatro funciones**, no el logo y dos
+pantallas bonitas. Una app que en la ficha solo enseña su marca parece una
+plantilla, y ahí es donde cae el 4.2.
+
+---
+
 # PARTE 5 · Qué hacer y en qué orden
+
 
 **Ahora, sin gastar nada:**
 

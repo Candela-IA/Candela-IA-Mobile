@@ -88,6 +88,36 @@ y no cobra, y así seguirá hasta TestFlight.
 > cliente, y repartirlas entre una laptop y la nube es exactamente cómo se
 > acaba perdiendo una.
 
+## ✅ Probado el 25 de septiembre de 2026
+
+Corrió en el simulador, y salió mejor de lo esperado: **el diseño no necesitó
+un solo ajuste.** Las cuatro funciones generan contra Railway igual que en
+Android, el onboarding y el inicio se ven bien, y el paywall responde "Pagos
+no disponibles aquí" al tocar un plan — o sea que la clave por tienda hace
+exactamente lo que se escribió para que hiciera, que hasta ese día era una
+suposición.
+
+El equipo: MacBook Pro 13" de 2019 (Intel, 8 GB), macOS Sequoia 15.7.7, con
+**Xcode 16.4** y el runtime de **iOS 18.6** ya instalados en esa máquina.
+
+**Y no hizo falta compilar nada localmente.** El camino que funcionó, y que es
+el que conviene repetir en un Intel con 8 GB:
+
+1. Desde Windows: `eas build --platform ios --profile ios-simulador`. Ocho
+   minutos.
+2. Abrir el enlace del artefacto en Safari, en el Mac. Safari descomprime el
+   `.tar.gz` solo y deja un `CandelaIA.app`.
+3. Arrastrarlo sobre la ventana del simulador, o
+   `xcrun simctl install booted ~/Downloads/CandelaIA.app`.
+
+### Tres tropiezos, por si vuelven
+
+| Síntoma | Causa |
+|---|---|
+| `xcodebuild: No developer tools were found`, con Xcode instalado y hasta abierto | Xcode no estaba en `/Applications` sino en el Escritorio, y las herramientas de línea de comandos no saben buscar fuera de la ruta por defecto. Se apunta a la real: `sudo xcode-select -s ~/Desktop/Xcode.app` |
+| `open -a Simulator` → `Unable to find application named 'Simulator'` | La misma causa: el Simulador vive dentro de `Xcode.app` y macOS no lo tiene registrado si Xcode está fuera de Aplicaciones. Se abre por ruta completa, o desde Xcode → Open Developer Tool → Simulator |
+| Doble clic en `CandelaIA.app` → "no es compatible con esta Mac" | **No es un error.** Es una app de iPhone: el Mac no puede ejecutarla, solo el simulador. Se instala en el simulador, no se abre desde el Finder |
+
 ---
 
 # PARTE 1 · Verla hoy, sin pagar nada

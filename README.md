@@ -267,6 +267,10 @@ Prisma — son reglas de negocio puras y testeables solas.
   Android está puesta; la de Apple es `null` hasta que exista la cuenta del
   cliente, y mientras tanto el iPhone se comporta como un build sin tienda en
   vez de arrancar el SDK con la clave de Google. Cuatro pruebas lo vigilan
+- **✅ Probada en el simulador de iOS** (25 de septiembre de 2026, Xcode 16.4
+  con iOS 18.6): las cuatro funciones generan contra Railway, el diseño no
+  necesitó un solo ajuste y el paywall degrada como debe. El detalle y los
+  tropiezos del camino, en la Parte 0 de [`mobile/IOS.md`](mobile/IOS.md)
 - **Ajustes** completo: Premium, Onboarding, Contáctanos (abre el correo),
   legal y Personalización, más la tarjeta de versión
 - **Enlaces legales** a los documentos publicados por el cliente:
@@ -348,7 +352,7 @@ Prisma — son reglas de negocio puras y testeables solas.
 | 🟡 | Revisar los precios de GPT-5.6 Luna | OpenAI anunció una bajada del 80%. Los precios están escritos a mano en `openai.provider.ts`; si están desfasados, la columna `costUsd` lleva anotando de más |
 | 🟢 | Capturas de prueba de verdad | `capturas/chat/` y `capturas/stories/` tienen la MISMA imagen en `.jpg`, `.png` y `.webp`, así que cada lote paga tres veces por la misma conversación. Cambiarlas por tres conversaciones distintas mediría variedad en vez de formatos |
 | 🟢 | Historial | Se quitó de la barra; decidir dónde va |
-| 🟢 | Llevarlo a iPhone | Ya hay un MacBook, así que el simulador y los builds locales no cuestan nada: ver la **Parte 0** de [`mobile/IOS.md`](mobile/IOS.md). Lo que sigue costando 99 USD al año es TestFlight, publicar y —lo que más importa— poder comprobar que el cobro funciona. Falta también la clave `appl_` de RevenueCat, que no existe hasta que exista la cuenta de Apple |
+| 🟢 | Llevarlo a iPhone | **Ya corre**: probada en el simulador el 25 de septiembre de 2026, sin un solo ajuste de diseño (Parte 0 de [`mobile/IOS.md`](mobile/IOS.md)). Lo que falta no es código: son los 99 USD al año de la cuenta de Apple, sin los cuales no hay TestFlight, ni iPhone de verdad, ni forma de probar el cobro. Y con esa cuenta viene la clave `appl_` de RevenueCat |
 | 🟢 | Reporte de fallos (Sentry) | El `ErrorBoundary` ya está; falta la cuenta y diez líneas |
 | 🟢 | `avatar-nota.webp` pesa 780 KB | Los PNG ya se optimizaron con `scripts/optimizar-imagenes.js`, que no sabe de WebP. Este va a mano por squoosh.app |
 

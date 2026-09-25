@@ -14,6 +14,7 @@ import {
   PLANES,
   porcentajeAhorro,
   precioComparado,
+  preciosMostrados,
 } from './planes';
 
 const ANUAL = PLANES.find((p) => p.id === 'ANUAL')!;
@@ -96,5 +97,85 @@ describe('precios del paywall', () => {
         expect(plan.productoTienda).toMatch(/^candela_premium_/);
       }
     });
+  });
+});
+
+/**
+ * De dónde sale el precio que se pinta.
+ *
+ * Aquí el riesgo no es que se vea feo, es que se vea un precio que no es el
+ * que se cobra: Google convierte a la moneda del país, y un paywall en
+ * dólares delante de un cobro en soles va contra la política de la tienda.
+ */
+describe('qué precio se enseña', () => {
+  const ANUAL_ID = ANUAL.productoTienda;
+  const SEMANAL_ID = SEMANAL.productoTienda;
+
+  const EN_SOLES = {
+    [ANUAL_ID]: { monto: 120, texto: 'S/ 120.00', moneda: 'PEN' },
+    [SEMANAL_ID]: { monto: 5, texto: 'S/ 5.00', moneda: 'PEN' },
+  };
+
+  describe('sin tienda', () => {
+    it('cae a los precios de respaldo, con su US$ aparte', () => {
+      const { ANUAL: anual } = preciosMostrados(null);
+
+      expect(anual.moneda).toBe('US$');
+      expect(anual.monto).toBe(formatearPrecio(ANUAL.precio));
+    });
+
+    it('el ahorro sigue saliendo de los dos precios fijos', () => {
+      const { ANUAL: anual } = preciosMostrados(null);
+
+      expect(anual.ahorro).toBe(porcentajeAhorro(ANUAL));
+    });
+  });
+
+  describe('con la tienda contestando', () => {
+    it('manda el texto de la tienda, y sin símbolo aparte', () => {
+      const { ANUAL: anual } = preciosMostrados(EN_SOLES);
+
+      // El símbolo va dentro del texto que da la tienda; ponerle otro
+      // delante dejaría "US$ S/ 120.00".
+      expect(anual.moneda).toBeNull();
+      expect(anual.monto).toBe('S/ 120.00');
+    });
+
+    it('el ahorro se recalcula con los precios reales, no con los fijos', () => {
+      const { ANUAL: anual } = preciosMostrados(EN_SOLES);
+
+      // 120 contra 5 × 52 = 260 son 54%, nada que ver con el 90% de los
+      // precios en dólares.
+      expect(anual.ahorro).toBe(54);
+      expect(anual.ahorro).not.toBe(porcentajeAhorro(ANUAL));
+    });
+
+    it('el tachado también va en la moneda del usuario', () => {
+      const { ANUAL: anual } = preciosMostrados(EN_SOLES);
+
+      expect(anual.comparado).toContain('260');
+      expect(anual.comparado).not.toContain('US$');
+    });
+
+    it('el plan semanal no se compara consigo mismo', () => {
+      const { SEMANAL: semanal } = preciosMostrados(EN_SOLES);
+
+      expect(semanal.comparado).toBeNull();
+      expect(semanal.ahorro).toBeNull();
+    });
+  });
+
+  it('si la tienda solo contesta por un plan, se usan los dos de respaldo', () => {
+    // Pasa de verdad mientras las suscripciones se crean una a una en la
+    // consola. Mezclar un precio real con uno inventado daría un porcentaje
+    // de ahorro que no le corresponde a nadie — y anunciar un descuento
+    // falso es motivo de rechazo en las tiendas.
+    const soloElAnual = { [ANUAL_ID]: EN_SOLES[ANUAL_ID] };
+
+    const { ANUAL: anual, SEMANAL: semanal } = preciosMostrados(soloElAnual);
+
+    expect(anual.moneda).toBe('US$');
+    expect(anual.monto).toBe(formatearPrecio(ANUAL.precio));
+    expect(semanal.monto).toBe(formatearPrecio(SEMANAL.precio));
   });
 });

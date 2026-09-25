@@ -36,6 +36,7 @@ import {
   VENTAJAS,
 } from '../src/features/premium/planes';
 import { usarCompra } from '../src/features/premium/usarCompra';
+import { usarPrecios } from '../src/features/premium/usarPrecios';
 
 const LOGO = require('../assets/logo-candela.png');
 
@@ -55,6 +56,7 @@ export default function Premium() {
 
   const esPremium = useSesion((estado) => estado.saldo?.esPremium ?? false);
   const { comprar, restaurar, abrirLegal, procesando } = usarCompra();
+  const precios = usarPrecios();
 
   const [seleccion, setSeleccion] = useState<IdPlan>(PLAN_POR_DEFECTO);
   // El pie es flotante, así que el scroll necesita saber cuánto mide para
@@ -136,6 +138,7 @@ export default function Premium() {
           <TarjetaPlan
             key={plan.id}
             plan={plan}
+            precio={precios[plan.id]}
             seleccionado={seleccion === plan.id}
             onSeleccionar={() => setSeleccion(plan.id)}
           />

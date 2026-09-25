@@ -2,6 +2,7 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 import { AppConfig } from '../../config/app_config';
+import type { PrecioTienda } from './planes';
 
 /**
  * LA TIENDA, AISLADA DEL RESTO DE LA APP.
@@ -134,6 +135,65 @@ export async function configurarPagos(deviceKey: string): Promise<void> {
   }
 }
 
+/**
+ * Todos los paquetes que ofrece la tienda, vengan de la oferta actual o de
+ * cualquier otra.
+ *
+ * Se miran las dos porque un producto puede quedar fuera de `current` según
+ * cómo esté armada la oferta en RevenueCat, y entonces el plan existe en la
+ * tienda pero la app juraría que no.
+ */
+async function paquetes(rc: ModuloPurchases) {
+  const ofertas = await rc.default.getOfferings();
+
+  return [
+    ...(ofertas.current?.availablePackages ?? []),
+    ...Object.values(ofertas.all).flatMap((o) => o.availablePackages),
+  ];
+}
+
+/**
+ * Lo que cuesta cada plan según la tienda, en la moneda del usuario.
+ *
+ * Es lo que evita que el paywall mienta: los números de `planes.ts` están en
+ * dólares y escritos a mano, mientras que Google y Apple cobran en la moneda
+ * del país y con el precio que el cliente puso en la ficha.
+ *
+ * Devuelve `null` si no hay tienda, y un mapa incompleto si algún producto no
+ * aparece —lo normal mientras las suscripciones aún no estén creadas en la
+ * consola—. Qué hacer con eso lo decide `preciosMostrados`.
+ */
+export async function preciosDeTienda(
+  identificadores: readonly string[],
+): Promise<Record<string, PrecioTienda> | null> {
+  const rc = tienda();
+  if (!rc) return null;
+
+  try {
+    const disponibles = await paquetes(rc);
+    const precios: Record<string, PrecioTienda> = {};
+
+    for (const id of identificadores) {
+      const paquete = disponibles.find((p) =>
+        p.product.identifier.startsWith(id),
+      );
+      if (!paquete) continue;
+
+      precios[id] = {
+        monto: paquete.product.price,
+        texto: paquete.product.priceString,
+        moneda: paquete.product.currencyCode,
+      };
+    }
+
+    return precios;
+  } catch {
+    // Quedarse sin precios de tienda no es algo que contarle al usuario: el
+    // paywall se dibuja igual con los de respaldo.
+    return null;
+  }
+}
+
 export type ResultadoCompra =
   | { estado: 'comprada' }
   /** Cerró la hoja de Google Play. No es un error y no se le avisa de nada. */
@@ -156,14 +216,7 @@ export async function comprarPlan(
   if (!rc) return { estado: 'sin_tienda' };
 
   try {
-    const ofertas = await rc.default.getOfferings();
-
-    const paquetes = [
-      ...(ofertas.current?.availablePackages ?? []),
-      ...Object.values(ofertas.all).flatMap((o) => o.availablePackages),
-    ];
-
-    const paquete = paquetes.find((p) =>
+    const paquete = (await paquetes(rc)).find((p) =>
       p.product.identifier.startsWith(productoTienda),
     );
 

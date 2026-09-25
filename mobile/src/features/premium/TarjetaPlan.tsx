@@ -10,15 +10,12 @@ import {
 } from '../../core/theme';
 import { IconoDegradado } from '../../core/ui/IconoDegradado';
 import { TarjetaGlass } from '../../core/ui/TarjetaGlass';
-import {
-  formatearPrecio,
-  Plan,
-  porcentajeAhorro,
-  precioComparado,
-} from './planes';
+import { Plan, PrecioMostrado } from './planes';
 
 interface Props {
   plan: Plan;
+  /** Ya resuelto por `preciosMostrados`: de la tienda, o de respaldo. */
+  precio: PrecioMostrado;
   seleccionado: boolean;
   onSeleccionar: () => void;
 }
@@ -35,9 +32,13 @@ interface Props {
  * respete las esquinas, así que una insignia dentro quedaría cortada por el
  * borde superior en vez de montarse encima.
  */
-export function TarjetaPlan({ plan, seleccionado, onSeleccionar }: Props) {
-  const ahorro = porcentajeAhorro(plan);
-  const comparado = precioComparado(plan);
+export function TarjetaPlan({
+  plan,
+  precio,
+  seleccionado,
+  onSeleccionar,
+}: Props) {
+  const { ahorro } = precio;
   const acento = TONOS[plan.tono];
 
   // La línea del ahorro encabeza la lista, pero solo si hay ahorro real.
@@ -93,16 +94,16 @@ export function TarjetaPlan({ plan, seleccionado, onSeleccionar }: Props) {
             ) : null}
 
             <View style={estilos.precio}>
-              <Text style={estilos.moneda}>US$</Text>
-              <Text style={estilos.monto}>{formatearPrecio(plan.precio)}</Text>
+              {precio.moneda ? (
+                <Text style={estilos.moneda}>{precio.moneda}</Text>
+              ) : null}
+              <Text style={estilos.monto}>{precio.monto}</Text>
             </View>
 
             <Text style={estilos.periodo}>{plan.periodo}</Text>
 
-            {comparado !== null ? (
-              <Text style={estilos.tachado}>
-                US$ {formatearPrecio(comparado)}
-              </Text>
+            {precio.comparado !== null ? (
+              <Text style={estilos.tachado}>{precio.comparado}</Text>
             ) : null}
           </View>
         </View>

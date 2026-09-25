@@ -100,29 +100,36 @@ una cosa y otra son $338 o $78 al año.
 > mensual, hay que crear otro producto y jubilar el primero. Revisar ese
 > campo dos veces antes de guardar.
 
-> El precio real lo fija la ficha del producto, no la app. Los números de
-> `planes.ts` son provisionales y sirven para maquetar: en cuanto RevenueCat
-> esté conectado, se reemplazan por los que devuelve la tienda, que además
-> vienen ya convertidos a la moneda de cada usuario.
+> El precio real lo fija la ficha del producto, no la app — y desde el 25 de
+> septiembre de 2026 el paywall ya lo pide a la tienda y lo pinta en la moneda
+> de cada usuario. Los números de `planes.ts` quedaron solo de respaldo, para
+> cuando no hay tienda a la que preguntar.
 
 ---
 
-## 5. Lo que toca programar (paso 3)
+## 5. Lo que tocaba programar (paso 3) — ✅ hecho
 
-El terreno está preparado: `usarCompra.ts` ya tiene la forma final, con los
-avisos donde irán las llamadas de verdad.
+El cobro se conectó el 16 de septiembre de 2026 y los precios el 25. Queda
+aquí lo que hay, porque son las decisiones que no se ven leyendo el código:
 
-```bash
-npx expo install react-native-purchases
-```
-
-Y luego, en `usarCompra.ts`:
-
-- `Purchases.configure()` con la clave pública de RevenueCat, usando como
-  **App User ID el mismo `deviceKey`** que ya identifica al dispositivo. Eso
-  es lo que permite que el webhook sepa a quién conceder premium.
-- `comprar()` → `Purchases.purchasePackage()`
-- `restaurar()` → `Purchases.restorePurchases()`
+- `react-native-purchases` vive aislado en `revenuecat.ts`. Es un módulo
+  nativo que en Expo Go no existe, así que se carga a demanda: si no está, la
+  app responde "Pagos no disponibles aquí" en vez de no arrancar.
+- `configure()` usa como **App User ID el mismo `deviceKey`** con el que el
+  dispositivo se registra en el backend. Si RevenueCat generara un id propio,
+  la compra llegaría a nombre de alguien que el backend no conoce y el premium
+  no se concedería nunca.
+- **Una clave por tienda.** La de Android está puesta; la de Apple es `null`
+  hasta que exista la cuenta del cliente, y mientras tanto iOS se comporta
+  como un build sin tienda.
+- `comprar()` y `restaurar()` sobre `purchasePackage()` y
+  `restorePurchases()`, con la cancelación tratada aparte: cerrar la hoja de
+  Google no es un fallo y no merece un aviso de error.
+- **Los precios los manda la tienda.** El paywall pide las ofertas y pinta
+  `priceString`, que llega en la moneda del usuario. O los dos planes salen
+  de la tienda o los dos del respaldo, nunca mezclados: el ahorro es un
+  cociente entre ambos, y cruzar un precio real con uno fijo anuncia un
+  descuento que no existe.
 
 **Premium NO se activa desde la app.** Se activa cuando RevenueCat avisa al
 backend por el webhook, que ya está escrito, probado y desplegado. La app

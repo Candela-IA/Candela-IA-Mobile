@@ -217,12 +217,35 @@ Dos decisiones que conviene tomar bien a la primera:
 - **Que la cuenta sea suya, no de Sebastián.** Igual que en Google: ahí va el
   dinero y ahí queda la propiedad de la app.
 
+> ✅ **Decidido el 25 de septiembre de 2026: va a su nombre**, como la de
+> Google Play. Sin D-U-N-S y sin esperas, la abre el 26. El precio de esa
+> decisión es que la ficha del App Store muestra su nombre real y completo, y
+> cambiarlo después no es editar un campo: es transferir la app a otra cuenta.
+
 > ⚠️ **Los 99 USD son recurrentes.** El día que se dejen de pagar, la app
 > desaparece del App Store aunque lleve años publicada y con miles de
 > usuarios. No es un pago de entrada, es una cuota.
 
 **2. Invitar a Sebastián** como *Developer* o *App Manager* desde
 App Store Connect → Users and Access. Eso da acceso técnico, nunca al dinero.
+
+**2 bis. Generar una App Store Connect API Key**, en *Users and Access →
+Integrations*, con permiso de App Manager.
+
+Esto no es un extra: la cuenta es **individual**, y ahí el reparto de
+permisos es más limitado que en una de empresa. Invitar a alguien a App Store
+Connect no le da lo que `eas build` necesita —generar certificados y
+perfiles—, que cuelga del titular. Sin la API key, el camino acaba siendo
+pedirle la contraseña de su Apple ID, y eso no debe pasar: es la llave de su
+cuenta entera, no de esta app.
+
+Con la key, Sebastián construye y sube a TestFlight sin tocar su contraseña,
+y el cliente la revoca el día que quiera. Tiene que pasar tres cosas: el
+archivo `.p8`, el **Key ID** y el **Issuer ID**.
+
+> ⚠️ **El `.p8` se descarga UNA sola vez.** Si se cierra esa ventana sin
+> guardarlo, no se recupera: hay que revocar la clave y generar otra.
+> Avisarle antes de que pulse el botón, no después.
 
 **3. Rellenar los datos bancarios y fiscales** en App Store Connect →
 Agreements, Tax and Banking. Como en Google: **esto no lo toca Sebastián

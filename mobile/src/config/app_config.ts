@@ -56,13 +56,16 @@ export const AppConfig = {
     android: 'goog_WUKWyaWIOrvxEfXogMCnbfcXcrc',
 
     /**
-     * TODO(ios): la genera RevenueCat al dar de alta la app de App Store, y
-     * para eso hace falta la cuenta de Apple Developer del cliente. Mientras
-     * siga en `null`, `revenuecat.ts` trata iOS como un build sin tienda: el
-     * paywall dice "Pagos no disponibles aquí", que es la verdad, en vez de
-     * reventar a mitad de una compra.
+     * Puesta el 3 de octubre de 2026, el día que el cliente dio de alta la
+     * app de App Store en RevenueCat.
+     *
+     * Hasta entonces fue `null` a propósito, y eso no era un hueco sin
+     * rellenar sino el comportamiento correcto: sin clave, `revenuecat.ts`
+     * trata iOS como un build sin tienda y el paywall dice "Pagos no
+     * disponibles aquí" — la verdad— en vez de arrancar el SDK con la clave
+     * de Google y romperse a mitad de una compra.
      */
-    ios: null as string | null,
+    ios: 'appl_jtnqHnJaXooTrljSrVvExNreSaA' as string | null,
   },
 
   /** Ancho al que se comprimen las capturas antes de subirlas. */

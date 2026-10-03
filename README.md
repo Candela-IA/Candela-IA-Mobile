@@ -3,7 +3,7 @@
 > **Estado del proyecto y documento de continuidad.** Si retomas el trabajo
 > en una conversación nueva, empieza leyendo esto.
 
-**Última actualización:** 25 de septiembre de 2026
+**Última actualización:** 3 de octubre de 2026
 
 ---
 
@@ -267,6 +267,9 @@ Prisma — son reglas de negocio puras y testeables solas.
   Android está puesta; la de Apple es `null` hasta que exista la cuenta del
   cliente, y mientras tanto el iPhone se comporta como un build sin tienda en
   vez de arrancar el SDK con la clave de Google. Cuatro pruebas lo vigilan
+- **📲 En TestFlight** (3 de octubre de 2026, build `1.0.0 (4)`): la app corre
+  en iPhone con el paywall conectado a la tienda de Apple. Falta la prueba de
+  compra con cuenta sandbox, que es lo que confirma el circuito entero
 - **✅ Probada en el simulador de iOS** (25 de septiembre de 2026, Xcode 16.4
   con iOS 18.6): las cuatro funciones generan contra Railway, el diseño no
   necesitó un solo ajuste y el paywall degrada como debe. El detalle y los
@@ -352,7 +355,7 @@ Prisma — son reglas de negocio puras y testeables solas.
 | 🟡 | Revisar los precios de GPT-5.6 Luna | OpenAI anunció una bajada del 80%. Los precios están escritos a mano en `openai.provider.ts`; si están desfasados, la columna `costUsd` lleva anotando de más |
 | 🟢 | Capturas de prueba de verdad | `capturas/chat/` y `capturas/stories/` tienen la MISMA imagen en `.jpg`, `.png` y `.webp`, así que cada lote paga tres veces por la misma conversación. Cambiarlas por tres conversaciones distintas mediría variedad en vez de formatos |
 | 🟢 | Historial | Se quitó de la barra; decidir dónde va |
-| 🟡 | Llevarlo a iPhone | El cliente abre la cuenta de Apple el **26 de septiembre de 2026**, así que esto deja de estar parado. **Ya corre**: probada en el simulador el 25 de septiembre de 2026, sin un solo ajuste de diseño (Parte 0 de [`mobile/IOS.md`](mobile/IOS.md)). Lo que falta no es código: son los 99 USD al año de la cuenta de Apple, sin los cuales no hay TestFlight, ni iPhone de verdad, ni forma de probar el cobro. Y con esa cuenta viene la clave `appl_` de RevenueCat. Las respuestas de la revisión —etiqueta de privacidad, clasificación por edad y las notas para el revisor— están escritas de antemano en la Parte 4 de ese mismo documento |
+| 🟢 | Llevarlo a iPhone — **en TestFlight** | Desde el 3 de octubre de 2026, con el paywall vivo. **Ya corría** antes: probada en el simulador el 25 de septiembre de 2026, sin un solo ajuste de diseño (Parte 0 de [`mobile/IOS.md`](mobile/IOS.md)). Lo que falta no es código: son los 99 USD al año de la cuenta de Apple, sin los cuales no hay TestFlight, ni iPhone de verdad, ni forma de probar el cobro. La cuenta de Apple se abrió el 26 de septiembre, la clave `appl_` está puesta y las dos suscripciones existen con su prueba de 3 días. **Lo único que falta es probar una compra con una cuenta sandbox.** Las respuestas de la revisión están escritas de antemano en la Parte 4 de [`mobile/IOS.md`](mobile/IOS.md) |
 | 🟢 | Reporte de fallos (Sentry) | El `ErrorBoundary` ya está; falta la cuenta y diez líneas |
 | 🟢 | `avatar-nota.webp` pesa 780 KB | Los PNG ya se optimizaron con `scripts/optimizar-imagenes.js`, que no sabe de WebP. Este va a mano por squoosh.app |
 

@@ -318,6 +318,43 @@ compilar ni al instalar: falla el día del lanzamiento, cobrando a nadie.
 
 ---
 
+## ✅ En TestFlight desde el 3 de octubre de 2026
+
+Lo que quedó configurado, para no volver a buscarlo:
+
+| | |
+|---|---|
+| Bundle | `com.candelaia.app` |
+| Apple Team ID | `RH8LS3HV52` |
+| ASC App ID | `6818646460` (en `eas.json`) |
+| Certificado de distribución | Caduca el **2 de octubre de 2027** |
+| Suscripciones | `candela_premium_anual` (1 año, $32.50) y `candela_premium_semanal` (1 semana, $6.50), las dos con prueba gratuita de 3 días, en el grupo `Candela Premium` |
+
+**Dos claves distintas, y confundirlas cuesta una tarde:**
+
+- `AuthKey_*.p8` — la **API de App Store Connect**. La usa EAS para construir y subir. Se genera en *Usuarios y acceso → Integraciones → API*.
+- `SubscriptionKey_*.p8` — la de **compra dentro de la app**. La usa RevenueCat para verificar transacciones. Se genera en *Usuarios y acceso → Integraciones → Compra dentro de la app*.
+
+Las dos se descargan **una sola vez**. Si se pierden, se revocan y se generan otras.
+
+> **Por qué `eas.json` lleva una ruta local al `.p8`.** El envío a TestFlight
+> necesita la clave, y las variables de entorno `EXPO_ASC_*` —que sí sirven
+> para construir— no la encuentran al enviar. La alternativa era subir la
+> clave a los servidores de Expo por un menú interactivo que se atascó dos
+> veces. La ruta apunta fuera del repositorio y el `.p8` nunca se sube; en
+> otra máquina habrá que ajustarla.
+
+### Trampas de esta parte
+
+| Síntoma | Causa |
+|---|---|
+| El primer build de iOS se niega en modo no interactivo | Crear el certificado de distribución y el perfil no se hace a ciegas. Hay que correr `eas build` una vez de forma interactiva; después vuelve a ser automático para siempre |
+| `eas submit` dice *"Something went wrong"* pero Apple **sí** recibió el build | Pasó el 2 de octubre. El error venía de un paso posterior a la transferencia. **Comprobar en App Store Connect antes de reintentar**: reintentar genera un segundo error, *"build number already used"*, que apunta al sitio equivocado |
+| `Build number N has already been used` | Apple exige números únicos dentro de cada versión. Si el build ya llegó, no hay que reenviarlo: hay que mirar si está arriba |
+| EAS pide el Apple ID y la contraseña al generar una API Key nueva | Apple no permite crear claves desde su propia API. Hay que contestar **no** a *"Generate a new API Key"* y darle la que ya existe |
+| El teclado deja de responder en los menús de EAS | Pasa en terminales integradas. Abrir una ventana de PowerShell suelta |
+
+
 # PARTE 3 · Lo que no se puede hacer, y por qué
 
 **Convertir el APK a iPhone.** Un APK lleva código compilado para el runtime

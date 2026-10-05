@@ -179,6 +179,30 @@ llamar a un módulo que no existe.
 Traducido: si el cambio es solo JavaScript, `eas update` y listo. Si tocaste
 algo nativo, EAS te obliga a hacer build, que es lo correcto.
 
+> ⚠️ **`eas.json` cuenta como código nativo.** Editarlo cambia el fingerprint
+> y **corta los updates de todo lo que ya está repartido**, aunque el cambio
+> no afecte a nada que corra en el teléfono.
+>
+> Pasó el 3 de octubre de 2026: se añadió el perfil de `submit` para poder
+> subir a TestFlight sin pelear con los menús interactivos, y el AAB que
+> tenían los 12 testers de la prueba cerrada se quedó sin poder recibir ni un
+> cambio de texto. El de iOS sí los recibe, porque se construyó después de esa
+> edición.
+>
+> Para saberlo antes de prometerle a nadie que el arreglo llega en minutos:
+>
+> ```bash
+> eas fingerprint:compare --build-id <id del build>
+> ```
+>
+> Compara el build con lo que hay en tu carpeta y **dice qué archivo movió el
+> hash**. En aquel caso contestó `modified file: eas.json` en dos segundos,
+> después de media hora de sospechar del código.
+>
+> Regla práctica: si hay builds repartidos y necesitas tocar `eas.json`,
+> hazlo **justo antes de construir el siguiente**, nunca en mitad de una
+> prueba.
+
 > ⚠️ El módulo de actualizaciones tiene que ir DENTRO del build. Un APK o AAB
 > construido antes de configurar esto **nunca podrá recibir updates**, por
 > mucho que publiques. De ahí que se montara antes de subir nada a la tienda.

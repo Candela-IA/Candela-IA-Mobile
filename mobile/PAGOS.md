@@ -85,8 +85,8 @@ silencio:
 
 | ID del producto | Periodo | Precio |
 |---|---|---|
-| `candela_premium_anual` | 1 año | **$32.50** |
-| `candela_premium_semanal` | **1 semana** | **$6.50** |
+| `candela_premium_anual` | 1 año | **$34.99** |
+| `candela_premium_semanal` | **1 semana** | **$6.99** |
 
 Las dos con **3 días de prueba gratuita**, como dice el diseño.
 

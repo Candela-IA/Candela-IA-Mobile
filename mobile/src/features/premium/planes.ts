@@ -64,7 +64,7 @@ const PLAN_ANUAL: Plan = {
   subtitulo: 'Máximo poder. Mejores resultados.',
   tono: 'rosa',
   icono: 'diamond',
-  precio: 32.5,
+  precio: 34.99,
   periodo: 'por año',
   semanasCubiertas: SEMANAS_POR_ANIO,
   ventajas: [
@@ -82,7 +82,7 @@ const PLAN_SEMANAL: Plan = {
   subtitulo: 'Flexibilidad para conquistar.',
   tono: 'purpura',
   icono: 'diamond',
-  precio: 6.5,
+  precio: 6.99,
   periodo: 'por semana',
   semanasCubiertas: 1,
   ventajas: [

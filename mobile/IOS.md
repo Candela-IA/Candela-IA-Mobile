@@ -328,7 +328,7 @@ Lo que quedó configurado, para no volver a buscarlo:
 | Apple Team ID | `RH8LS3HV52` |
 | ASC App ID | `6818646460` (en `eas.json`) |
 | Certificado de distribución | Caduca el **2 de octubre de 2027** |
-| Suscripciones | `candela_premium_anual` (1 año, $32.50) y `candela_premium_semanal` (1 semana, $6.50), las dos con prueba gratuita de 3 días, en el grupo `Candela Premium` |
+| Suscripciones | `candela_premium_anual` (1 año, $34.99) y `candela_premium_semanal` (1 semana, $6.99), las dos con prueba gratuita de 3 días, en el grupo `Candela Premium` |
 
 **Dos claves distintas, y confundirlas cuesta una tarde:**
 

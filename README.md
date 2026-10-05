@@ -3,7 +3,7 @@
 > **Estado del proyecto y documento de continuidad.** Si retomas el trabajo
 > en una conversación nueva, empieza leyendo esto.
 
-**Última actualización:** 3 de octubre de 2026
+**Última actualización:** 4 de octubre de 2026
 
 ---
 
@@ -17,7 +17,7 @@ Es un **encargo de un cliente externo**. Sebastián desarrolla; el cliente
 entrega el diseño (Figma) y pone las cuentas de infraestructura.
 
 **Modelo de negocio:** 6 generaciones gratis **por cada función**, que se
-renuevan cada semana → suscripción. Plan anual **$32.50** / semanal **$6.50**,
+renuevan cada semana → suscripción. Plan anual **$34.99** / semanal **$6.99**,
 con 3 días de prueba.
 
 > Son 6 en chats, 6 en Stories, 6 en notas y 6 en Rompehielos, pero **las que
@@ -25,9 +25,15 @@ con 3 días de prueba.
 > banco de frases y nunca toca el saldo. O sea, 18 generaciones gratis por
 > semana y por dispositivo, no 24.
 
-> ✅ **Confirmados por el cliente el 13 de septiembre de 2026**, después de
-> meses con tres versiones distintas dando vueltas ($39.99/$4.99 y
-> $32.99/$4.40 fueron las otras dos). El plan corto es **semanal**, no
+> ✅ **Subidos a petición del cliente el 4 de octubre de 2026**, desde los
+> $32.50/$6.50 que él mismo había confirmado el 13 de septiembre. Es el cuarto
+> precio del proyecto ($39.99/$4.99 y $32.99/$4.40 fueron los primeros), y
+> **el último que sale gratis cambiar**: con suscriptores de verdad, subir el
+> precio obliga a un flujo de consentimiento y acabas manteniendo varios
+> precios a la vez.
+>
+> Cambiarlo ya **no exige versión nueva**: el paywall le pregunta el precio a
+> la tienda desde el 3 de octubre. Se edita en las dos consolas y listo. El plan corto es **semanal**, no
 > mensual: se preguntó expresamente, porque entre una cosa y otra van $338 o
 > $78 al año. El precio que se cobra lo fija la ficha del producto en las
 > tiendas, no la app.

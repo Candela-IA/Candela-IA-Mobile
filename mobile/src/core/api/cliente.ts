@@ -19,6 +19,10 @@ export type CodigoError =
   | 'GENERACION_RECHAZADA'
   | 'GENERACION_FALLIDA'
   | 'GENERACION_A_TOPE'
+  | 'PROMPT_INVALIDO'
+  | 'TONO_NO_EDITABLE'
+  /** 401 del panel de administración: contraseña mala o sesión vencida. */
+  | 'NO_AUTORIZADO'
   | 'SIN_CONEXION'
   | 'DESCONOCIDO';
 
@@ -47,7 +51,7 @@ export class ErrorApi extends Error {
   }
 }
 
-type Metodo = 'GET' | 'POST' | 'PATCH' | 'DELETE';
+type Metodo = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 interface Opciones {
   metodo?: Metodo;
@@ -181,6 +185,17 @@ async function traducirRespuesta(respuesta: Response): Promise<ErrorApi> {
     if (typeof cuerpo?.mensaje === 'string') mensaje = cuerpo.mensaje;
     if (typeof cuerpo?.reintentable === 'boolean') reintentable = cuerpo.reintentable;
     if (typeof cuerpo?.reiniciaEn === 'string') reiniciaEn = cuerpo.reiniciaEn;
+
+    // Las excepciones propias de NestJS (las que usa el panel de
+    // administración) no traen `codigo` ni `mensaje`, sino `statusCode` y
+    // `message`. Son respuestas deliberadas del servidor, no una caída, así
+    // que no se reintentan: repetir una contraseña equivocada solo gastaría
+    // los intentos que el servidor permite por minuto.
+    if (typeof cuerpo?.statusCode === 'number' && cuerpo?.codigo === undefined) {
+      if (typeof cuerpo.message === 'string') mensaje = cuerpo.message;
+      if (respuesta.status === 401) codigo = 'NO_AUTORIZADO';
+      reintentable = false;
+    }
   } catch {
     // Respuesta sin JSON válido: nos quedamos con los valores por defecto.
   }

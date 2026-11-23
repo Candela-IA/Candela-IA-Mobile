@@ -132,6 +132,33 @@ enum Feature {
   CREAR_NOTAS
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// PROMPTS EDITADOS — lo que el cliente cambia desde el panel de la app
+// ─────────────────────────────────────────────────────────────────────────
+
+/// La instrucción de un tono, reescrita desde "Entrenar a la IA".
+///
+/// Solo existe la fila si alguien la cambió: el texto original sigue en
+/// `catalogo.ts`, y "Restaurar original" es borrar la fila. Así el código
+/// siempre tiene la versión buena de partida, y lo editado se puede
+/// deshacer sin desplegar nada.
+model ToneOverride {
+  id String @id @default(uuid())
+
+  feature Feature
+  tone    String  @db.VarChar(40)
+
+  /// Sustituye a `instruccion` del tono. Solo esa parte: las reglas de
+  /// fondo (ortografía, seguridad, no insistir) no se editan.
+  instruction String @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([feature, tone])
+  @@map("tone_overrides")
+}
+
 model Generation {
   id       String @id @default(uuid())
   deviceId String

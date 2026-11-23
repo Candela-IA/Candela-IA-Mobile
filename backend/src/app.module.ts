@@ -10,6 +10,7 @@ import { SaludController } from './shared/infrastructure/http/salud.controller';
 import { DevicesModule } from './modules/devices/devices.module';
 import { GenerationModule } from './modules/generation/generation.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { SubscriptionsModule } from './modules/subscriptions/subscriptions.modul
     DevicesModule,
     GenerationModule,
     SubscriptionsModule,
+    AdminModule,
   ],
   controllers: [SaludController],
   providers: [

@@ -62,6 +62,27 @@ export class TonoInvalidoError extends DomainError {
   }
 }
 
+/** Lo que se escribió en "Entrenar a la IA" no se puede guardar. */
+export class PromptInvalidoError extends DomainError {
+  readonly code = 'PROMPT_INVALIDO';
+}
+
+/**
+ * Ese tono no tiene prompt que editar: el Básico de Rompehielos sale del
+ * banco de frases y nunca llega a la IA, así que cambiarle la instrucción
+ * no cambiaría nada y solo confundiría a quien lo edita.
+ */
+export class TonoNoEditableError extends DomainError {
+  readonly code = 'TONO_NO_EDITABLE';
+
+  constructor(tono: string) {
+    super(
+      `"${tono}" no usa la IA: sale de un banco de frases escritas a mano, ` +
+        'así que no tiene instrucción que cambiar.',
+    );
+  }
+}
+
 /** Analizar chat y Analizar stories requieren imagen; las otras dos no. */
 export class ImagenRequeridaError extends DomainError {
   readonly code = 'IMAGEN_REQUERIDA';

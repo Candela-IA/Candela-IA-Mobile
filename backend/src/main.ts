@@ -89,6 +89,10 @@ function montarSwagger(app: INestApplication): void {
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
       'dispositivo',
     )
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      'admin',
+    )
     .build();
 
   const documento = SwaggerModule.createDocument(app, config);

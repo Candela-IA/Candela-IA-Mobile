@@ -5,6 +5,8 @@ import { AuthModule } from '../../shared/infrastructure/auth/auth.module';
 import { DevicesModule } from '../devices/devices.module';
 import { GenerarRespuestaUseCase } from './application/generar-respuesta.use-case';
 import { AI_PROVIDER, AiProvider } from './domain/ai-provider.port';
+import { PROMPTS_EDITADOS } from './domain/prompts-editados';
+import { PrismaPromptsEditadosRepository } from './infrastructure/prisma-prompts-editados.repository';
 import { MockAiProvider } from './infrastructure/mock.provider';
 import { OpenAiProvider } from './infrastructure/openai.provider';
 import { CatalogoController } from './infrastructure/http/catalogo.controller';
@@ -15,6 +17,7 @@ import { GenerarController } from './infrastructure/http/generar.controller';
   controllers: [CatalogoController, GenerarController],
   providers: [
     GenerarRespuestaUseCase,
+    { provide: PROMPTS_EDITADOS, useClass: PrismaPromptsEditadosRepository },
     /**
      * Único punto donde el proyecto decide con qué IA habla.
      *
@@ -38,5 +41,8 @@ import { GenerarController } from './infrastructure/http/generar.controller';
           : new OpenAiProvider(config),
     },
   ],
+  // El panel de "Entrenar a la IA" (AdminModule) prueba prompts contra la
+  // misma IA y guarda las ediciones en el mismo sitio que lee la generación.
+  exports: [AI_PROVIDER, PROMPTS_EDITADOS],
 })
 export class GenerationModule {}

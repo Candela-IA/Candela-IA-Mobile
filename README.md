@@ -350,6 +350,16 @@ Prisma — son reglas de negocio puras y testeables solas.
   proporción para que tarjetas e iconos sigan brillando igual entre sí. El
   número de capas no se toca: son las que hacen que el halo parezca desenfoque
   y no un marco
+- **Panel "Entrenar a la IA"** (23 de noviembre de 2026, pedido del cliente):
+  Ajustes → fila con candado → contraseña (`ADMIN_PASSWORD` en Railway) →
+  sección → modo → editar la instrucción, **probarla** sin guardar ni gastar
+  intentos, guardar, o **restaurar la original**. Uno por función y modo
+  ("Seguro" de Chat y de Stories son distintos), con "Aplicar también a"
+  para copiarlo. Solo se edita la parte del tono: persona, reglas y
+  ejemplos de `prompt-builder.ts` no se tocan. Las ediciones viven en la
+  tabla `tone_overrides`; sin fila manda `catalogo.ts`. El token del panel
+  dura 12 h, vive solo en memoria y cae si cambia la contraseña. El Básico
+  de Rompehielos no aparece: no usa la IA
 - **Sin chip fantasma en Android** (23 de noviembre de 2026): en Analizar
   Stories, con la letra grande del sistema, aparecía una copia de la tarjeta
   premium "Mantener interés" pintada encima de la vista previa. La causa

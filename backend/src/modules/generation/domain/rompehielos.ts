@@ -37,6 +37,24 @@
  *    prueba `no ata ninguna frase a un país` lo vigila.
  */
 
+import { Funcion, Nivel, Tono } from './catalogo';
+
+/**
+ * ¿Esta petición sale del banco en vez de la IA?
+ *
+ * Rompehielos no tiene captura ni contexto: el modelo recibiría siempre la
+ * misma petición y devolvería variaciones de lo mismo. Pagarle a OpenAI por
+ * eso no tiene sentido, así que el tono gratis se sirve de aquí (aunque al
+ * usuario le cuesta un intento, como todo). Los premium sí pasan por la IA —
+ * ahí está lo que se compra.
+ *
+ * Lo usan la generación y el panel de prompts: un tono que no llega a la IA
+ * no tiene instrucción que editar.
+ */
+export function seSirveDelBanco(funcion: Funcion, tono: Tono): boolean {
+  return funcion === Funcion.ROMPEHIELOS && tono.nivel === Nivel.GRATIS;
+}
+
 export const ROMPEHIELOS: readonly string[] = [
   // ── Dilemas: se responden solos porque obligan a elegir ────────────────
   'Pregunta seria y sin miedo: ¿piña en la pizza, sí o no?',

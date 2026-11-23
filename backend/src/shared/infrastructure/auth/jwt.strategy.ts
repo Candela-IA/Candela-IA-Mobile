@@ -15,6 +15,8 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 export interface PayloadJwt {
   /** ID interno del dispositivo (UUID de la tabla `devices`). */
   sub: string;
+  /** Solo en los tokens del panel "Entrenar a la IA". */
+  rol?: string;
 }
 
 /** Lo que queda disponible en `request.user`. */
@@ -42,7 +44,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   validate(payload: PayloadJwt): DispositivoAutenticado {
-    if (!payload?.sub) {
+    // Un token del panel de administración no es un dispositivo: no tiene
+    // saldo ni suscripción, y no debe poder generar como si lo fuera.
+    if (!payload?.sub || payload.rol) {
       throw new UnauthorizedException('Token sin dispositivo.');
     }
     return { deviceId: payload.sub };

@@ -135,6 +135,7 @@ Detalle por detalle:
 | `OPENAI_MODEL` | `gpt-5.6-luna` |
 | `JWT_SECRET` | Uno nuevo y aleatorio, **distinto al de tu `.env` local**. Genéralo con el comando de abajo y pégalo |
 | `JWT_EXPIRES_IN` | `30d` |
+| `ADMIN_PASSWORD` | La contraseña del candado **Ajustes → Entrenar a la IA** (desde el 23 de noviembre de 2026). Mínimo 10 caracteres; sin ella el panel responde "no está activado". La elige y la guarda el cliente: con ella se cambia lo que la app responde a todo el mundo. Cambiarla aquí cierra todas las sesiones abiertas del panel |
 | `SWAGGER` | **`true` en este despliegue, a propósito**, para que el cliente pueda verificar la API en `/api/docs`. El valor seguro por defecto es `false`: publicar la documentación completa facilita descubrir `POST /dispositivos/registrar` y quemar saldo de OpenAI inventando `deviceKey`. Se asume porque la cuenta es prepago y el daño está acotado al saldo. Ver la sección 8 del README |
 
 Para el secreto:

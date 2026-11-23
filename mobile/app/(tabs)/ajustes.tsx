@@ -199,6 +199,22 @@ export default function Ajustes() {
           />
         </TarjetaGlass>
 
+        {/*
+          El panel de prompts del cliente (23 de noviembre de 2026). Está a la
+          vista de todos pero detrás de un candado: la contraseña la comprueba
+          el servidor, así que conocer la fila no da acceso a nada.
+        */}
+        <TarjetaGlass tono="purpura" padding={0} estilo={estilos.tarjeta}>
+          <FilaAjuste
+            compacta
+            icono="lock-closed"
+            tono="purpura"
+            titulo="Entrenar a la IA"
+            subtitulo="Solo administradores · requiere contraseña"
+            onPress={() => router.push('/entrenar-ia')}
+          />
+        </TarjetaGlass>
+
         <TarjetaGlass tono="rosa" padding={espacio.lg} estilo={estilos.tarjeta}>
           <View style={estilos.filaVersion}>
             <View style={estilos.marcoLogo}>

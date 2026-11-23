@@ -19,13 +19,17 @@ import {
 import { Dispositivo } from '../../devices/domain/dispositivo.aggregate';
 import {
   Funcion,
-  Nivel,
   obtenerFuncion,
   obtenerTono,
   Tono,
 } from '../domain/catalogo';
 import { asegurarMayusculaInicial } from '../domain/ortografia';
-import { elegirRompehielos } from '../domain/rompehielos';
+import {
+  conInstruccion,
+  PROMPTS_EDITADOS,
+  PromptsEditadosRepository,
+} from '../domain/prompts-editados';
+import { elegirRompehielos, seSirveDelBanco } from '../domain/rompehielos';
 
 export interface ComandoGenerar {
   readonly deviceId: string;
@@ -72,6 +76,8 @@ export class GenerarRespuestaUseCase {
     private readonly dispositivos: DispositivoRepository,
     @Inject(AI_PROVIDER)
     private readonly ia: AiProvider,
+    @Inject(PROMPTS_EDITADOS)
+    private readonly prompts: PromptsEditadosRepository,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -110,15 +116,21 @@ export class GenerarRespuestaUseCase {
     // llamar a la IA: ya está cobrado, pero a OpenAI no le cuesta nada. Ver
     // `domain/rompehielos.ts`. Elegir una frase no puede fallar, así que no
     // hace falta devolver el crédito.
-    if (esRompehielosGratis(funcion.id, tono)) {
+    if (seSirveDelBanco(funcion.id, tono)) {
       return this.servirDelBanco(comando, tono, cobrado, ahora);
     }
 
     // 5. Generar. Desde aquí, cualquier fallo devuelve el crédito.
     try {
+      // Si el cliente reescribió este tono desde "Entrenar a la IA", manda
+      // su versión. Se consulta en cada petición —es una fila por clave
+      // única— para que un cambio guardado se note en la siguiente
+      // generación, sin cachés que vaciar ni despliegues.
+      const editada = await this.prompts.buscar(funcion.id, tono.id);
+
       const resultado = await this.ia.generar({
         funcion,
-        tono,
+        tono: conInstruccion(tono, editada),
         imagen: comando.imagen,
         contextoUsuario: comando.contexto,
         esRegeneracion: comando.esRegeneracion,
@@ -218,15 +230,4 @@ export class GenerarRespuestaUseCase {
       saldo: dispositivo.saldoVisible(ahora),
     };
   }
-}
-
-/**
- * Rompehielos no tiene captura ni contexto: el modelo recibiría siempre la
- * misma petición y devolvería variaciones de lo mismo. Pagarle a OpenAI por
- * eso no tiene sentido, así que el tono gratis se sirve del banco (aunque
- * al usuario le cuesta un intento, como todo). Los premium sí pasan por la
- * IA — ahí está lo que se compra.
- */
-function esRompehielosGratis(funcion: Funcion, tono: Tono): boolean {
-  return funcion === Funcion.ROMPEHIELOS && tono.nivel === Nivel.GRATIS;
 }

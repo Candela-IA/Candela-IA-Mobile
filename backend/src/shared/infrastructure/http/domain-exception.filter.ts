@@ -36,6 +36,8 @@ const CODIGO_A_HTTP: Record<string, HttpStatus> = {
   IMAGEN_REQUERIDA: HttpStatus.BAD_REQUEST,
   IMAGEN_NO_ESPERADA: HttpStatus.BAD_REQUEST,
   DISPOSITIVO_NO_ENCONTRADO: HttpStatus.UNAUTHORIZED,
+  PROMPT_INVALIDO: HttpStatus.BAD_REQUEST,
+  TONO_NO_EDITABLE: HttpStatus.BAD_REQUEST,
 };
 
 interface CuerpoError {

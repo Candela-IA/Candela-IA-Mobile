@@ -147,7 +147,7 @@ export function ChipTono({
         <Text style={estilos.emoji}>{emoji}</Text>
       </View>
 
-      {bloqueado ? (
+      {bloqueado && Platform.OS === 'ios' ? (
         // Los premium llevan la etiqueta con el degradado de marca, como en
         // el diseño: es lo que hace que el bloque de arriba se lea como "lo
         // bueno" y no como una fila más de opciones.
@@ -156,6 +156,27 @@ export function ChipTono({
         >
           {etiqueta}
         </TextoDegradado>
+      ) : bloqueado ? (
+        /*
+         * En Android, color sólido en vez de degradado (23 de noviembre de
+         * 2026). El degradado es una máscara (MaskedView), y en Android, dentro
+         * de una lista que se desplaza, dejaba una copia fantasma del chip
+         * pintada encima de la vista previa de Stories: el cliente la vio con
+         * "Mantener interés" partido en dos líneas por la letra grande.
+         * Una línea y encogiendo, igual que los chips gratis.
+         */
+        <Text
+          style={[
+            estilos.etiqueta,
+            estrecho && estilos.etiquetaEstrecha,
+            { color: colors.marca.rosa },
+          ]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.8}
+        >
+          {etiqueta}
+        </Text>
       ) : (
         <Text
           style={[

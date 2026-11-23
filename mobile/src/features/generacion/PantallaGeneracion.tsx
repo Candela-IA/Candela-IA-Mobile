@@ -41,14 +41,12 @@ import { EtiquetaSeccion } from '../../core/ui/EtiquetaSeccion';
 import { FondoPantalla } from '../../core/ui/FondoPantalla';
 import { IconoDegradado } from '../../core/ui/IconoDegradado';
 import { TarjetaGlass } from '../../core/ui/TarjetaGlass';
-import { ChecklistCarga } from './ChecklistCarga';
 import { ContadorCaracteres } from './ContadorCaracteres';
 import { PantallaAnalizando } from './PantallaAnalizando';
 import { PantallaResultado } from './PantallaResultado';
 import { usarGeneracion } from './usarGeneracion';
 import { VistaPreviaChat } from './VistaPreviaChat';
 import { VistaPreviaNota } from './VistaPreviaNota';
-import { VistaPreviaRespuesta } from './VistaPreviaRespuesta';
 import { borrarCaptura } from './borrarCaptura';
 import { CapturaSeleccionada, ZonaCaptura } from './ZonaCaptura';
 
@@ -222,21 +220,15 @@ export function PantallaGeneracion({
   };
 
   /**
-   * El checklist solo tiene sentido cuando hay una captura que analizar.
-   *
-   * Sus pasos —"leyendo la captura", "entendiendo el contexto"— describen
-   * un trabajo que en Rompehielos y Crear notas no existe: ahí no hay
-   * imagen y la respuesta llega en un par de segundos. Mostrarlo sería
-   * inventar una espera, y encima taparía la vista previa que el usuario
-   * está mirando. En esas dos el texto se releva en su sitio y basta con el
-   * indicador del botón.
-   */
-  const conChecklist = generando && Boolean(definicion?.requiereImagen);
-
-  /**
    * La vista previa, extraída para poder colocarla en dos sitios distintos
    * sin duplicar el bloque: encima de los modos de respuesta cuando la
    * pantalla no tiene captura ni contexto, y al final en el resto.
+   *
+   * Solo la llevan Rompehielos y Crear notas. En Analizar chat y Stories se
+   * quitó el 23 de noviembre de 2026, a petición del cliente: repetía la
+   * captura que ya se ve arriba y un "Aquí aparecerá tu respuesta" que no
+   * era verdad, porque en esas dos la respuesta sale en su propia pantalla
+   * (`PantallaResultado`). Además era donde aparecía el chip fantasma.
    *
    * Está desde que se abre la pantalla, no solo cuando hay resultado: el
    * usuario tiene que ver DÓNDE va a salir su mensaje antes de pedirlo.
@@ -247,36 +239,32 @@ export function PantallaGeneracion({
    * aparecer la de verdad. El marco se queda; lo que va dentro, hasta que
    * generas, es un texto tenue que dice qué va a aparecer ahí.
    */
-  const bloquePrevia = definicion ? (
+  const bloquePrevia =
+    definicion && !definicion.requiereImagen ? (
     <View style={estilos.bloque}>
       {ETIQUETA_PREVIA[funcion] ? (
         <Text style={estilos.etiquetaCaptura}>{ETIQUETA_PREVIA[funcion]}</Text>
       ) : null}
 
-      {conChecklist ? (
-        <ChecklistCarga conImagen />
-      ) : (
-        // La clave es el propio mensaje: cuando llega uno nuevo el bloque se
-        // remonta y entra con un fundido, así el texto se releva en el mismo
-        // sitio en vez de aparecer de golpe.
-        <Animated.View
-          key={resultado ?? 'esperando'}
-          entering={FadeIn.duration(260)}
-          style={generando ? estilos.previaGenerando : undefined}
-        >
-          <VistaPrevia
-            funcion={funcion}
-            mensaje={resultado ?? ''}
-            esperando={resultado === null}
-            imagenUri={captura?.uri}
-            etiquetaTono={tonoElegido?.etiqueta ?? ''}
-            emojiTono={tonoElegido?.emoji ?? ''}
-            tono={acento}
-          />
-        </Animated.View>
-      )}
+      {/* La clave es el propio mensaje: cuando llega uno nuevo el bloque se
+          remonta y entra con un fundido, así el texto se releva en el mismo
+          sitio en vez de aparecer de golpe. */}
+      <Animated.View
+        key={resultado ?? 'esperando'}
+        entering={FadeIn.duration(260)}
+        style={generando ? estilos.previaGenerando : undefined}
+      >
+        <VistaPrevia
+          funcion={funcion}
+          mensaje={resultado ?? ''}
+          esperando={resultado === null}
+          etiquetaTono={tonoElegido?.etiqueta ?? ''}
+          emojiTono={tonoElegido?.emoji ?? ''}
+          tono={acento}
+        />
+      </Animated.View>
 
-      {definicion.maxCaracteres !== null && !conChecklist ? (
+      {definicion.maxCaracteres !== null ? (
         <View style={estilos.contadorNota}>
           <ContadorCaracteres
             usados={[...(resultado ?? '')].length}
@@ -584,12 +572,14 @@ export function PantallaGeneracion({
 
 // ── Piezas ────────────────────────────────────────────────────────────────
 
-/** Cada función simula el contexto donde el mensaje se va a usar. */
+/**
+ * Cada función sin captura simula el contexto donde el mensaje se va a usar.
+ * Las dos con captura no llegan aquí: su respuesta sale en `PantallaResultado`.
+ */
 function VistaPrevia({
   funcion,
   mensaje,
   esperando,
-  imagenUri,
   etiquetaTono,
   emojiTono,
   tono,
@@ -598,7 +588,6 @@ function VistaPrevia({
   mensaje: string;
   /** Todavía no se ha generado nada: la maqueta va vacía. */
   esperando: boolean;
-  imagenUri?: string;
   etiquetaTono: string;
   emojiTono: string;
   tono: TonoAcento;
@@ -607,22 +596,11 @@ function VistaPrevia({
     return <VistaPreviaNota nota={mensaje} esperando={esperando} tono={tono} />;
   }
 
-  if (funcion === 'ROMPEHIELOS') {
-    return (
-      <VistaPreviaChat
-        mensaje={mensaje}
-        etiquetaTono={etiquetaTono}
-        emojiTono={emojiTono}
-        esperando={esperando}
-        tono={tono}
-      />
-    );
-  }
-
   return (
-    <VistaPreviaRespuesta
+    <VistaPreviaChat
       mensaje={mensaje}
-      imagenUri={imagenUri}
+      etiquetaTono={etiquetaTono}
+      emojiTono={emojiTono}
       esperando={esperando}
       tono={tono}
     />
@@ -655,8 +633,9 @@ const TEXTO_COPIAR: Record<FuncionApi, string> = {
 /**
  * El contador de la cabecera.
  *
- * Desde el 5 de septiembre de 2026 los intentos gratis son de cada función,
- * así que aquí se pinta el de ESTA pantalla y no el del dispositivo entero.
+ * Se pinta la entrada de ESTA pantalla. Desde el 23 de noviembre de 2026 la
+ * bolsa es común y las cuatro dicen lo mismo, pero leerla por función deja
+ * la pantalla lista si algún día vuelven a separarse.
  *
  * Si el saldo llegara sin `funciones` —un backend anterior, o una respuesta
  * guardada de antes del cambio— no se pinta nada: mejor sin contador que con

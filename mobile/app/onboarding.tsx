@@ -224,7 +224,7 @@ export default function Onboarding() {
             <>
               <Text style={estilos.pieRegalo}>
                 Empieza con{' '}
-                <Text style={estilos.pieRegaloFuerte}>5 intentos gratis</Text>
+                <Text style={estilos.pieRegaloFuerte}>6 intentos gratis</Text>
               </Text>
               <View style={estilos.sellos}>
                 {SELLOS.map((sello) => (

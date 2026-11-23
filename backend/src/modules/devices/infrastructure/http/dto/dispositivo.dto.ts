@@ -51,8 +51,8 @@ export class SaldoFuncionDto {
   @ApiProperty({
     example: true,
     description:
-      'Si es false, la app abre el paywall en vez de dejar generar EN ESTA ' +
-      'función. Las demás pueden seguir teniendo intentos.',
+      'Si es false, la app abre el paywall en vez de dejar generar. Con la ' +
+      'bolsa común, para un usuario gratis vale lo mismo en las cuatro.',
   })
   puedeGenerar!: boolean;
 }
@@ -64,25 +64,26 @@ export class SaldoDto {
   @ApiProperty({
     type: [SaldoFuncionDto],
     description:
-      'Un contador por función: desde el 5 de septiembre de 2026 cada una ' +
-      'tiene sus propios 6 intentos gratis semanales. Es lo que debe pintar ' +
-      'la app; los campos sueltos de abajo son la suma.',
+      'Un contador por función, pero desde el 23 de noviembre de 2026 los 6 ' +
+      'intentos gratis son una bolsa común y de por vida: las cuatro ' +
+      'entradas traen la misma cuenta. Es lo que pinta la app; los campos ' +
+      'sueltos de abajo dicen lo mismo.',
   })
   // `readonly` para poder devolver el objeto del dominio tal cual, sin
   // copiarlo solo para satisfacer al tipo.
   funciones!: readonly SaldoFuncionDto[];
 
   @ApiProperty({
-    example: 20,
+    example: 4,
     deprecated: true,
-    description: 'Suma de las cuatro bolsas. Solo para el APK anterior.',
+    description: 'Lo gastado de la bolsa común. Solo para APKs antiguos.',
   })
   gratisUsados!: number;
 
-  @ApiProperty({ example: 24, deprecated: true })
+  @ApiProperty({ example: 6, deprecated: true })
   gratisTotales!: number;
 
-  @ApiProperty({ example: 4, deprecated: true })
+  @ApiProperty({ example: 2, deprecated: true })
   gratisRestantes!: number;
 
   @ApiProperty({ example: 4 })

@@ -5,7 +5,7 @@
  */
 
 import {
-  CREDITOS_GRATIS_POR_FUNCION,
+  CREDITOS_GRATIS,
   CreditBalance,
   LIMITE_DIARIO_PREMIUM,
 } from './credit-balance';
@@ -20,11 +20,12 @@ const GRATIS = false;
 const PREMIUM = true;
 
 const CHAT = Funcion.ANALIZAR_CHAT;
+const STORIES = Funcion.ANALIZAR_STORIES;
 const NOTAS = Funcion.CREAR_NOTAS;
 
-/** Vacía la bolsa de una función. */
+/** Gasta todos los intentos de la semana en una función. */
 function agotar(saldo: CreditBalance, funcion: Funcion, ahora = AHORA): void {
-  for (let i = 0; i < CREDITOS_GRATIS_POR_FUNCION; i++) {
+  for (let i = 0; i < CREDITOS_GRATIS; i++) {
     saldo.consumir(funcion, GRATIS, ahora);
   }
 }
@@ -35,9 +36,14 @@ describe('CreditBalance', () => {
       const saldo = CreditBalance.nuevo(AHORA);
 
       expect(saldo.gratisRestantes(CHAT, AHORA)).toBe(
-        CREDITOS_GRATIS_POR_FUNCION,
+        CREDITOS_GRATIS,
       );
       expect(saldo.puedeGenerar(CHAT, GRATIS, AHORA)).toBe(true);
+    });
+
+    it('son 6', () => {
+      // Lo que se le prometió al cliente. Si cambia, que sea a propósito.
+      expect(CREDITOS_GRATIS).toBe(6);
     });
 
     it('descuenta uno por cada acción, incluyendo regeneraciones', () => {
@@ -47,11 +53,11 @@ describe('CreditBalance', () => {
       saldo.consumir(CHAT, GRATIS, AHORA); // "Generar otra respuesta"
 
       expect(saldo.gratisRestantes(CHAT, AHORA)).toBe(
-        CREDITOS_GRATIS_POR_FUNCION - 2,
+        CREDITOS_GRATIS - 2,
       );
     });
 
-    it('se bloquea al agotar los de esa función', () => {
+    it('se bloquea al agotarlos', () => {
       const saldo = CreditBalance.nuevo(AHORA);
       agotar(saldo, CHAT);
 
@@ -72,22 +78,38 @@ describe('CreditBalance', () => {
   });
 
   /**
-   * El motivo del cambio del 5 de septiembre de 2026. Si estas dos se caen,
-   * volvimos a la bolsa compartida sin darnos cuenta.
+   * El motivo del cambio del 23 de noviembre de 2026. Si estas se caen,
+   * volvimos a las bolsas por función sin darnos cuenta.
    */
-  describe('una bolsa por función', () => {
-    it('gastar los de una función no toca las demás', () => {
+  describe('una bolsa común para las cuatro funciones', () => {
+    it('gastarlos en una función deja sin intentos a las demás', () => {
       const saldo = CreditBalance.nuevo(AHORA);
       agotar(saldo, CHAT);
 
-      expect(saldo.puedeGenerar(CHAT, GRATIS, AHORA)).toBe(false);
-      expect(saldo.puedeGenerar(NOTAS, GRATIS, AHORA)).toBe(true);
-      expect(saldo.gratisRestantes(NOTAS, AHORA)).toBe(
-        CREDITOS_GRATIS_POR_FUNCION,
+      expect(saldo.puedeGenerar(NOTAS, GRATIS, AHORA)).toBe(false);
+      expect(saldo.gratisRestantes(STORIES, AHORA)).toBe(0);
+      expect(() => saldo.consumir(NOTAS, GRATIS, AHORA)).toThrow(
+        SinCreditosError,
       );
     });
 
-    it('cada función lleva su propia cuenta', () => {
+    it('cuenta lo gastado en todas', () => {
+      const saldo = CreditBalance.nuevo(AHORA);
+
+      saldo.consumir(CHAT, GRATIS, AHORA);
+      saldo.consumir(NOTAS, GRATIS, AHORA);
+      saldo.consumir(STORIES, GRATIS, AHORA);
+
+      for (const funcion of Object.values(Funcion)) {
+        expect(saldo.gratisRestantes(funcion, AHORA)).toBe(
+          CREDITOS_GRATIS - 3,
+        );
+      }
+    });
+
+    it('sigue anotando en qué función se gastó cada uno', () => {
+      // El tope es común, pero el dato por función se guarda: sirve para
+      // saber qué usa la gente, y para no necesitar migración.
       const saldo = CreditBalance.nuevo(AHORA);
 
       saldo.consumir(CHAT, GRATIS, AHORA);
@@ -96,74 +118,81 @@ describe('CreditBalance', () => {
 
       expect(saldo.freeUsed(CHAT)).toBe(1);
       expect(saldo.freeUsed(NOTAS)).toBe(2);
-      expect(saldo.freeUsed(Funcion.ANALIZAR_STORIES)).toBe(0);
+      expect(saldo.freeUsed(STORIES)).toBe(0);
+    });
+
+    it('quien venía con varias bolsas gastadas se topa con el total', () => {
+      // El caso del día del despliegue: un usuario que ya había gastado 3 en
+      // chat y 3 en Stories con las bolsas separadas no tiene ninguno más.
+      const saldo = CreditBalance.desdePersistencia({
+        freeUsed: {
+          [Funcion.ANALIZAR_CHAT]: 3,
+          [Funcion.ANALIZAR_STORIES]: 3,
+          [Funcion.ROMPEHIELOS]: 0,
+          [Funcion.CREAR_NOTAS]: 0,
+        },
+        freeResetAt: new Date('2026-08-20T05:00:00Z'),
+        dailyUsed: 0,
+        dailyResetAt: new Date('2026-08-14T05:00:00Z'),
+        lifetimeUsed: 6,
+      });
+
+      expect(saldo.puedeGenerar(NOTAS, GRATIS, AHORA)).toBe(false);
     });
   });
 
-  describe('renovación semanal de los gratis', () => {
-    /** Ya pasada la ventana de 7 días desde AHORA. */
-    const SEMANA_DESPUES = new Date('2026-08-21T10:00:00Z');
+  /**
+   * También del 23 de noviembre de 2026: los 6 son de por vida. Si estas se
+   * caen, volvió la renovación semanal.
+   */
+  describe('sin renovación: los 6 son de por vida', () => {
+    const UN_MES_DESPUES = new Date('2026-09-13T10:00:00Z');
+    const UN_ANIO_DESPUES = new Date('2027-08-13T10:00:00Z');
 
-    it('devuelve los intentos cuando pasa la semana', () => {
+    it('no los devuelve al pasar la semana', () => {
       const saldo = CreditBalance.nuevo(AHORA);
       agotar(saldo, CHAT);
 
-      expect(saldo.puedeGenerar(CHAT, GRATIS, AHORA)).toBe(false);
-      expect(saldo.puedeGenerar(CHAT, GRATIS, SEMANA_DESPUES)).toBe(true);
-      expect(saldo.gratisRestantes(CHAT, SEMANA_DESPUES)).toBe(
-        CREDITOS_GRATIS_POR_FUNCION,
+      expect(saldo.puedeGenerar(CHAT, GRATIS, UN_MES_DESPUES)).toBe(false);
+      expect(saldo.gratisRestantes(CHAT, UN_ANIO_DESPUES)).toBe(0);
+      expect(() => saldo.consumir(CHAT, GRATIS, UN_ANIO_DESPUES)).toThrow(
+        SinCreditosError,
       );
     });
 
-    it('renueva las cuatro bolsas a la vez', () => {
+    it('lo gastado se queda gastado aunque pase el tiempo', () => {
       const saldo = CreditBalance.nuevo(AHORA);
-      agotar(saldo, CHAT);
-      agotar(saldo, NOTAS);
+      saldo.consumir(CHAT, GRATIS, AHORA);
+      saldo.consumir(NOTAS, GRATIS, AHORA);
 
-      // Basta con generar una vez para que el reinicio quede persistido.
-      saldo.consumir(CHAT, GRATIS, SEMANA_DESPUES);
+      saldo.consumir(STORIES, GRATIS, UN_MES_DESPUES);
 
       expect(saldo.freeUsed(CHAT)).toBe(1);
-      expect(saldo.freeUsed(NOTAS)).toBe(0);
-    });
-
-    it('los devuelve aunque no vuelva a generar', () => {
-      // El contador se calcula al consultarlo: quien abre la app después de
-      // un mes ve sus intentos enteros sin tener que gastar uno primero.
-      const saldo = CreditBalance.nuevo(AHORA);
-      agotar(saldo, CHAT);
-
-      const vista = saldo.aVistaUsuario(GRATIS, SEMANA_DESPUES);
-      const chat = vista.funciones.find((f) => f.funcion === CHAT)!;
-
-      expect(chat.gratisRestantes).toBe(CREDITOS_GRATIS_POR_FUNCION);
-      expect(chat.gratisUsados).toBe(0);
-      expect(chat.puedeGenerar).toBe(true);
-    });
-
-    it('al renovar arranca una semana nueva', () => {
-      const saldo = CreditBalance.nuevo(AHORA);
-      agotar(saldo, CHAT);
-
-      saldo.consumir(CHAT, GRATIS, SEMANA_DESPUES);
-
-      expect(saldo.gratisRestantes(CHAT, SEMANA_DESPUES)).toBe(
-        CREDITOS_GRATIS_POR_FUNCION - 1,
-      );
-      expect(saldo.freeResetAt.getTime()).toBeGreaterThan(
-        SEMANA_DESPUES.getTime(),
+      expect(saldo.freeUsed(NOTAS)).toBe(1);
+      expect(saldo.gratisRestantes(CHAT, UN_MES_DESPUES)).toBe(
+        CREDITOS_GRATIS - 3,
       );
     });
 
-    it('no los devuelve antes de tiempo', () => {
-      const saldo = CreditBalance.nuevo(AHORA);
-      agotar(saldo, CHAT);
+    it('ignora una fecha de renovación vencida guardada de antes', () => {
+      // Los dispositivos de antes del cambio tienen `free_reset_at` en la
+      // tabla. Que esa fecha haya pasado ya no regala nada.
+      const saldo = CreditBalance.desdePersistencia({
+        freeUsed: {
+          [Funcion.ANALIZAR_CHAT]: 6,
+          [Funcion.ANALIZAR_STORIES]: 0,
+          [Funcion.ROMPEHIELOS]: 0,
+          [Funcion.CREAR_NOTAS]: 0,
+        },
+        freeResetAt: new Date('2026-08-01T05:00:00Z'),
+        dailyUsed: 0,
+        dailyResetAt: new Date('2026-08-14T05:00:00Z'),
+        lifetimeUsed: 6,
+      });
 
-      const dosDiasDespues = new Date('2026-08-15T10:00:00Z');
-
-      expect(saldo.gratisRestantes(CHAT, dosDiasDespues)).toBe(0);
-      expect(() => saldo.consumir(CHAT, GRATIS, dosDiasDespues)).toThrow(
-        SinCreditosError,
+      expect(saldo.puedeGenerar(CHAT, GRATIS, AHORA)).toBe(false);
+      expect(saldo.aVistaUsuario(GRATIS, AHORA).funciones[0].gratisUsados).toBe(
+        CREDITOS_GRATIS,
       );
     });
   });
@@ -175,7 +204,7 @@ describe('CreditBalance', () => {
       saldo.consumir(CHAT, PREMIUM, AHORA);
 
       expect(saldo.gratisRestantes(CHAT, AHORA)).toBe(
-        CREDITOS_GRATIS_POR_FUNCION,
+        CREDITOS_GRATIS,
       );
     });
 
@@ -238,18 +267,18 @@ describe('CreditBalance', () => {
   });
 
   describe('cuando falla la IA', () => {
-    it('devuelve el crédito a la bolsa de la que salió', () => {
+    it('devuelve el crédito', () => {
       const saldo = CreditBalance.nuevo(AHORA);
       saldo.consumir(CHAT, GRATIS, AHORA);
 
       saldo.revertir(CHAT, GRATIS);
 
       expect(saldo.gratisRestantes(CHAT, AHORA)).toBe(
-        CREDITOS_GRATIS_POR_FUNCION,
+        CREDITOS_GRATIS,
       );
     });
 
-    it('no le regala un intento a otra función', () => {
+    it('no descuenta de una función en la que no se gastó', () => {
       const saldo = CreditBalance.nuevo(AHORA);
       saldo.consumir(CHAT, GRATIS, AHORA);
 
@@ -270,26 +299,25 @@ describe('CreditBalance', () => {
   });
 
   describe('vista que consume la app', () => {
-    it('expone un contador por función, tal como se pinta', () => {
+    it('todas las pantallas pintan el mismo contador', () => {
       const saldo = CreditBalance.nuevo(AHORA);
       saldo.consumir(CHAT, GRATIS, AHORA);
       saldo.consumir(CHAT, GRATIS, AHORA);
       saldo.consumir(CHAT, GRATIS, AHORA);
-      saldo.consumir(CHAT, GRATIS, AHORA);
+      saldo.consumir(NOTAS, GRATIS, AHORA);
 
       const vista = saldo.aVistaUsuario(GRATIS, AHORA);
-      const chat = vista.funciones.find((f) => f.funcion === CHAT)!;
-      const notas = vista.funciones.find((f) => f.funcion === NOTAS)!;
 
-      // La cabecera de Analizar chat muestra "4/6"...
-      expect(chat.gratisUsados).toBe(4);
-      expect(chat.gratisTotales).toBe(CREDITOS_GRATIS_POR_FUNCION);
-      // ...y la de Crear notas, "0/6".
-      expect(notas.gratisUsados).toBe(0);
+      // Las cuatro cabeceras dicen "4/6", hayan generado o no en esa pantalla.
       expect(vista.funciones).toHaveLength(4);
+      for (const f of vista.funciones) {
+        expect(f.gratisUsados).toBe(4);
+        expect(f.gratisTotales).toBe(CREDITOS_GRATIS);
+        expect(f.gratisRestantes).toBe(2);
+      }
     });
 
-    it('mantiene la suma para el APK anterior', () => {
+    it('los campos sueltos dicen lo mismo, para APKs antiguos', () => {
       const saldo = CreditBalance.nuevo(AHORA);
       saldo.consumir(CHAT, GRATIS, AHORA);
       saldo.consumir(NOTAS, GRATIS, AHORA);
@@ -297,19 +325,14 @@ describe('CreditBalance', () => {
       const vista = saldo.aVistaUsuario(GRATIS, AHORA);
 
       expect(vista.gratisUsados).toBe(2);
-      expect(vista.gratisTotales).toBe(CREDITOS_GRATIS_POR_FUNCION * 4);
+      expect(vista.gratisTotales).toBe(CREDITOS_GRATIS);
+      expect(vista.gratisRestantes).toBe(CREDITOS_GRATIS - 2);
       expect(vista.puedeGenerar).toBe(true);
     });
 
-    it('el resumen solo se apaga cuando no queda nada en ninguna bolsa', () => {
+    it('el resumen se apaga al agotar la bolsa común', () => {
       const saldo = CreditBalance.nuevo(AHORA);
       agotar(saldo, CHAT);
-
-      expect(saldo.aVistaUsuario(GRATIS, AHORA).puedeGenerar).toBe(true);
-
-      for (const funcion of Object.values(Funcion)) {
-        if (funcion !== CHAT) agotar(saldo, funcion);
-      }
 
       expect(saldo.aVistaUsuario(GRATIS, AHORA).puedeGenerar).toBe(false);
     });

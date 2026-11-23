@@ -16,14 +16,19 @@ tono que elija.
 Es un **encargo de un cliente externo**. Sebastián desarrolla; el cliente
 entrega el diseño (Figma) y pone las cuentas de infraestructura.
 
-**Modelo de negocio:** 6 generaciones gratis **por cada función**, que se
-renuevan cada semana → suscripción. Plan anual **$34.99** / semanal **$6.99**,
-con 3 días de prueba.
+**Estado:** ✅ **en producción** en Google Play y en el App Store.
 
-> Son 6 en chats, 6 en Stories, 6 en notas y 6 en Rompehielos, pero **las que
-> se gastan de verdad son tres**: el único tono gratis de Rompehielos sale del
-> banco de frases y nunca toca el saldo. O sea, 18 generaciones gratis por
-> semana y por dispositivo, no 24.
+**Modelo de negocio:** **6 generaciones gratis en total y de por vida**,
+compartidas entre las cuatro funciones → suscripción. Plan anual **$34.99** /
+semanal **$6.99**, con 3 días de prueba.
+
+> **Desde el 23 de noviembre de 2026**, por petición del cliente: una sola
+> bolsa de 6 para las cuatro funciones, **sin renovación semanal**, y el
+> Básico de Rompehielos **también gasta intento** (se sigue sirviendo del
+> banco de frases, así que no cuesta nada de OpenAI). Antes eran 6 por
+> función y se renovaban cada semana. El uso se sigue guardando por función
+> en `credit_balances` y la columna `free_reset_at` se queda sin leerse: no
+> hizo falta migración.
 
 > ✅ **Subidos a petición del cliente el 4 de octubre de 2026**, desde los
 > $32.50/$6.50 que él mismo había confirmado el 13 de septiembre. Es el cuarto
@@ -44,7 +49,7 @@ con 3 días de prueba.
 |---|---|---|---|
 | Analizar chat | Sí | Sí | 6 tonos gratis + 3 premium |
 | Analizar Stories | Sí (vertical) | No | 4 gratis + 2 premium |
-| Rompehielos | No | No | "Básico" es **gratis de verdad**: sale de un banco de 100 frases, no gasta crédito y no llama a la IA. Los otros 4 tonos, premium |
+| Rompehielos | No | No | "Básico" sale de un banco de 100 frases y no llama a la IA, pero **gasta un intento** como todo. Los otros 4 tonos, premium |
 | Crear notas | No | No | Máx. 60 caracteres (límite de Instagram) |
 
 ---
@@ -142,9 +147,9 @@ Prisma — son reglas de negocio puras y testeables solas.
 
 - 4 tablas (`devices`, `credit_balances`, `subscriptions`, `generations`)
 - Registro de dispositivo sin login → JWT
-- Créditos: **6 gratis POR FUNCIÓN que se renuevan cada 7 días** (ventana
-  rodante, no un día fijo, y las cuatro bolsas vuelven a la vez) + tope de
-  50/día por dispositivo para suscriptores
+- Créditos: **6 gratis en total y de por vida, compartidos entre las cuatro
+  funciones** (también el Básico de Rompehielos) + tope de 100/día por
+  dispositivo para suscriptores
 - Catálogo de 4 funciones y 26 tonos servido por API
 - `POST /generar` con proveedor intercambiable
 - Errores de dominio traducidos a HTTP (402 → paywall)
@@ -184,7 +189,9 @@ Prisma — son reglas de negocio puras y testeables solas.
   frases escritas a mano (`domain/rompehielos.ts`) en vez de llamar a la IA.
   Un rompehielos no tiene captura ni contexto que analizar, así que el modelo
   recibía siempre la misma petición. Ahora cuesta $0, responde al instante y
-  **no gasta ninguno de los créditos**, ni siquiera con el saldo agotado.
+  ~~**no gasta ninguno de los créditos**, ni siquiera con el saldo agotado~~
+  — desde el 23 de noviembre de 2026 **sí gasta un intento**, como todo
+  (petición del cliente); lo que sigue siendo gratis es para OpenAI.
   Los cuatro tonos premium de esa función sí pasan por la IA
 - **Regenerar pide otro ángulo**: `esRegeneracion` viaja hasta el modelo, en
   el mensaje de usuario y no en el de sistema, para no romper la caché
@@ -218,8 +225,10 @@ Prisma — son reglas de negocio puras y testeables solas.
   respuestas proponiendo "un café" y empezando por "Entonces". La regla 10 lo
   prohíbe y añade la prueba del algodón — si el mensaje encajaría igual en
   otra conversación, es muletilla y se reescribe
-- **Los intentos gratis son de cada función** (5 de septiembre de 2026,
-  petición del cliente): cuatro bolsas de 6 en vez de una compartida, en
+- ~~**Los intentos gratis son de cada función**~~ — **revertido el 23 de
+  noviembre de 2026**: vuelve a ser una bolsa común de 6 (ver sección 1).
+  Lo que sigue es la historia de cuando se separaron.
+  (5 de septiembre de 2026, petición del cliente): cuatro bolsas de 6 en vez de una compartida, en
   cuatro columnas de `credit_balances` y no en una tabla aparte, para que el
   `SELECT ... FOR UPDATE` que ya existía siga protegiendo el saldo entero con
   un solo bloqueo. Las columnas arrancan en 0 y no heredan la bolsa vieja:
@@ -341,6 +350,17 @@ Prisma — son reglas de negocio puras y testeables solas.
   proporción para que tarjetas e iconos sigan brillando igual entre sí. El
   número de capas no se toca: son las que hacen que el halo parezca desenfoque
   y no un marco
+- **Sin chip fantasma en Android** (23 de noviembre de 2026): en Analizar
+  Stories, con la letra grande del sistema, aparecía una copia de la tarjeta
+  premium "Mantener interés" pintada encima de la vista previa. La causa
+  probable es la máscara (`MaskedView`) que pinta el degradado de las
+  etiquetas premium. En Android esas etiquetas ahora van en color sólido y en
+  una línea; en iOS siguen con degradado (probado en Android: se ven bien).
+  Y el bloque donde aparecía —la captura repetida con "Aquí aparecerá tu
+  respuesta" al final del formulario— **se quitó** de Analizar chat y
+  Stories por petición del cliente: la captura ya se ve arriba y la
+  respuesta sale en su propia pantalla. Rompehielos y Notas mantienen su
+  vista previa
 - **La vista previa ya no enseña un ejemplo**: antes se pintaba un mensaje de
   muestra con una insignia "EJEMPLO" para que la pantalla no arrancara vacía.
   El cliente lo quitó, y con razón: era una respuesta que nadie había pedido,

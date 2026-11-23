@@ -15,7 +15,7 @@ export abstract class DomainError extends Error {
   }
 }
 
-/** El usuario agotó sus 5 intentos gratis y no tiene suscripción activa. */
+/** El usuario agotó sus 6 intentos gratis y no tiene suscripción activa. */
 export class SinCreditosError extends DomainError {
   readonly code = 'SIN_CREDITOS';
 

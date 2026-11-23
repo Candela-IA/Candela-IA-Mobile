@@ -7,8 +7,11 @@
  * ni contexto que analizar. El modelo recibe siempre la misma petición y
  * devuelve variaciones de lo mismo, así que se estaba pagando por generar
  * algo que se puede escribir una vez y servir infinitas veces. Sirviéndolos
- * desde aquí, la función es gratis de verdad —no gasta ninguno de los
- * créditos gratis— y responde al instante en vez de tardar tres segundos.
+ * desde aquí, a OpenAI no le cuesta nada y responde al instante en vez de
+ * tardar tres segundos.
+ *
+ * Al USUARIO sí le cuesta: desde el 23 de noviembre de 2026 gasta uno de sus
+ * 6 intentos gratis, como cualquier otra generación (petición del cliente).
  *
  * Los cuatro tonos premium de Rompehielos SÍ pasan por la IA: ahí es donde
  * está la diferencia por la que alguien paga.

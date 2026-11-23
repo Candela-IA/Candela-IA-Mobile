@@ -39,7 +39,7 @@ export class PrismaDispositivoRepository implements DispositivoRepository {
 
     // upsert es la clave de la idempotencia: si el dispositivo ya existe
     // (reinstaló la app), solo actualizamos la versión y devolvemos su saldo
-    // intacto. Nunca reinicia los 5 gratis.
+    // intacto. Nunca reinicia los 6 gratis.
     const fila = await this.prisma.device.upsert({
       where: { deviceKey: datos.deviceKey },
       create: {

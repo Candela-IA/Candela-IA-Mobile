@@ -4,17 +4,20 @@
  * Regla única y sin excepciones: **1 acción = 1 crédito**. Da igual si es la
  * primera generación o un "Generar otra respuesta".
  *
- * Lo que cambió el 5 de septiembre de 2026, por petición del cliente ("6
- * intentos individuales por cada bloque"): los intentos gratis ya no salen de
- * una bolsa común, sino de una por función. Antes, gastar los seis analizando
- * chats dejaba sin nada a quien todavía no había probado las Stories ni las
- * notas — se chocaba con el muro antes de conocer la app entera, que es justo
- * cuando alguien decide que no vale la pena pagarla.
+ * Historia de las bolsas, porque ya dio dos vueltas:
  *
- * La semana sigue siendo UNA sola para las cuatro: la ventana se renueva a la
- * vez en todas. Cuatro fechas distintas serían imposibles de explicar en
- * pantalla ("te quedan 2 de chat hasta el jueves y 5 de notas hasta el
- * sábado") y no compran nada a cambio.
+ * - Hasta el 5 de septiembre de 2026, una bolsa común.
+ * - Del 5 de septiembre al 23 de noviembre de 2026, una por función ("6
+ *   intentos individuales por cada bloque").
+ * - Desde el 23 de noviembre de 2026, OTRA VEZ una bolsa común de 6 para las
+ *   cuatro, por petición del cliente ("6 puntos para todos, generales"), y
+ *   DE POR VIDA: ya no se renuevan cada semana.
+ *
+ * El uso se sigue GUARDANDO por función —las cuatro columnas de
+ * `credit_balances` no se tocan— y lo que cambió es la regla: el tope se
+ * mide contra la SUMA. Así no hizo falta migración, el `SELECT ... FOR
+ * UPDATE` sigue protegiendo el saldo entero con un solo bloqueo, y se sigue
+ * sabiendo en qué gasta la gente sus intentos.
  *
  * Clase de dominio pura: no importa NestJS ni Prisma. Se puede testear sola.
  */
@@ -26,23 +29,28 @@ import {
 } from '../../../shared/domain/domain-error';
 
 /**
- * Intentos gratis POR FUNCIÓN, y cada cuánto vuelven.
+ * Intentos gratis DE POR VIDA, COMPARTIDOS entre las cuatro funciones.
  *
- * Antes eran 5 de por vida y compartidos. Se pasó a 6 semanales por petición
- * del cliente, y la práctica le dio la razón: al quedarse sin intentos la
- * gente no paga, cambia de teléfono y sigue gratis — que es exactamente lo
- * que hizo él probando la app desde cinco móviles distintos. Un límite que se
- * esquiva cambiando de aparato no defiende el negocio, solo enseña a
- * esquivarlo.
+ * Desde el 23 de noviembre de 2026, por petición del cliente: "todas las
+ * funciones deben tener 6 intentos únicamente, y por siempre, no a la
+ * semana". Son 6 en total y no vuelven: quien gasta 4 en chats tiene 2 para
+ * todo lo demás, y después, suscripción.
  *
- * Ojo al leer este número: NO son 24 generaciones gratis a la semana. En
- * Rompehielos el único tono gratis es Básico, y ese sale del banco de frases
- * sin pasar por la IA ni tocar el saldo, así que las bolsas que se gastan de
- * verdad son tres: chat, Stories y notas.
+ * Cuentan TODOS, también el Básico de Rompehielos. Ese se sigue sirviendo
+ * del banco de frases —no cuesta nada de OpenAI—, pero gasta un intento
+ * como cualquier otro.
+ *
+ * Antes fueron 5 de por vida, luego 6 semanales (del 25 de agosto al 23 de
+ * noviembre de 2026).
  */
-export const CREDITOS_GRATIS_POR_FUNCION = 6;
+export const CREDITOS_GRATIS = 6;
 
-/** Cada cuántos días vuelven los intentos gratis a cero. */
+/**
+ * Días de la vieja renovación semanal.
+ *
+ * Ya no renueva nada. Solo sirve para rellenar la columna `free_reset_at`
+ * de los dispositivos nuevos, que sigue en la tabla para no migrar.
+ */
 export const DIAS_RENOVACION_GRATIS = 7;
 
 /**
@@ -69,8 +77,8 @@ export const LIMITE_DIARIO_PREMIUM = 100;
 /**
  * Minutos de desfase con UTC del huso en el que vive el usuario.
  *
- * Todo lo que se reinicia "al terminar el día" —el tope diario y la semana de
- * intentos gratis— lo hace a MEDIANOCHE DE ESE HUSO, no a medianoche UTC.
+ * Lo que se reinicia "al terminar el día" —el tope diario de premium— lo
+ * hace a MEDIANOCHE DE ESE HUSO, no a medianoche UTC.
  *
  * Antes era UTC a secas, y en Perú eso caía a las 7 de la tarde: el usuario
  * veía su contador volver a cero a media tarde, sin explicación posible. Un
@@ -84,7 +92,7 @@ export const LIMITE_DIARIO_PREMIUM = 100;
  */
 export const MINUTOS_DESFASE_HORARIO = -300;
 
-/** Las cuatro bolsas de intentos gratis, una por función. */
+/** Lo gastado en cada función. El tope se mide contra la suma. */
 export type UsoPorFuncion = Readonly<Record<Funcion, number>>;
 
 /** Todas las funciones, en el orden en que las declara el catálogo. */
@@ -102,14 +110,23 @@ export function sinUso(): Record<Funcion, number> {
 
 export interface EstadoSaldo {
   readonly freeUsed: UsoPorFuncion;
-  /** Cuándo vuelven a cero los intentos gratis. Una sola fecha para las 4. */
+  /**
+   * Fecha de la vieja renovación semanal. Ya no se lee para nada: se guarda
+   * y se devuelve tal cual porque la columna sigue en la tabla.
+   */
   readonly freeResetAt: Date;
   readonly dailyUsed: number;
   readonly dailyResetAt: Date;
   readonly lifetimeUsed: number;
 }
 
-/** El contador "4/6" de UNA función. */
+/**
+ * El contador "4/6" de una función.
+ *
+ * Con la bolsa común, las cuatro entradas dicen lo mismo: lo gastado ENTRE
+ * TODAS. Se mantiene una entrada por función porque así lo lee la app
+ * publicada, y gracias a eso el cambio llegó sin publicar versión nueva.
+ */
 export interface SaldoFuncion {
   readonly funcion: Funcion;
   readonly gratisUsados: number;
@@ -121,14 +138,11 @@ export interface SaldoFuncion {
 /**
  * Lo que la app necesita para pintar los contadores.
  *
- * `funciones` es lo que usa la app nueva: cada pantalla busca su entrada y
- * pinta su propio contador.
+ * `funciones` es lo que usa la app: cada pantalla busca su entrada y pinta
+ * su contador, que desde la bolsa común es el mismo en las cuatro.
  *
- * Los cuatro campos sueltos de abajo son la vista sumada, y siguen aquí por
- * el APK que el cliente ya tiene instalado: lee `gratisUsados` y
- * `gratisTotales`, y sin ellos el contador de su cabecera se quedaría vacío
- * el día que se despliegue esto. Se pueden borrar cuando ese APK esté
- * reemplazado.
+ * Los cuatro campos sueltos de abajo son la vista del dispositivo entero, y
+ * siguen aquí por APKs antiguos que todavía los lean.
  */
 export interface SaldoVisible {
   readonly esPremium: boolean;
@@ -136,13 +150,13 @@ export interface SaldoVisible {
   readonly limiteDiario: number | null;
   readonly funciones: readonly SaldoFuncion[];
 
-  /** @deprecated Suma de las cuatro bolsas. Solo para el APK anterior. */
+  /** @deprecated Lo gastado entre todas. Solo para APKs antiguos. */
   readonly gratisUsados: number;
   /** @deprecated */
   readonly gratisTotales: number;
   /** @deprecated */
   readonly gratisRestantes: number;
-  /** @deprecated ¿Le queda algo en alguna bolsa? */
+  /** @deprecated ¿Le queda algún intento? */
   readonly puedeGenerar: boolean;
 }
 
@@ -198,24 +212,29 @@ export class CreditBalance {
     return this._freeResetAt;
   }
 
+  /** Lo gastado entre las cuatro funciones. */
+  private totalGratisUsados(): number {
+    return FUNCIONES.reduce((total, f) => total + this.freeUsed(f), 0);
+  }
+
   /**
-   * Intentos gratis que le quedan en esa función, contando ya si venció la
-   * semana.
+   * Intentos gratis que le quedan, de los 6 de por vida.
    *
-   * Se calcula en vez de guardarse reiniciado, porque el saldo se consulta
-   * mucho más de lo que se modifica: así alguien que abre la app después de
-   * un mes ve sus intentos aunque todavía no haya generado nada.
+   * Con la bolsa común, `funcion` no cambia la cuenta, y sin renovación
+   * tampoco la cambia `ahora`. Se siguen pidiendo porque es la pregunta que
+   * hace quien llama ("¿puedo generar AQUÍ, AHORA?"): si algún día vuelven
+   * las bolsas por función o la renovación, el cambio se queda dentro de
+   * esta clase.
    */
-  gratisRestantes(funcion: Funcion, ahora: Date): number {
-    const usados = this.debeRenovarGratis(ahora) ? 0 : this.freeUsed(funcion);
-    return Math.max(0, CREDITOS_GRATIS_POR_FUNCION - usados);
+  gratisRestantes(_funcion: Funcion, _ahora: Date): number {
+    return Math.max(0, CREDITOS_GRATIS - this.totalGratisUsados());
   }
 
   /**
    * ¿Puede generar ahora mismo en esa función?
    *
    * - Premium: sí, mientras no supere el tope diario de uso justo.
-   * - Gratis: sí, mientras le queden intentos de esa función esta semana.
+   * - Gratis: sí, mientras le quede alguno de sus 6 intentos.
    */
   puedeGenerar(funcion: Funcion, esPremium: boolean, ahora: Date): boolean {
     if (esPremium) {
@@ -226,20 +245,21 @@ export class CreditBalance {
 
   /** Lo que se le devuelve a la app para pintar los contadores. */
   aVistaUsuario(esPremium: boolean, ahora: Date): SaldoVisible {
+    // Una entrada por función porque así lo lee la app, pero todas con la
+    // misma cuenta: la de la bolsa común.
     const funciones = FUNCIONES.map((funcion) => {
       const restantes = this.gratisRestantes(funcion, ahora);
 
       return {
         funcion,
-        gratisUsados: CREDITOS_GRATIS_POR_FUNCION - restantes,
-        gratisTotales: CREDITOS_GRATIS_POR_FUNCION,
+        gratisUsados: CREDITOS_GRATIS - restantes,
+        gratisTotales: CREDITOS_GRATIS,
         gratisRestantes: restantes,
         puedeGenerar: this.puedeGenerar(funcion, esPremium, ahora),
       };
     });
 
-    const restantes = funciones.reduce((t, f) => t + f.gratisRestantes, 0);
-    const totales = CREDITOS_GRATIS_POR_FUNCION * funciones.length;
+    const restantes = this.gratisRestantes(Funcion.ANALIZAR_CHAT, ahora);
 
     return {
       esPremium,
@@ -247,8 +267,8 @@ export class CreditBalance {
       limiteDiario: esPremium ? LIMITE_DIARIO_PREMIUM : null,
       funciones,
 
-      gratisUsados: totales - restantes,
-      gratisTotales: totales,
+      gratisUsados: CREDITOS_GRATIS - restantes,
+      gratisTotales: CREDITOS_GRATIS,
       gratisRestantes: restantes,
       puedeGenerar: funciones.some((f) => f.puedeGenerar),
     };
@@ -257,7 +277,7 @@ export class CreditBalance {
   // ── Comandos ────────────────────────────────────────────────────────────
 
   /**
-   * Descuenta un crédito de la bolsa de esa función. Lanza si no corresponde.
+   * Descuenta un crédito, anotado en esa función. Lanza si no corresponde.
    *
    * Se llama SIEMPRE antes de invocar a la IA — nunca después. Si la IA
    * falla, se devuelve el crédito con `revertir()`. Al revés (cobrar después)
@@ -269,14 +289,8 @@ export class CreditBalance {
       this._dailyResetAt = siguienteMedianoche(ahora);
     }
 
-    // La semana se renueva aquí y no al consultar: es el único momento en que
-    // el saldo se guarda, así que es donde el reinicio queda persistido. Las
-    // cuatro bolsas vuelven juntas, que es lo que permite explicar la
-    // renovación en una sola frase.
-    if (this.debeRenovarGratis(ahora)) {
-      this._freeUsed = sinUso();
-      this._freeResetAt = siguienteRenovacion(ahora);
-    }
+    // Aquí se renovaban los gratis cada semana. Desde el 23 de noviembre de
+    // 2026 no vuelven: son 6 de por vida.
 
     if (esPremium) {
       if (this._dailyUsed >= LIMITE_DIARIO_PREMIUM) {
@@ -323,10 +337,6 @@ export class CreditBalance {
   private debeReiniciarDiario(ahora: Date): boolean {
     return ahora >= this._dailyResetAt;
   }
-
-  private debeRenovarGratis(ahora: Date): boolean {
-    return ahora >= this._freeResetAt;
-  }
 }
 
 /**
@@ -346,12 +356,11 @@ export function siguienteMedianoche(ahora: Date): Date {
 }
 
 /**
- * Cuándo vuelven los intentos gratis.
+ * Siete días desde hoy, a medianoche del huso del usuario.
  *
- * Siete días desde hoy, a medianoche del huso del usuario. Es una ventana
- * rodante y no un día fijo de la semana: quien instala un jueves no tiene que
- * esperar al lunes para estrenar sus intentos, y todo el mundo dispone del
- * mismo plazo.
+ * Era cuándo volvían los intentos gratis. Desde el 23 de noviembre de 2026
+ * no vuelven, y esto solo rellena la columna `free_reset_at`, que sigue en
+ * la tabla para no tener que migrar.
  */
 export function siguienteRenovacion(ahora: Date): Date {
   const desfase = MINUTOS_DESFASE_HORARIO * 60_000;

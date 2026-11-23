@@ -181,9 +181,9 @@ export const PASOS: readonly Paso[] = [
   },
 ] as const;
 
-/** Los 5 intentos gratis que anuncia la última pantalla. */
+/** Los intentos gratis que anuncia la última pantalla: 6 en total. */
 export const REGALO = {
-  titulo: 'Por ser nuevo,\ntienes 5 intentos gratis',
+  titulo: 'Por ser nuevo,\ntienes 6 intentos gratis',
   descripcion: 'Pruébalo sin compromiso.',
 } as const;
 
